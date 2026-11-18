@@ -10,12 +10,14 @@ import pytest
 import torch
 from hkrl import protocol, spaces
 from hkrl.eval.sisters_survival import SistersCounterPolicy
+from hkrl.models.heads import HybridPolicyHead
 from hkrl.models.recurrent_policy import (
     SingleTaskEntityAttentionGRU,
     SistersLandingGRU,
     SistersTimingGRU,
     landing_movement_bias,
 )
+from hkrl.models.sisters_timing import platform_preferences
 from hkrl.training.demonstration_replay import DemonstrationReplay
 
 
@@ -81,6 +83,29 @@ def test_timing_gru_separates_blade_height_and_checks_all_visible_threats() -> N
     assert dist.buttons.probs[0, 2, jump] == 0
     assert dist.buttons.probs[0, 3, spaces.BUTTON_BITS["attack"]] > 0.9
     assert dist.movement_x.probs[0, 3].argmax() == 1
+
+
+def test_platform_allows_safe_edge_stance_and_air_recovery_on_either_side() -> None:
+    state = _arena()
+    obs = {key: value.repeat_interleave(5, dim=0) for key, value in state.items()}
+    p = obs["player"]
+    p[:, 0] = torch.tensor([-8, -10.8, 10.8, 10.8, 10.8]) / spaces.ARENA_SCALE
+    p[:, 1] = 3.1 / spaces.ARENA_SCALE
+    p[1:, 3] = -8 / spaces.VEL_SCALE
+    p[0, 9] = 1
+    obs["entity_mask"][-1, 3] = False
+    head = HybridPolicyHead(4)
+    mask = torch.ones(5, head.mask_dim, dtype=torch.bool)
+    jump = spaces.BUTTON_BITS["jump_tap"]
+    mask[3, spaces.N_MOVEMENT_X + spaces.N_AIM_Y + jump] = False
+    dist = head(torch.zeros(5, 4), action_mask=mask)
+    after = platform_preferences(dist, obs)
+    assert torch.allclose(after.movement_x.probs[0], dist.movement_x.probs[0])
+    assert after.buttons.probs[0, jump] == dist.buttons.probs[0, jump]
+    assert (after.buttons.probs[1:3, jump] > 0.99).all()
+    assert after.buttons.probs[3, jump] == 0
+    assert torch.allclose(after.movement_x.probs[-1], dist.movement_x.probs[-1])
+    assert torch.equal(after.buttons.probs[-1], dist.buttons.probs[-1])
 
 
 def test_landing_gru_keeps_all_buttons_and_disallowed_movements() -> None:

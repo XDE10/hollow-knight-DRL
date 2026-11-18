@@ -12,6 +12,69 @@ from hkrl import protocol, spaces
 from hkrl.models.heads import CompositeActionDistribution
 
 
+def platform_preferences(
+    dist: CompositeActionDistribution, obs: dict[str, Tensor]
+) -> CompositeActionDistribution:
+    """Compare the three landing positions and preserve safe actions near either edge."""
+    p, e = spaces.PLAYER_FEATURE_INDEX, spaces.ENTITY_FEATURE_INDEX
+    player, entities = obs["player"], obs["entities"]
+    if entities.shape[-1] <= e["hurtbox_size_y"] or entities.shape[-2] < 2:
+        return dist
+    visible = obs["entity_mask"].bool()
+    kind = entities[..., e["entity_type"]]
+    cx, cy, width, height = (
+        entities[..., e[name]] * spaces.ARENA_SCALE
+        for name in ("hurtbox_center_x", "hurtbox_center_y", "hurtbox_size_x", "hurtbox_size_y")
+    )
+    spikes = visible & (kind == protocol.EntityType.HAZARD) & (width > 0) & (height > 0)
+    left = (cx + width / 2).masked_fill(~spikes, torch.inf).amin(-1)
+    right = (cx - width / 2).masked_fill(~spikes, -torch.inf).amax(-1)
+    paired = (spikes.sum(-1) == 2) & (left < right)
+    # Finite fallbacks also keep masked rows safe during a minibatch backpropagation.
+    left, right = (torch.where(paired, edge, 0) for edge in (left, right))
+    top = (cy + height / 2).masked_fill(~spikes, -torch.inf).amax(-1)
+    floor = torch.where(paired, top + 1.73, 0)
+    x, y = (player[..., p[name]] * spaces.ARENA_SCALE for name in ("pos_x", "pos_y"))
+    vx, vy = (player[..., p[name]] * spaces.VEL_SCALE for name in ("vel_x", "vel_y"))
+    grounded = player[..., p["on_ground"]].bool()
+    # Descent acceleration and walk speed measured in live slot-3 rollouts.
+    gravity, walk_speed = 47.4, 8.3
+    flight = (vy + (vy.square() + 2 * gravity * (y - floor).clamp_min(0)).sqrt()) / gravity
+    horizon = torch.where(grounded, 0.17, flight.clamp(0.10, 0.7))
+    lag = horizon.clamp(max=0.10)
+    coast = x + lag * vx
+    reach = (horizon - lag) * walk_speed
+    landings = torch.stack((coast - reach, coast, coast + reach), -1)
+    clear = torch.minimum(landings - left.unsqueeze(-1), right.unsqueeze(-1) - landings)
+    gap = torch.minimum(x - left, right - x)
+    edge_side = torch.sign(x - (right + left) / 2)
+    dx, dy = cx - x.unsqueeze(-1), cy - y.unsqueeze(-1)
+    enemy = (kind == protocol.EntityType.BOSS) | (
+        (kind == protocol.EntityType.PROJECTILE) & (entities[..., e["team"]] == protocol.Team.ENEMY)
+    )
+    inboard = dx * edge_side.unsqueeze(-1) < 0
+    close = (dx.abs() < width / 2 + 2.6) & (dy.abs() < height / 2 + 1.3)
+    exposed = (visible & enemy & (width > 0) & inboard & close).any(-1)
+    # Leave knockback room only while an inboard enemy can hit the Knight.
+    margin = 0.8 + 2.4 * exposed.float()
+    risk = ((margin.unsqueeze(-1) - clear) / 1.2).clamp(0, 3.5)
+    risk = risk * paired.unsqueeze(-1)
+    move = Categorical(logits=dist.movement_x.logits - 5 * risk)
+    inward_landing = torch.where(edge_side < 0, clear[..., 2], clear[..., 0])
+    recovery = paired & ~grounded & (vy < 1) & (gap < 0.9) & (inward_landing < 1.1)
+    buttons = torch.zeros_like(dist.buttons.logits)
+    buttons[..., spaces.BUTTON_BITS["jump_tap"]] = 8 * recovery.float()
+    buttons[..., spaces.BUTTON_BITS["jump_hold"]] = 4 * recovery.float()
+    macro = dist.macro
+    if macro is not None:
+        bias = torch.zeros_like(macro.logits)
+        bias[..., 0] = 5 * (recovery | (risk.amax(-1) > 1)).float()
+        macro = Categorical(logits=macro.logits + bias)
+    return replace(
+        dist, movement_x=move, buttons=Bernoulli(logits=dist.buttons.logits + buttons), macro=macro
+    )
+
+
 def counter_preferences(
     dist: CompositeActionDistribution, obs: dict[str, Tensor]
 ) -> CompositeActionDistribution:

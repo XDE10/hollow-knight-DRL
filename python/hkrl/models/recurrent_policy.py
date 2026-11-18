@@ -26,7 +26,7 @@ from hkrl.models.heads import (
     HybridPolicyHead,
     ValueHead,
 )
-from hkrl.models.sisters_timing import counter_preferences
+from hkrl.models.sisters_timing import counter_preferences, platform_preferences
 from hkrl.spaces import ARENA_SCALE, DEFAULT_N_MACROS, ENTITY_FEATURE_INDEX, VEL_SCALE
 from hkrl.utils.registry import register_model
 
@@ -241,6 +241,17 @@ class SistersTimingGRU(SistersLandingGRU):
     ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
         dist, value, state = super().forward(obs, rnn_state, action_mask)
         return counter_preferences(dist, obs), value, state
+
+
+@register_model("sisters_platform_gru")
+class SistersPlatformGRU(SistersTimingGRU):
+    """Compare projected landings with the observed platform and allow an air recovery."""
+
+    def forward(
+        self, obs: dict[str, Tensor], rnn_state: RnnState = None, action_mask: Tensor | None = None
+    ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
+        dist, value, state = super().forward(obs, rnn_state, action_mask)
+        return platform_preferences(dist, obs), value, state
 
 
 def landing_movement_bias(obs: dict[str, Tensor]) -> Tensor:
