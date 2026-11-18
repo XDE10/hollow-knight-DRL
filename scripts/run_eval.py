@@ -74,6 +74,7 @@ def build_argparser() -> argparse.ArgumentParser:
         help="optional TCP port pool assigned round-robin to evaluator workers",
     )
     p.add_argument("--max-steps", type=int, default=4096)
+    p.add_argument("--reset-timeout", type=int, help="seconds to allow each game to enter RUNNING")
     p.add_argument(
         "--eval-workers",
         type=int,
@@ -147,7 +148,11 @@ def run_from_args(args: argparse.Namespace) -> dict[str, Any]:
     next_port = _make_port_provider(args)
 
     def env_factory(task: TaskConfig) -> Any:
-        env = HKRLEnv(transport=_build_transport(args, train_cfg, port=next_port()), task=task)
+        env: Any = HKRLEnv(transport=_build_transport(args, train_cfg, port=next_port()), task=task)
+        if getattr(args, "reset_timeout", None) is not None:
+            from hkrl.training.local_session import ResetTimeout
+
+            env = ResetTimeout(env, args.reset_timeout)
         return env if args.no_normalize else NormalizeObservation(env)
 
     evaluator = Evaluator(
@@ -191,6 +196,7 @@ def _build_metadata(
         "episodes": int(args.episodes),
         "eval_workers": int(getattr(args, "eval_workers", 1)),
         "max_steps": int(args.max_steps),
+        "reset_timeout_s": getattr(args, "reset_timeout", None) or 30,
         "model": train_cfg.model.name,
         "normalize": not bool(args.no_normalize),
         "policy": args.policy,
@@ -334,6 +340,8 @@ def _ports(args: argparse.Namespace) -> list[int]:
 
 
 def _validate_eval_args(args: argparse.Namespace) -> None:
+    if getattr(args, "reset_timeout", None) is not None:
+        _positive_int(args.reset_timeout, name="reset_timeout")
     tasks = getattr(args, "tasks", None)
     if not isinstance(tasks, Sequence) or isinstance(tasks, (str, bytes)) or not tasks:
         raise ValueError("at least one task is required")
