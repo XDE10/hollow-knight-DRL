@@ -180,7 +180,8 @@ def test_run_learner_ingests_recurrent_batch_dir_and_updates(tmp_path: Path) -> 
 
 
 def test_run_learner_network_intake_accepts_recurrent_batch_and_updates(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _load_script("run_learner.py")
     config = tmp_path / "appo_gru.yaml"

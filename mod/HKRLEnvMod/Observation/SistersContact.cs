@@ -23,7 +23,7 @@ namespace HKRLEnvMod.Observation
             if (hit == null || (hit.scene.name != Scene && !pooled))
                 return HKRL.DamageSource.Unknown;
 
-            for (Transform node = hit.transform; node != null; node = node.parent)
+            for (Transform? node = hit.transform; node != null; node = node.parent)
             {
                 var obj = node.gameObject;
                 var name = obj.name;
