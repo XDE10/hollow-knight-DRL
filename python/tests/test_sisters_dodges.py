@@ -127,3 +127,41 @@ def test_safe_nail_requires_a_complete_injury_free_window() -> None:
     assert np.flatnonzero(safe_nail_windows(data, record)).tolist() == [3, 4, 5, 6]
     record["contacts"] = [dict(step=11, amount=1)]
     assert not safe_nail_windows(data, record).any()
+
+
+def test_landed_counter_requires_visible_hit_target_and_safe_grounded_side_slash() -> None:
+    from hkrl.training.sisters_dodges import landed_counter_labels
+
+    n = 32
+    actions = np.zeros((n, 13), dtype=int)
+    actions[:, 1] = 1
+    actions[:, 2 + spaces.BUTTON_BITS["attack"]] = 1
+    player = np.zeros((n, 32))
+    player[:, spaces.PLAYER_FEATURE_INDEX["on_ground"]] = 1
+    entities = np.zeros((n, 2, 24))
+    entities[:, :, 0] = [17, 42]
+    entities[:, :, 1] = 1
+    entities[:, :, 5] = 123
+    entities[:, :, 8] = [-0.1, 0.1]
+    data = dict(
+        actions=actions,
+        player=player,
+        elapsed_ticks=np.full(n, 4),
+        entities=entities,
+        entity_mask=np.ones((n, 2), dtype=bool),
+    )
+    hits = [
+        dict(slash_step=step, step=step + 1, target_id=target, dx_at_slash=side * 3.0)
+        for step, target, side in ((7, 17, -1), (14, 42, 1), (21, 42, 1), (27, 17, -1))
+    ]
+    record = dict(hits=hits, contacts=[])
+    # Another landed sister is visible during each of these two nonmatching hits.
+    entities[20, 1, 5] = 111
+    data["entity_mask"][26, 0] = False
+    window, sides = landed_counter_labels(data, record, 123)
+    assert np.flatnonzero(window).tolist() == [3, 4, 5, 6, 10, 11, 12, 13]
+    assert np.flatnonzero(sides).tolist() == [6, 13]
+    assert sides[[6, 13]].tolist() == [-1, 1]
+    player[6, spaces.PLAYER_FEATURE_INDEX["on_ground"]] = 0
+    record["contacts"] = [dict(step=16, amount=1)]
+    assert not landed_counter_labels(data, record, 123)[1].any()

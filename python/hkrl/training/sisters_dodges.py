@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from hkrl import spaces
+from hkrl import protocol, spaces
 
 DODGE_BUTTONS = ("jump_tap", "dash")
 
@@ -76,3 +76,41 @@ def safe_nail_windows(data: Mapping[str, np.ndarray], record: dict[str, Any]) ->
         if not data["player"][begin : slash + 1, spaces.PLAYER_FEATURE_INDEX["invulnerable"]].any():
             mask[begin : slash + 1] = True
     return mask
+
+
+def landed_counter_labels(
+    data: Mapping[str, np.ndarray], record: dict[str, Any], landed_state: float
+) -> tuple[np.ndarray, np.ndarray]:
+    """Select grounded side slashes on the landed sister from the collector's verified hits."""
+    actions = data["actions"]
+    windows = np.zeros(len(actions), dtype=bool)
+    # Sign is the target's side at the slash decision. Zero means unlabelled.
+    sides = np.zeros(len(actions), dtype=np.int8)
+    e = spaces.ENTITY_FEATURE_INDEX
+    for hit in record["hits"]:
+        step = hit["slash_step"] - 1
+        if not 0 <= step < len(actions):
+            raise ValueError("invalid slash step")
+        action = actions[step]
+        if not (
+            data["player"][step, spaces.PLAYER_FEATURE_INDEX["on_ground"]]
+            and action[1] == 1
+            and action[2 + spaces.BUTTON_BITS["attack"]]
+        ):
+            continue
+        rows = data["entities"][step, data["entity_mask"][step].astype(bool)]
+        matched = rows[
+            (rows[:, e["entity_id"]] == hit["target_id"])
+            & (rows[:, e["entity_type"]] == protocol.EntityType.BOSS)
+            & (rows[:, e["fsm_state_hash"]] == landed_state)
+        ]
+        if len(matched) != 1:
+            continue
+        side = np.sign(matched[0, e["rel_x"]])
+        if not side or side != np.sign(hit["dx_at_slash"]):
+            continue
+        window = safe_nail_windows(data, {"hits": [hit], "contacts": record["contacts"]})
+        if window[step]:
+            windows |= window
+            sides[step] = side
+    return windows, sides
