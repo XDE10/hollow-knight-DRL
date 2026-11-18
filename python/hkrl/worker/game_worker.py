@@ -32,6 +32,7 @@ from hkrl.training.rollout_buffer import RolloutBatch, RolloutBuffer
 from hkrl.utils.config import TrainConfig
 from hkrl.utils.live_tuning import LiveTuning
 from hkrl.worker.checkpoint_client import CheckpointClient
+from hkrl.worker.local_inference import LocalActionBatcher
 
 
 class GameWorker:
@@ -56,6 +57,7 @@ class GameWorker:
         checkpoint_poll_interval_s: float = 2.0,
         time_scale: float | None = None,
         rollout_progress_sink: Callable[[dict[str, Any]], None] | None = None,
+        inference_batcher: LocalActionBatcher | None = None,
     ) -> None:
         if max_consecutive_failures < 0:
             raise ValueError("max_consecutive_failures must be non-negative")
@@ -75,6 +77,7 @@ class GameWorker:
 
         self.env = env
         self.model = model
+        self.inference_batcher = inference_batcher
         self.cfg = config
         self.checkpoint_client = checkpoint_client
         self.learner_endpoint = learner_endpoint
@@ -255,7 +258,8 @@ class GameWorker:
             )
             rnn_state = self._rnn_state
             with torch.inference_mode():
-                action, log_prob, value, next_rnn_state = self.model.act(
+                act = self.inference_batcher.act if self.inference_batcher else self.model.act
+                action, log_prob, value, next_rnn_state = act(
                     obs_tensor,
                     rnn_state=rnn_state,
                     action_mask=action_mask_tensor,

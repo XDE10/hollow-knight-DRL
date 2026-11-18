@@ -206,6 +206,7 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
     from hkrl.cli import _build_model, _make_env_transport, _obs_dims
     from hkrl.env import HKRLEnv
     from hkrl.worker.game_worker import GameWorker
+    from hkrl.worker.local_inference import LocalActionBatcher
     from hkrl.wrappers import NormalizeObservation
 
     cfg = load_train_config(args.config)
@@ -247,6 +248,13 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
         }
         if requested_ports:
             identity["sampling_ports"] = list(ports)
+        batch_inference = getattr(args, "batch_inference", False) or prior.get(
+            "batch_inference", False
+        )
+        if batch_inference:
+            if len(ports) < 2:
+                raise ValueError("--batch-inference requires at least two local game ports")
+            identity["batch_inference"] = True
         initial_weights = getattr(args, "init_weights", None)
         initial_bytes = Path(initial_weights).read_bytes() if initial_weights else None
         if initial_bytes is not None:
@@ -313,6 +321,9 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             print(json.dumps(record, sort_keys=True), flush=True)
 
         sampling_cfg = cfg.model_copy(update={"rollout_steps": cfg.rollout_steps // len(ports)})
+        batcher = LocalActionBatcher(model, len(ports)) if batch_inference else None
+        if batcher is not None:
+            resources.callback(batcher.close)
         workers = [
             GameWorker(
                 env=worker_env,
@@ -321,6 +332,7 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                 rollout_progress_sink=report_progress if len(ports) == 1 else None,
                 heartbeat_sink=report_recovery,
                 max_consecutive_failures=int(getattr(args, "sampling_retries", 2)),
+                inference_batcher=batcher,
             )
             for worker_env in envs
         ]
@@ -368,6 +380,8 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                     break
                 session.status("sampling", target_updates=args.updates)
                 started = time.monotonic()
+                passes_before = batcher.forward_passes if batcher else 0
+                decisions_before = batcher.decisions if batcher else 0
                 if pool is None:
                     batch = sample(0)
                     buffer = workers[0].buffer
@@ -391,6 +405,10 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                 session.status("updating", target_updates=args.updates)
                 update_started = time.monotonic()
                 metrics = {key: float(value) for key, value in algo.update(buffer).items()}
+                if batcher:
+                    metrics["mean_inference_batch_size"] = (
+                        batcher.decisions - decisions_before
+                    ) / max(1, batcher.forward_passes - passes_before)
                 update_seconds = time.monotonic() - update_started
                 session.update += 1
                 session.steps += int(batch.rewards.size)

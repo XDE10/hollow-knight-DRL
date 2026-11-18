@@ -197,3 +197,11 @@ permits one fresh RESET on the same worker and seed when the mod explicitly
 reports `SCENE_LOAD_FAILED` before an episode starts. Completed fights are kept.
 The report records each retried task, port and seed in `metadata.retried_scene_loads`.
 The default retry budget is zero. Errors after the first action still abort the run.
+
+Multi-window local recurrent PPO can enable `scripts/train.py --batch-inference`
+with `--ports`. Each game still owns its actions, recurrent memory, reset and TCP
+connection. Ready windows share one forward pass, with at most 2 ms of deliberate
+waiting to gather a batch. A worker in reset does not block the other games.
+The option is stored in the run manifest and resumed automatically. Look at
+`mean_inference_batch_size`, sampling seconds and SPS together when comparing
+actual runs; an isolated CPU forward benchmark excludes game and reset time.

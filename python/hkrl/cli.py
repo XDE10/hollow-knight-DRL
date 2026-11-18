@@ -53,6 +53,11 @@ def build_argparser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--run-dir", help="resumable local session; updates is the total target")
     parser.add_argument(
+        "--batch-inference",
+        action="store_true",
+        help="batch requests from ready local game windows on the same CPU policy",
+    )
+    parser.add_argument(
         "--demo-replay", help="directory of episode NPZ demonstrations for local recurrent PPO"
     )
     parser.add_argument("--init-weights", help="model-only initial weights for a new local session")
@@ -90,6 +95,8 @@ def build_argparser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_argparser()
     args = parser.parse_args(argv)
+    if args.batch_inference and (args.smoke or not args.run_dir):
+        parser.error("--batch-inference requires local multi-window training with --run-dir")
     if args.ports and (args.smoke or not args.run_dir or args.port is not None):
         parser.error("--ports requires --run-dir and cannot be combined with --smoke or --port")
     if args.init_weights and (args.smoke or not args.run_dir):
