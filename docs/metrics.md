@@ -78,11 +78,13 @@ Evaluator reward-event extraction rejects malformed evidence before aggregation:
 unknown event kinds, non-finite amounts, negative amount-bearing events, and
 malformed direct metric fields fail the run instead of writing NaN or impossible
 damage/heal/invalid-action metrics into release artifacts.
-`scripts/run_eval.py --eval-workers N --ports P0 P1 ...` evaluates tasks through
-a task-level worker pool so multi-boss regression checks can use multiple live
-env instances when available. The port pool must cover the active concurrent
-task workers (`min(N, task_count)`). The default is `1` worker and the single
-`--port` value to preserve deterministic single-instance behavior.
+With `scripts/run_eval.py --eval-workers N --ports P0 P1 ...`, a single boss uses up to
+`min(N, episodes)` games. Episode `i` uses worker `i % active_workers` and its original
+seed index. Each worker resets its own game and GRU state. Steps may interleave in the
+replay; group by task and episode. `eval_worker` indexes the ordered port list for this
+single-task mode. Multiple tasks still use up to `min(N, task_count)` workers.
+A local session inherits its recorded sampling ports when no evaluation endpoint options are
+supplied. An explicit single port runs one game. The CLI default outside such a session is one.
 Scripted/random baselines use each env response's `action_mask` as the
 authoritative action layout, so they can evaluate tasks with different macro
 action counts or macro enablement without rebuilding the policy per task.

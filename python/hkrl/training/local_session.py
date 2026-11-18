@@ -1,4 +1,4 @@
-"""Bounded, resumable synchronous CPU training on one real game instance."""
+"""Resumable local CPU training from one or more synchronous game instances."""
 
 from __future__ import annotations
 
@@ -12,9 +12,11 @@ import sys
 import time
 import traceback
 from collections.abc import Iterator
-from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor, wait
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
-from typing import Any
+from threading import Lock
+from typing import Any, cast
 
 import gymnasium as gym
 import numpy as np
@@ -25,6 +27,7 @@ from hkrl.learner.checkpoint_payload import validate_checkpoint_payload, validat
 from hkrl.learner.checkpoint_registry import CheckpointRegistry
 from hkrl.training.batch_io import save_rollout_batch
 from hkrl.training.demonstration_replay import DemonstrationReplay
+from hkrl.training.recurrent_buffer import RecurrentRolloutBuffer
 from hkrl.utils.config import load_task_config, load_train_config
 from hkrl.utils.live_tuning import atomic_write_json
 from hkrl.utils.logging import JsonlSink
@@ -190,7 +193,28 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("updates, checkpoint-every and reset-timeout must be positive")
     root = Path(args.run_dir).resolve()
     coordination = Path("runs/training").resolve()
-    with exclusive_game_lock(coordination / "game.lock"):
+    with exclusive_game_lock(coordination / "game.lock"), ExitStack() as resources:
+        prior_manifest = root / "manifest.json"
+        prior = (
+            json.loads(prior_manifest.read_text(encoding="utf-8"))
+            if prior_manifest.exists()
+            else {}
+        )
+        requested_ports = getattr(args, "ports", None)
+        if requested_ports is None and getattr(args, "port", None) is None:
+            requested_ports = prior.get("sampling_ports")
+        ports = requested_ports or [getattr(args, "port", None) or cfg.transport.port]
+        if requested_ports and (
+            cfg.transport.name != "tcp"
+            or (getattr(args, "host", None) or cfg.transport.host) not in {"127.0.0.1", "localhost"}
+            or any(not 1 <= p <= 65535 for p in ports)
+            or len(set(ports)) != len(ports)
+            or cfg.rollout_steps % len(ports)
+            or (len(ports) > 1 and cfg.algorithm != "recurrent_ppo")
+        ):
+            raise ValueError(
+                "--ports needs distinct loopback games and an evenly divisible recurrent rollout"
+            )
         identity: dict[str, Any] = {
             "format": 1,
             "schema_version": protocol.SCHEMA_VERSION,
@@ -198,14 +222,10 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             "task_config": task.model_dump(mode="json"),
             "game_seed_controlled": False,
         }
+        if requested_ports:
+            identity["sampling_ports"] = list(ports)
         initial_weights = getattr(args, "init_weights", None)
         initial_bytes = Path(initial_weights).read_bytes() if initial_weights else None
-        prior_manifest = root / "manifest.json"
-        prior = (
-            json.loads(prior_manifest.read_text(encoding="utf-8"))
-            if prior_manifest.exists()
-            else {}
-        )
         if initial_bytes is not None:
             identity["initial_weights_sha256"] = hashlib.sha256(initial_bytes).hexdigest()
         elif "initial_weights_sha256" in prior:
@@ -230,15 +250,24 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
         session = LocalSession(root, identity)
         seed_everything(cfg.seed)
         torch.set_num_threads(1)
-        base_env = HKRLEnv(
-            transport=_make_env_transport(cfg, args),
-            task=task,
-            step_timeout_s=float(getattr(args, "step_timeout", 15.0)),
-        )
-        env = NormalizeObservation(ResetTimeout(base_env, float(args.reset_timeout)))
+        games = []
+        envs = []
+        for port in ports:
+            env_args = argparse.Namespace(**vars(args))
+            if requested_ports:
+                env_args.port = port
+            game = HKRLEnv(
+                transport=_make_env_transport(cfg, env_args),
+                task=task,
+                step_timeout_s=float(getattr(args, "step_timeout", 15.0)),
+            )
+            games.append(game)
+            env = NormalizeObservation(ResetTimeout(game, float(args.reset_timeout)))
+            resources.callback(env.close)
+            envs.append(env)
         model = _build_model(
             cfg,
-            _obs_dims(env.observation_space),
+            _obs_dims(envs[0].observation_space),
             enable_macro=task.action.enable_macro_actions,
             n_macros=task.action.n_macro_actions,
             max_entities=task.observation.max_entities,
@@ -252,28 +281,50 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             session.status("sampling", target_updates=args.updates, **progress)
 
         def report_recovery(progress: dict[str, Any]) -> None:
-            record = session.status(
-                "recovering",
-                target_updates=args.updates,
-                **{key: value for key, value in progress.items() if key != "status"},
-            )
+            with status_lock:
+                record = session.status(
+                    "recovering",
+                    target_updates=args.updates,
+                    **{key: value for key, value in progress.items() if key != "status"},
+                )
             print(json.dumps(record, sort_keys=True), flush=True)
 
-        worker = GameWorker(
-            env=env,
-            model=model,
-            config=cfg,
-            rollout_progress_sink=report_progress,
-            heartbeat_sink=report_recovery,
-            max_consecutive_failures=int(getattr(args, "sampling_retries", 2)),
+        sampling_cfg = cfg.model_copy(update={"rollout_steps": cfg.rollout_steps // len(ports)})
+        workers = [
+            GameWorker(
+                env=worker_env,
+                model=model,
+                config=sampling_cfg,
+                rollout_progress_sink=report_progress if len(ports) == 1 else None,
+                heartbeat_sink=report_recovery,
+                max_consecutive_failures=int(getattr(args, "sampling_retries", 2)),
+            )
+            for worker_env in envs
+        ]
+        pool = (
+            resources.enter_context(ThreadPoolExecutor(max_workers=len(ports)))
+            if len(ports) > 1
+            else None
         )
+        paused = [False] * len(ports)
+        status_lock = Lock()
+
+        def sample(index: int) -> Any:
+            if paused[index]:
+                games[index].resume()
+                paused[index] = False
+            batch = workers[index].collect_rollout_with_recovery()
+            paused[index] = True
+            games[index].pause()
+            return batch
+
         sink = JsonlSink(root / "metrics.jsonl")
         active = coordination / "active.json"
         atomic_write_json(active, {"pid": os.getpid(), "run_dir": str(root)})
-        paused = False
         try:
             resumed = session.restore(model, algo)
-            worker.policy_version = session.update
+            for worker in workers:
+                worker.policy_version = session.update
             if not resumed:
                 if "initial_weights_sha256" in identity:
                     if initial_bytes is None:
@@ -294,13 +345,20 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                     break
                 session.status("sampling", target_updates=args.updates)
                 started = time.monotonic()
-                if paused:
-                    base_env.resume()
-                    paused = False
-                batch = worker.collect_rollout_with_recovery()
+                if pool is None:
+                    batch = sample(0)
+                    buffer = workers[0].buffer
+                else:
+                    futures = [pool.submit(sample, i) for i in range(len(workers))]
+                    # Drain every game before cleanup or any learner mutation on failure.
+                    wait(futures)
+                    for future in futures:
+                        future.result()
+                    buffer = RecurrentRolloutBuffer.combine_envs(
+                        [cast(RecurrentRolloutBuffer, worker.buffer) for worker in workers]
+                    )
+                    batch = buffer.to_batch(session.update)
                 sample_seconds = time.monotonic() - started
-                base_env.pause()
-                paused = True
                 if getattr(args, "save_rollouts", False):
                     # Unique attempts survive an interrupted update and a replayed policy version.
                     save_rollout_batch(
@@ -309,12 +367,13 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                     )
                 session.status("updating", target_updates=args.updates)
                 update_started = time.monotonic()
-                metrics = {key: float(value) for key, value in algo.update(worker.buffer).items()}
+                metrics = {key: float(value) for key, value in algo.update(buffer).items()}
                 update_seconds = time.monotonic() - update_started
                 session.update += 1
                 session.steps += int(batch.rewards.size)
                 session.wall_seconds += time.monotonic() - started
-                worker.policy_version = session.update
+                for worker in workers:
+                    worker.policy_version = session.update
                 stopping = (root / "STOP").exists()
                 if (
                     session.update % args.checkpoint_every == 0
@@ -330,8 +389,8 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                     sps=batch.rewards.size / max(sample_seconds, 1e-9),
                     rollout_reward=float(batch.rewards.sum()),
                     metrics=metrics,
-                    sampling_failures=worker.worker_crash_count,
-                    discarded_rollout_steps=worker.discarded_rollout_steps,
+                    sampling_failures=sum(w.worker_crash_count for w in workers),
+                    discarded_rollout_steps=sum(w.discarded_rollout_steps for w in workers),
                 )
                 sink.log_episode({"type": "update", **record})
                 sink.flush()
@@ -357,9 +416,10 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             raise
         finally:
             try:
-                if paused:
-                    base_env.resume()
+                with ExitStack() as resumes:
+                    for game, is_paused in zip(games, paused, strict=True):
+                        if is_paused:
+                            resumes.callback(game.resume)
             finally:
                 sink.close()
-                env.close()
                 active.unlink(missing_ok=True)

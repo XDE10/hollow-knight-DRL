@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +17,7 @@ from hkrl import protocol, spaces
 from hkrl.env import HKRLEnv
 from hkrl.eval.scripted_policies import ScriptedAggroPolicy
 from hkrl.eval.sisters_survival import (
+    SistersBodyCounterPolicy,
     SistersCounterPolicy,
     SistersDodgeCounterPolicy,
     SistersSurvivalPolicy,
@@ -211,7 +214,14 @@ def main() -> None:
     parser.add_argument("--task", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=12)
-    parser.add_argument("--teacher", choices=("aggro", "survival", "counter", "dodge_counter"), default="aggro")
+    parser.add_argument(
+        "--teacher",
+        choices=("aggro", "survival", "counter", "dodge_counter", "body_counter"),
+        default="aggro",
+    )
+    parser.add_argument(
+        "--ports", nargs="+", type=int, help="one loopback TCP port per game"
+    )
     args = parser.parse_args()
     if os.environ.get("HKRL_SAVE_SLOT") != "3":
         raise ValueError("Sisters demonstrations require save slot 3")
@@ -220,14 +230,27 @@ def main() -> None:
         raise ValueError("expected the Sisters of Battle task")
     root = args.output
     root.mkdir(exist_ok=True, parents=True)
-    with exclusive_game_lock(Path("runs/training/game.lock")):
-        env = HKRLEnv(
-            make_transport(load_train_config(args.config)), task, step_timeout_s=15
-        )
+    cfg = load_train_config(args.config)
+    ports = args.ports or [cfg.transport.port]
+    if (
+        args.episodes < 1
+        or len(set(ports)) != len(ports)
+        or any(not 1 <= n <= 65535 for n in ports)
+    ):
+        parser.error("require positive episode count and distinct valid ports")
+    if args.ports and (
+        cfg.transport.name != "tcp"
+        or cfg.transport.host not in ("localhost", "127.0.0.1")
+    ):
+        parser.error("--ports requires loopback TCP games")
+
+    def collect_port(index: int, port: int) -> None:
+        env = HKRLEnv(make_transport(cfg, port=port), task, step_timeout_s=15)
         policy_class = {
             "aggro": ScriptedAggroPolicy,
             "survival": SistersSurvivalPolicy,
             "counter": SistersCounterPolicy,
+            "body_counter": SistersBodyCounterPolicy,
             "dodge_counter": SistersDodgeCounterPolicy,
         }[args.teacher]
         teacher = policy_class(
@@ -237,12 +260,19 @@ def main() -> None:
             vertical_deadzone=0.06,
         )
         try:
-            for i in range(args.episodes):
+            for i in range(index, args.episodes, len(ports)):
                 dest = root / f"episode-{i + 1:03d}.npz"
                 audit = dest.with_suffix(".json")
                 if dest.exists() and audit.exists():
                     continue
+                started = time.time()
                 arrays, record = collect_episode(env, teacher)
+                record.update(
+                    port=port,
+                    teacher=args.teacher,
+                    started=started,
+                    finished=time.time(),
+                )
                 with dest.with_suffix(".tmp").open("wb") as f:
                     np.savez_compressed(f, **arrays)
                 dest.with_suffix(".tmp").replace(dest)
@@ -255,6 +285,8 @@ def main() -> None:
                     json.dumps(
                         dict(
                             episode=i + 1,
+                            port=port,
+                            seconds=round(record["finished"] - started, 2),
                             steps=record["steps"],
                             approaches=sides,
                             turns=turns,
@@ -264,6 +296,16 @@ def main() -> None:
                 )
         finally:
             env.close()
+
+    with (
+        exclusive_game_lock(Path("runs/training/game.lock")),
+        ThreadPoolExecutor(max_workers=len(ports)) as pool,
+    ):
+        futures = [
+            pool.submit(collect_port, index, port) for index, port in enumerate(ports)
+        ]
+        for future in futures:
+            future.result()
 
 
 if __name__ == "__main__":

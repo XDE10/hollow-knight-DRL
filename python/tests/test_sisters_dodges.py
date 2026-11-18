@@ -96,3 +96,34 @@ def test_lunge_telegraph_on_second_boss_can_trigger_masked_jump() -> None:
     obs["entity_mask"][1] = True
     mask[spaces.N_MOVEMENT_X + spaces.N_AIM_Y + bit] = False
     assert not policy.act(obs, mask)["buttons"][bit]
+
+
+@pytest.mark.parametrize("side", [-1, 1])
+def test_body_counter_stops_in_nail_range_and_holds_lunge_jump(side: int) -> None:
+    from hkrl.eval.sisters_survival import SistersBodyCounterPolicy
+
+    player = np.zeros(32, np.float32)
+    player[9] = 1
+    rows = np.zeros((1, 24), np.float32)
+    rows[0, 1] = 1
+    rows[0, 5] = SistersBodyCounterPolicy.LANDED
+    rows[0, [8, 14]] = side * 2.4 / spaces.ARENA_SCALE
+    obs = dict(player=player, entities=rows, entity_mask=np.array([True]))
+    mask = np.ones(len(spaces.action_mask_layout(enable_macro=False)), dtype=bool)
+    policy = SistersBodyCounterPolicy(spaces.make_action_space(enable_macro=False))
+    act = policy.act(obs, mask)
+    assert act["movement_x"] == 1
+    assert act["buttons"][spaces.BUTTON_BITS["attack"]]
+    rows[0, 5] = policy.DASH_ANTIC
+    act = policy.act(obs, mask)
+    assert act["buttons"][spaces.BUTTON_BITS["jump_hold"]] and act["duration"] == 3
+
+
+def test_safe_nail_requires_a_complete_injury_free_window() -> None:
+    from hkrl.training.sisters_dodges import safe_nail_windows
+
+    data = dict(player=np.zeros((20, 32)), elapsed_ticks=np.full(20, 4))
+    record = dict(hits=[dict(slash_step=7, step=8)], contacts=[])
+    assert np.flatnonzero(safe_nail_windows(data, record)).tolist() == [3, 4, 5, 6]
+    record["contacts"] = [dict(step=11, amount=1)]
+    assert not safe_nail_windows(data, record).any()

@@ -8,6 +8,9 @@ the project version tracks the **schema_version** + roadmap phase.
 
 ### Added
 
+- Added concurrent Sisters demonstration collection, synchronous local multi-game recurrent PPO,
+  and episode-parallel evaluation for one boss. Each evaluation game loads the same frozen policy.
+
 - Added slot-3 dodge-and-counter demonstrations and checkpoint-initialized
   imitation on motion-confirmed jump/dash windows. Recurrent PPO can replay
   these outcome-annotated windows alongside ordinary movement and attacks.

@@ -675,3 +675,27 @@ def _obs() -> dict[str, np.ndarray]:
         "entities": entities,
         "entity_mask": np.array([1, 0], dtype=np.int8),
     }
+
+
+def test_single_task_parallel_games_keep_numbering_seeds_and_local_state() -> None:
+    envs: list[FakeEvalEnv] = []
+
+    def factory(_: TaskConfig) -> FakeEvalEnv:
+        env = FakeEvalEnv()
+        envs.append(env)
+        return env
+
+    replay: list[dict[str, Any]] = []
+    evaluator = Evaluator(
+        ScriptedAggroPolicy(spaces.make_action_space(enable_macro=False)),
+        tasks=[TaskConfig(task_id="single", scene="Arena")],
+        seeds=[0, 1, 9],
+        env_factory=factory,
+        replay_sink=replay.append,
+        num_workers=3,
+    )
+    metrics = evaluator.evaluate(episodes_per_task=10)["single"]
+    assert len(envs) == 3 and all(env.closed for env in envs)
+    starts = sorted((r["episode"], r["seed"], r["eval_worker"]) for r in replay if r["step"] == 1)
+    assert starts == [(i, [0, 1, 9][i % 3], i % 3) for i in range(10)]
+    assert metrics["win_rate"] == pytest.approx(0.4)

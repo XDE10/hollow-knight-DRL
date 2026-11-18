@@ -7,7 +7,8 @@ optional burn-in prefix used only to warm the RNN (no loss on burn-in steps).
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
+from copy import copy
 from dataclasses import dataclass
 from typing import Any
 
@@ -108,6 +109,29 @@ class RecurrentRolloutBuffer:
         self.episode_ids = np.zeros(env_prefix, dtype=np.uint64)
         self.task_ids = np.zeros(env_prefix, dtype=np.int64)
         self.rnn_states: list[Any] = [None for _ in range(capacity)]
+
+    @classmethod
+    def combine_envs(cls, buffers: Sequence[RecurrentRolloutBuffer]) -> RecurrentRolloutBuffer:
+        """Join independently bootstrapped, equal-length rollouts along the environment axis."""
+        if not buffers:
+            raise ValueError("no recurrent buffers to join")
+        first = buffers[0]
+        layout = (first.capacity, first.sequence_length, first.burn_in)
+        if any(
+            not b.is_full() or (b.capacity, b.sequence_length, b.burn_in) != layout for b in buffers
+        ):
+            raise ValueError("workers must finish equally sized recurrent rollouts")
+        combined = copy(first)
+        combined.num_envs = sum(b.num_envs for b in buffers)
+        for field in vars(first):
+            if isinstance(getattr(first, field), np.ndarray):
+                setattr(
+                    combined, field, np.concatenate([getattr(b, field) for b in buffers], axis=1)
+                )
+        combined.rnn_states = [
+            _stack_rnn_states([b.rnn_states[t] for b in buffers]) for t in range(first.capacity)
+        ]
+        return combined
 
     def add(self, **transition: Any) -> None:
         if self.is_full():

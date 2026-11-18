@@ -378,15 +378,17 @@ without opening the JSON payload.
 `make phase8-profile` writes `runs/phase8-smoke/profile.md` and `profile.json`;
 it is a stable report format for CI/local comparisons, not a replacement for
 Unity profiler captures on the game machine.
-Evaluator scale-out uses the same task isolation principle:
-`scripts/run_eval.py --eval-workers N --ports P0 P1 ...` runs different task
-evaluations through a task-level worker pool while keeping training separate
-from evaluator envs. Use `N` only when the target machine has enough live mod
-instances/ports for the selected task set; `run_eval.py` rejects invalid ports,
-duplicate port pools, empty seed lists, non-positive episode/step/worker counts,
-and port pools smaller than the active task-level worker count
-(`min(--eval-workers, task_count)`). The default `1` and single `--port`
-preserve single-instance behavior.
+Local recurrent PPO also accepts `scripts/train.py --run-dir RUN --ports P0 P1 ...`.
+The configured rollout budget is divided evenly across the games. Each game has its own
+episode, GRU state and bootstrap value. It pauses on finishing its share. The learner
+joins the completed trajectories along the environment dimension and updates one model.
+The run manifest pins the port order for resume. Torch sampling across concurrent threads
+and Unity attack selection do not guarantee a bitwise replay from a seed.
+
+For a single evaluation task, `scripts/run_eval.py --eval-workers N --ports P0 P1 ...`
+distributes whole episodes across live games. For several tasks it distributes tasks.
+Each active worker needs its own game and port. See [metrics](metrics.md) for the seed
+mapping and [the Sisters experiment](sisters_survival.md) for measured throughput.
 
 ## 9. PyTorch + CUDA note
 

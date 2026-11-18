@@ -455,3 +455,16 @@ def _load_script(name: str) -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def test_local_evaluation_inherits_training_ports_and_respects_single_port(tmp_path: Path) -> None:
+    module = _load_script("run_eval.py")
+    (tmp_path / "manifest.json").write_text('{"sampling_ports":[5555,5556,5557]}')
+    parser = module.build_argparser()
+    options = ["--local-session", str(tmp_path), "--tasks", "sisters.yaml"]
+    inherited = parser.parse_args(options)
+    module._resolve_session_ports(inherited)
+    assert inherited.ports == [5555, 5556, 5557] and inherited.eval_workers == 3
+    explicit = parser.parse_args([*options, "--port", "5556"])
+    module._resolve_session_ports(explicit)
+    assert explicit.ports is None and explicit.port == 5556 and explicit.eval_workers == 1

@@ -57,3 +57,22 @@ def dodge_outcomes(data: Mapping[str, np.ndarray], record: dict[str, Any]) -> np
             counter = bool(len(later) and not np.any((hurt > t) & (hurt <= later[0])))
             grades[i, column] = 2 if counter else 1
     return grades
+
+
+def safe_nail_windows(data: Mapping[str, np.ndarray], record: dict[str, Any]) -> np.ndarray:
+    """Mark the approach and slash for verified hits with a fully observed injury-free interval."""
+    end = np.cumsum(data["elapsed_ticks"], dtype=np.int64)
+    start = np.r_[0, end[:-1]]
+    mask = np.zeros(len(end), dtype=bool)
+    injury = end[[event["step"] - 1 for event in record["contacts"] if event["amount"] > 0]]
+    for hit in record["hits"]:
+        slash, contact = hit["slash_step"] - 1, hit["step"] - 1
+        if not 0 <= slash <= contact < len(end):
+            raise ValueError("invalid slash or contact step")
+        lo, hi = start[slash] - 12, end[contact] + 12
+        if lo < 0 or hi > end[-1] or np.any((injury >= lo) & (injury <= hi)):
+            continue
+        begin = int(np.searchsorted(start, lo))
+        if not data["player"][begin : slash + 1, spaces.PLAYER_FEATURE_INDEX["invulnerable"]].any():
+            mask[begin : slash + 1] = True
+    return mask

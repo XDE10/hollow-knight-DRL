@@ -45,6 +45,12 @@ def build_argparser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--steps", type=int, default=None, help="override total smoke steps")
     parser.add_argument("--updates", type=int, default=1, help="number of PPO updates to run")
+    parser.add_argument(
+        "--ports",
+        type=int,
+        nargs="+",
+        help="loopback game ports sharing one local recurrent PPO rollout",
+    )
     parser.add_argument("--run-dir", help="resumable local session; updates is the total target")
     parser.add_argument(
         "--demo-replay", help="directory of episode NPZ demonstrations for local recurrent PPO"
@@ -84,6 +90,8 @@ def build_argparser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_argparser()
     args = parser.parse_args(argv)
+    if args.ports and (args.smoke or not args.run_dir or args.port is not None):
+        parser.error("--ports requires --run-dir and cannot be combined with --smoke or --port")
     if args.init_weights and (args.smoke or not args.run_dir):
         parser.error("--init-weights requires training with --run-dir")
 

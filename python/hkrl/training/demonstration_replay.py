@@ -63,6 +63,7 @@ class DemonstrationReplay:
         self.episodes: list[dict[str, Tensor]] = []
         self.windows: list[tuple[int, int]] = []
         self.dodge_windows: list[int] = []
+        self.counter_windows: list[int] = []
         self.hashes: dict[str, str] = {}
         files, holdout = split_demonstrations(directory)
         if not holdout or length <= 0 or burn_in < 0:
@@ -81,6 +82,14 @@ class DemonstrationReplay:
                 ):
                     raise ValueError(f"invalid dodge outcomes: {path}")
                 episode["dodge_outcomes"] = grades
+            if "safe_nail" in data:
+                if (
+                    "dodge_outcomes" not in episode
+                    or data["safe_nail"].shape != (len(actions),)
+                    or data["safe_nail"].dtype != torch.bool
+                ):
+                    raise ValueError(f"invalid counterattack labels: {path}")
+                episode["safe_nail"] = data["safe_nail"]
             if self.episodes and self.episodes[0].keys() != episode.keys():
                 raise ValueError("cannot mix annotated and unannotated demonstrations")
             for start in range(0, len(actions), length):
@@ -89,6 +98,8 @@ class DemonstrationReplay:
                     and (episode["dodge_outcomes"][start : start + length] > 0).any()
                 ):
                     self.dodge_windows.append(len(self.windows))
+                if "safe_nail" in episode and episode["safe_nail"][start : start + length].any():
+                    self.counter_windows.append(len(self.windows))
                 self.windows.append((index, start))
             self.episodes.append(episode)
             self.hashes[path.name] = hashlib.sha256(payload).hexdigest()
@@ -98,6 +109,8 @@ class DemonstrationReplay:
         choices = rng.integers(len(self.windows), size=3)
         if self.dodge_windows:
             choices[0] = rng.choice(self.dodge_windows)
+        if self.counter_windows:
+            choices[1] = rng.choice(self.counter_windows)
         for choice in choices:
             index, start = self.windows[int(choice)]
             episode = self.episodes[index]
@@ -113,7 +126,9 @@ class DemonstrationReplay:
         actions = data.pop("actions")
         dist, _, _ = model(compact_obs(data), action_mask=mask)
         if "dodge_outcomes" in data:
-            return dodge_imitation_loss(dist, actions, mask, valid, data["dodge_outcomes"])
+            return dodge_imitation_loss(
+                dist, actions, mask, valid, data["dodge_outcomes"], data.get("safe_nail")
+            )
         move_loss = -dist.movement_x.log_prob(actions[..., 0])[valid].mean()
         # An unavailable attack/jump conveys no evidence about whether to press it.
         button_targets = actions[..., 2 : 2 + spaces.N_BUTTONS].float()
@@ -133,6 +148,7 @@ def dodge_imitation_loss(
     mask: Tensor,
     valid: Tensor,
     grades: Tensor,
+    safe_nail: Tensor | None = None,
 ) -> Tensor:
     """Keep ordinary movement and attacks while learning infrequent verified evasions."""
     loss = -dist.movement_x.log_prob(actions[..., 0])[valid].mean()
@@ -156,4 +172,14 @@ def dodge_imitation_loss(
             weights = legal * (1 + 3 * targets[..., bit])
             nll = -(weights * logp[..., bit]).sum() / weights.sum().clamp(min=1)
             loss = loss + nll * (0.35 if name == "jump_hold" else 1)
+    if safe_nail is not None:
+        counter = valid & safe_nail
+        log_move = dist.movement_x.log_prob(actions[..., 0])
+        loss -= (log_move * counter).sum() / counter.sum().clamp(min=1)
+        duration_logp = dist.duration.log_prob(actions[..., 2 + spaces.N_BUTTONS])
+        long_jump = actions[..., 2 + spaces.N_BUTTONS] == spaces.N_DURATION - 1
+        safe_jump = valid & long_jump & (grades[..., 0] > 0)
+        regular = valid & ~long_jump
+        loss -= 0.4 * (duration_logp * safe_jump).sum() / safe_jump.sum().clamp(min=1)
+        loss -= 0.4 * (duration_logp * regular).sum() / regular.sum().clamp(min=1)
     return loss

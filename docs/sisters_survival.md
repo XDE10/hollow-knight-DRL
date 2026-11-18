@@ -125,3 +125,51 @@ $control = 'runs/training/sisters-counter-v2-seed0/checkpoints/checkpoint_v00002
 本阶段 64 批 PPO 共 32,768 个训练决策，经历 127 个回合编号。每次决策都观测到 1 个 Boss；其中 12,076 次没有敌方投射物，17,962 次有 1 个，2,730 次同时有 2 个。模型已经见过多个投射物，缺少多个螳螂本体同时上场的实战样本。
 
 从训练轨迹筛出同一高度起落、途中没有再次跳跃、冲刺、攻击或受伤的片段。9 次使用长跳宏后，在离散观测中记录到的上升高度中位数是 1.87 个游戏单位；14 次选择两物理步的短按跳，中位数是 1.24。水平移动允许。这些实机片段用于核查按键效果；落地位置、躲伤和反击时机仍需在冻结模型评估中分别复核。
+
+## 实测四个窗口，以及同一 Boss 的三窗并行评估
+
+本机的游戏安装包含 Unity 的 `single-instance=` 启动设置，直接重复启动同一个程序会退出。实测保留 Steam 安装目录，为额外游戏使用独立的游戏目录，在副本的 `hollow_knight_Data/boot.config` 移除该行。每个进程单独设置 `HKRL_HOST=127.0.0.1`、`HKRL_PORT`、`HKRL_SAVE_SLOT` 和 Unity 的 `-logFile`。主游戏使用 5555 端口和 3 号槽；5556、5557、5558 依次使用 4、1、2 号槽中的 3 号档副本。开工前备份，结束后验证 1、2、3 号原档的哈希。Windows 游戏副本仍须隔离存档槽。
+
+| 同时采样的游戏数 | 实打示范场数 | 合计决策/秒 | 每次决策经过的平均物理步 |
+|---:|---:|---:|---:|
+| 1 | 4 | 13.01 | 3.23 |
+| 2 | 4 | 22.02 | 3.54 |
+| 3 | 6 | 32.86 | 3.66 |
+| 4 | 8 | 22.20 | 6.07 |
+
+吞吐按整组决策数除以采样用时计算。并行组从第一场开始计到最后一场结束，包含重置，不含启动游戏。单窗分两段运行，扣除两段之间的空闲时间。各组游戏攻击序列有差异。这组结果用于选择本机窗口数。
+
+上轮示范的 51 次本体扣血里，有 36 次发生在螳螂落地后的同一 FSM 状态。这类受伤时，螳螂碰撞框中心的水平距离中位数为 1.2 个游戏单位；该状态下 49 次已核实挥刀命中的距离中位数为 2.2。本轮示范在攻击距离内停步挥刀，并在地面横冲前尝试持续按跳。22 场实机示范共 78 次核实命中，17 场用于模仿、5 场整场留出。由上一阶段 4,096 步检查点初始化，模仿 320 批后接回 PPO。三窗各采 170 步再合并，每次更新共 510 步，20 次合计 10,200 步。实际模型采样合计 18.15 决策/秒，20 次更新的采样、存盘和优化共 12.22 分钟。
+
+两份冻结权重各实打 10 场，用相同三窗、端口顺序和种子列表。三个窗口按全局局号分别打 4、3、3 场。每场重置游戏与 GRU 状态，回放记录 `eval_worker`。Unity 的攻击序列未由种子锁定。
+
+| 三窗评估，每个模型 10 场 | 旧默认模型 | 本轮模型 |
+|---|---:|---:|
+| 胜场 | 0/10 | 0/10 |
+| 有效输出场次 | 10/10 | 8/10 |
+| 场均 Boss 伤害 | 77.7 | 42.0 |
+| 平均存活游戏时间 | 25.78 秒 | 32.11 秒 |
+| 本体／飞镖／地刺总扣血 | 52／26／12 | 50／32／8 |
+| 发生踩刺的场数 | 6/10 | 7/10 |
+| 每千物理步本体加飞镖扣血 | 6.05 | 5.11 |
+
+本轮存活更久，地刺总扣血减少，但踩过刺的场数增加、场均输出下降。本轮与对照均未观测到多个螳螂本体同时上场。默认仍取上轮避刺与反击模型，本轮权重保存在 `runs/training/sisters-body-counter/checkpoints/checkpoint_v000006.pt`，SHA-256 为 `30070e27fb8e58042822f9860ea43b26c520d50315cb35e8048642a8e800f329`。下一轮宜定位躲过横冲或落砸后哪一段丢了回刀机会，再增加相应的安全命中示范。
+
+在三个已经启动且各用训练存档的实例上，可以用以下 PowerShell 命令复现，先使用上文的 `Initialize-HKRLGameRuntime` 配置本机环境。运行目录须独立，`$old` 指向上轮闪避实验的 4,096 步检查点。
+
+```powershell
+$r = 'runs/training/sisters-body-replica'
+$cfg = 'configs/train/sisters_body_counter.yaml'
+$task = 'configs/experiments/sisters_counter.yaml'
+$old = 'runs/training/sisters-dodge-stage/checkpoints/checkpoint_v000003.pt'
+& $py scripts/collect_sisters_demos.py --teacher body_counter --config $cfg --task $task `
+    --output "$r/demos" --episodes 22 --ports 5555 5556 5557
+& $py scripts/fit_sisters_dodges.py --config $cfg --task $task --demos "$r/demos" `
+    --output "$r/imitation" --init-weights $old
+& $py scripts/train.py --config $cfg --task $task --run-dir $r --updates 20 `
+    --ports 5555 5556 5557 --checkpoint-every 4 --reset-timeout 90 --save-rollouts `
+    --init-weights "$r/imitation/bc-weights.pt" --demo-replay "$r/imitation/demos"
+& $py scripts/run_eval.py --policy model --train-config $cfg --tasks $task `
+    --checkpoint-dir "$r/checkpoints" --local-session $r --episodes 10 --seeds 10001 10002 10003 `
+    --eval-workers 3 --ports 5555 5556 5557 --output "$r/eval.json" --replay-jsonl "$r/eval-steps.jsonl"
+```

@@ -12,6 +12,7 @@ import math
 import threading
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import ExitStack
 from dataclasses import dataclass
 from numbers import Integral, Real
 from typing import Any
@@ -70,7 +71,37 @@ class Evaluator:
         if isinstance(self.model, ActorCritic):
             self.model.eval()
         try:
-            if self.num_workers == 1 or len(self.tasks) == 1:
+            if len(self.tasks) == 1 and self.num_workers > 1:
+                task = self.tasks[0]
+                count = min(self.num_workers, episodes_per_task)
+                with ExitStack() as cleanup:
+                    envs = []
+                    for _ in range(count):
+                        env = self.env_factory(task)
+                        if hasattr(env, "close"):
+                            cleanup.callback(env.close)
+                        envs.append(env)
+
+                    def run_group(worker: int) -> list[tuple[int, _EpisodeResult]]:
+                        return [
+                            (
+                                i,
+                                self._run_episode(
+                                    envs[worker],
+                                    self.seeds[i % len(self.seeds)],
+                                    task=task,
+                                    episode_index=i,
+                                    worker_index=worker,
+                                ),
+                            )
+                            for i in range(worker, episodes_per_task, count)
+                        ]
+
+                    with ThreadPoolExecutor(max_workers=count) as pool:
+                        groups = list(pool.map(run_group, range(count)))
+                results = sorted((row for group in groups for row in group), key=lambda row: row[0])
+                return {task.task_id: _aggregate([row[1] for row in results])}
+            if self.num_workers == 1:
                 return {
                     task.task_id: self._evaluate_task(task, episodes_per_task)
                     for task in self.tasks
@@ -121,6 +152,7 @@ class Evaluator:
         *,
         task: TaskConfig,
         episode_index: int,
+        worker_index: int | None = None,
     ) -> _EpisodeResult:
         obs, info = env.reset(seed=seed)
         rnn_state = self._initial_rnn_state()
@@ -186,6 +218,7 @@ class Evaluator:
                 event_metrics=event_metrics,
                 observation=obs,
                 won=won,
+                worker_index=worker_index,
             )
 
             if terminated or truncated:
@@ -287,6 +320,7 @@ class Evaluator:
         event_metrics: _EventMetrics,
         observation: Any,
         won: bool,
+        worker_index: int | None = None,
     ) -> None:
         if self.replay_sink is None:
             return
@@ -315,6 +349,8 @@ class Evaluator:
             "wire_id": int(task.wire_id),
             "won": won,
         }
+        if worker_index is not None:
+            record["eval_worker"] = worker_index
         if "elapsed_game_seconds" in info:
             record["elapsed_game_seconds"] = float(info["elapsed_game_seconds"])
         if isinstance(observation, Mapping) and "player" in observation:

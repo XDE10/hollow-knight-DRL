@@ -66,7 +66,7 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--episodes", type=int, default=20)
     p.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
     p.add_argument("--host", default="127.0.0.1")
-    p.add_argument("--port", type=int, default=5555)
+    p.add_argument("--port", type=int)
     p.add_argument(
         "--ports",
         nargs="+",
@@ -77,8 +77,7 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument(
         "--eval-workers",
         type=int,
-        default=1,
-        help="number of task-level evaluator workers",
+        help="parallel games; a single task is divided by episode",
     )
     p.add_argument("--no-normalize", action="store_true")
     p.add_argument("--baseline", help="optional baseline metrics JSON for regression diff")
@@ -119,7 +118,23 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def _resolve_session_ports(args: argparse.Namespace) -> None:
+    run = getattr(args, "local_session", None)
+    explicit = any(getattr(args, field, None) is not None for field in ("port", "ports", "eval_workers"))
+    if run and not explicit and args.host in {"127.0.0.1", "localhost"}:
+        manifest = Path(run) / "manifest.json"
+        if manifest.is_file():
+            ports = json.loads(manifest.read_bytes()).get("sampling_ports")
+            if ports:
+                args.ports, args.eval_workers = ports, len(ports)
+    if getattr(args, "port", None) is None:
+        args.port = 5555
+    if getattr(args, "eval_workers", None) is None:
+        args.eval_workers = 1
+
+
 def run_from_args(args: argparse.Namespace) -> dict[str, Any]:
+    _resolve_session_ports(args)
     _validate_eval_args(args)
     baseline_metrics = (
         _load_baseline_metrics(Path(args.baseline)) if getattr(args, "baseline", None) else None
@@ -342,7 +357,7 @@ def _validate_eval_args(args: argparse.Namespace) -> None:
     ports = _ports(args)
     if len(set(ports)) != len(ports):
         raise ValueError("ports must be unique")
-    active_workers = min(eval_workers, len(tasks))
+    active_workers = min(eval_workers, args.episodes if len(tasks) == 1 else len(tasks))
     if len(ports) < active_workers:
         raise ValueError("ports must include at least one port per active eval worker")
 

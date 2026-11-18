@@ -26,7 +26,11 @@ from hkrl.training.demonstration_replay import (
     read_demonstration,
     split_demonstrations,
 )
-from hkrl.training.sisters_dodges import DODGE_BUTTONS, dodge_outcomes
+from hkrl.training.sisters_dodges import (
+    DODGE_BUTTONS,
+    dodge_outcomes,
+    safe_nail_windows,
+)
 from hkrl.utils.config import load_task_config, load_train_config
 from hkrl.utils.live_tuning import atomic_write_json
 from hkrl.utils.seeding import seed_everything
@@ -45,6 +49,8 @@ def prepare(source: Path, target: Path) -> dict[str, Any]:
         with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
             arrays = {key: archive[key] for key in archive.files}
         grades = dodge_outcomes(arrays, record)
+        if record.get("teacher") == "body_counter":
+            arrays["safe_nail"] = safe_nail_windows(arrays, record)
         dest = target / path.name
         with dest.with_suffix(".tmp").open("wb") as f:
             np.savez_compressed(f, **arrays, dodge_outcomes=grades)
@@ -54,6 +60,9 @@ def prepare(source: Path, target: Path) -> dict[str, Any]:
             "observations_sha256": hashlib.sha256(payload).hexdigest(),
             "events_sha256": hashlib.sha256(metadata).hexdigest(),
             "hits": len(record["hits"]),
+            "safe_nail_steps": int(arrays["safe_nail"].sum())
+            if "safe_nail" in arrays
+            else None,
             "survival_ticks": record["elapsed_ticks"],
             "spike_hp": sum(
                 c["amount"] for c in record["contacts"] if c["source"] == "SPIKES"

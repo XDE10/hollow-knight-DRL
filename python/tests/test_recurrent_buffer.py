@@ -196,3 +196,43 @@ def _transition(step: int) -> dict[str, object]:
         "action_mask": np.array([True]),
         "rnn_state": np.zeros((1, 1, 2), dtype=np.float32),
     }
+
+
+def test_combine_envs_keeps_equal_episode_ids_and_gru_states_in_separate_games() -> None:
+    import numpy as np
+
+    spec = {k: (1,) for k in ("global", "player", "entity_mask", "action", "action_mask")}
+    spec["entities"] = (1, 1)
+    buffers = []
+    for game in (1, 2):
+        b = RecurrentRolloutBuffer(4, 1, 2, 0, spec)
+        for _ in range(4):
+            b.add(
+                obs={
+                    k: np.full(spec[k], game)
+                    for k in ("global", "player", "entities", "entity_mask")
+                },
+                action=np.array([0]),
+                reward=float(game),
+                done=False,
+                truncated=False,
+                log_prob=0.0,
+                value=0.0,
+                prev_action=np.array([0]),
+                action_mask=np.ones(1, bool),
+                episode_id=1,
+                task_id=1,
+                rnn_state=np.full((1, 1, 3), game, np.float32),
+            )
+        b.compute_returns(np.array([game]), 0.9, 0.9)
+        buffers.append(b)
+    joined = RecurrentRolloutBuffer.combine_envs(buffers)
+    assert joined.num_envs == 2
+    batch = joined.to_batch(policy_version=7)
+    assert batch.rewards.shape == (4, 2)
+    for i, b in enumerate(buffers):
+        np.testing.assert_array_equal(batch.advantages[:, i], b.advantages[:, 0])
+    seqs = list(joined.iter_sequences(minibatch_size=1, shuffle=False))
+    assert len(seqs) == 4
+    for seq in seqs:
+        assert np.all(seq.obs["player"] == seq.rnn_state[0, 0, 0])

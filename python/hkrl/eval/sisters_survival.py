@@ -196,3 +196,76 @@ class SistersDodgeCounterPolicy(SistersCounterPolicy):
             action["aim_y"] = 0
             buttons[attack] = 1
         return action
+
+
+class SistersBodyCounterPolicy(SistersDodgeCounterPolicy):
+    """Hold the jump over a lunge and stop within nail reach after a sister lands."""
+
+    # Observed after the downward strike in slot-3 traces, on 49 of 50 confirmed hits.
+    LANDED = np.float32(-1523407744)
+
+    def act(self, obs: Any, action_mask: Any | None = None) -> Any:
+        action = super().act(obs, action_mask)
+        mask, _, _ = _validated_action_mask(self.action_space, action_mask)
+        e, p = spaces.ENTITY_FEATURE_INDEX, spaces.PLAYER_FEATURE_INDEX
+        active = obs["entities"][np.asarray(obs["entity_mask"], dtype=bool)]
+        if active.shape[1] <= e["hurtbox_size_y"]:
+            return action
+        player = obs["player"]
+        pos = player[:2] * spaces.ARENA_SCALE
+        bosses = active[active[:, e["entity_type"]] == protocol.EntityType.BOSS]
+        if not len(bosses):
+            return action
+        delta = bosses[:, 14:16] * spaces.ARENA_SCALE - pos
+        states = bosses[:, e["fsm_state_hash"]]
+        buttons = action["buttons"]
+        jump, hold, dash, attack = (
+            spaces.BUTTON_BITS[k] for k in ("jump_tap", "jump_hold", "dash", "attack")
+        )
+        button_offset = spaces.N_MOVEMENT_X + spaces.N_AIM_Y
+        if buttons[dash]:
+            return action
+        lunge = (states == self.DASH_ANTIC) & (np.abs(delta[:, 0]) < 14)
+        if lunge.any() and buttons[jump] and mask[button_offset + hold]:
+            buttons[hold] = 1
+            duration_offset = button_offset + spaces.N_BUTTONS
+            if mask[duration_offset + 3]:
+                action["duration"] = 3
+            return action
+        if not player[p["on_ground"]] or buttons[jump]:
+            return action
+
+        # Preserve the parent's evasions when another body or blade is closing.
+        moving_threats = active[
+            (active[:, 1] == protocol.EntityType.BOSS)
+            | (
+                (active[:, 1] == protocol.EntityType.PROJECTILE)
+                & (active[:, 2] == protocol.Team.ENEMY)
+            )
+        ]
+        dx, dy = (moving_threats[:, 14:16] * spaces.ARENA_SCALE - pos).T
+        vx = moving_threats[:, e["vel_x"]] * spaces.VEL_SCALE
+        if lunge.any() or np.any(
+            (dx * vx < 0) & (abs(dy) < 2.2) & (abs(dx) < 2.5 + 0.31 * abs(vx))
+        ):
+            return action
+        nearest = int(np.argmin(np.linalg.norm(delta, axis=1)))
+        offset, height = delta[nearest]
+        if states[nearest] != self.LANDED or abs(height) > 1.7 or abs(offset) > 3.6:
+            return action
+        move = 1
+        if abs(offset) < 1.75:
+            move = 0 if offset > 0 else 2
+            projected = pos[0] + (move - 1) * 2
+            spikes = active[active[:, e["entity_type"]] == protocol.EntityType.HAZARD]
+            if np.any(
+                abs(spikes[:, 14] * spaces.ARENA_SCALE - projected)
+                < spikes[:, 16] * spaces.ARENA_SCALE / 2 + 0.6
+            ):
+                move = 1
+        if mask[move]:
+            action["movement_x"] = move
+        if mask[spaces.N_MOVEMENT_X + 1]:
+            action["aim_y"] = 1
+        buttons[attack] = int(mask[button_offset + attack])
+        return action
