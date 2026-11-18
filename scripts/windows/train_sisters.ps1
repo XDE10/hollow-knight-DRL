@@ -4,10 +4,12 @@ param(
     [int]$Episodes = 10,
     [string]$RunDir = 'runs/training/sisters-counter-v2-seed0',
     [string]$TrainConfig = 'configs/train/sisters_counter_v2.yaml',
-    [string]$Task = 'configs/experiments/sisters_counter.yaml'
+    [string]$Task = 'configs/experiments/sisters_counter.yaml',
+    [string]$Checkpoint
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+if ($Checkpoint -and $Mode -ne 'Eval') { throw 'Use -Checkpoint with -Mode Eval to watch a frozen policy.' }
 . (Join-Path $PSScriptRoot 'game_runtime.ps1')
 $settings = Initialize-HKRLGameRuntime -RepoRoot $repo
 $root = if ([IO.Path]::IsPathRooted($RunDir)) { $RunDir } else { Join-Path $repo $RunDir }
@@ -68,12 +70,19 @@ if ($Mode -eq 'Start') {
         }
     }
 } else {
-    if (-not (Test-Path (Join-Path $root 'checkpoints/index.jsonl'))) { throw 'No checkpoint to evaluate.' }
+    if ($Checkpoint) {
+        $file = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $repo $Checkpoint }
+        if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Frozen checkpoint is missing: $file" }
+        $weights = @('--checkpoint', ('"' + $file + '"'))
+    } else {
+        if (-not (Test-Path (Join-Path $root 'checkpoints/index.jsonl'))) { throw 'No checkpoint to evaluate.' }
+        $weights = @('--checkpoint-dir', ('"' + (Join-Path $root 'checkpoints') + '"'))
+    }
     $replay = Join-Path $root ("eval-steps-" + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + ".jsonl")
     $arguments = @('-u', 'scripts/run_eval.py', '--policy', 'model',
         '--train-config', $TrainConfig,
-        '--tasks', $Task,
-        '--checkpoint-dir', ('"' + (Join-Path $root 'checkpoints') + '"'),
+        '--tasks', $Task) + $weights + @(
+        '--reset-timeout', '90', '--reset-retries', '1',
         '--episodes', $Episodes, '--seeds', '10001', '10002', '10003',
         '--local-session', ('"' + $root + '"'),
         '--replay-jsonl', ('"' + $replay + '"'),
