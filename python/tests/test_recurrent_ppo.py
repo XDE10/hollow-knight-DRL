@@ -11,7 +11,7 @@ from hkrl.models.base import ActorCritic
 from hkrl.models.recurrent_policy import EntityAttentionRecurrentAC
 from hkrl.spaces import N_AIM_Y, N_BUTTONS, N_DURATION, N_MOVEMENT_X
 from hkrl.training.recurrent_buffer import RecurrentRolloutBuffer
-from hkrl.training.recurrent_ppo import RecurrentPPO
+from hkrl.training.recurrent_ppo import RecurrentPPO, _tensor_sequence
 from hkrl.utils.config import TrainConfig
 
 
@@ -52,6 +52,11 @@ def test_recurrent_ppo_update_returns_metrics_and_changes_parameters() -> None:
     state = model.initial_state(batch_size=1)
     for step in range(4):
         obs = _numpy_obs(step)
+        if step == 0:
+            obs["entity_mask"][:] = False
+        if step == 1:
+            obs["entity_mask"][-1] = True
+            obs["entities"][-1] = obs["entities"][0] + 1
         torch_obs = _torch_obs(obs)
         rnn_state = state
         action, log_prob, value, state = model.act(
@@ -75,6 +80,21 @@ def test_recurrent_ppo_update_returns_metrics_and_changes_parameters() -> None:
         gamma=0.99,
         gae_lambda=0.95,
     )
+
+    # A late noncontiguous slot and a frame with no visible entities must
+    # produce the same recurrent outputs as the original full observation.
+    sequence = next(buffer.iter_sequences())
+    batch = _tensor_sequence(sequence, torch.device("cpu"), model)
+    assert batch.obs["entities"].shape[-2] == 2
+    full = {
+        **batch.obs,
+        "entities": torch.as_tensor(sequence.obs["entities"]),
+        "entity_mask": torch.as_tensor(sequence.obs["entity_mask"]),
+    }
+    dense = model.evaluate_actions(full, batch.actions, batch.rnn_state, batch.action_masks)
+    compact = model.evaluate_actions(batch.obs, batch.actions, batch.rnn_state, batch.action_masks)
+    for original, reduced in zip(dense, compact, strict=True):
+        torch.testing.assert_close(original, reduced)
 
     before = [param.detach().clone() for param in model.parameters()]
     metrics = ppo.update(buffer)

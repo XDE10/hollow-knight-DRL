@@ -189,3 +189,5 @@ seconds metric. `survival_ticks` counts physics updates and `episode_length` cou
 policy decisions. Rendering, movement distance, wall-clock pauses and optimizer
 updates do not determine either game-time measure. The measured slot-3 interval
 was 0.02 seconds, so 1,334.6 physics updates correspond to 26.69 game seconds.
+
+CPU 上的循环 PPO 在计算损失和解释方差前，只保留该批次任意决策（含预热步）出现过的实体槽。回放文件仍保存完整实体轴和原始掩码。在战斗姐妹一批 4×40 的实机观测上，64 槽中有 4 槽有效。单线程前向加反向耗时中位数为 0.523 秒和 0.159 秒（分别为完整、压缩输入，预热后各 4 次）；策略输出与价值的最大绝对差约为 0.000001。这个数字只计模型计算，整轮还包括游戏采样和重置。

@@ -15,7 +15,8 @@ import torch
 from torch import Tensor, nn
 
 from hkrl.models.base import ActorCritic, RnnState
-from hkrl.training.demonstration_replay import DemonstrationReplay
+from hkrl.models.recurrent_policy import EntityAttentionRecurrentAC
+from hkrl.training.demonstration_replay import DemonstrationReplay, compact_obs
 from hkrl.training.numerics import require_finite_tensor
 from hkrl.training.recurrent_buffer import RecurrentRolloutBuffer, RecurrentSequenceBatch
 from hkrl.utils.config import TrainConfig
@@ -62,7 +63,7 @@ class RecurrentPPO:
                 shuffle=True,
                 rng=self._rng,
             ):
-                batch = _tensor_sequence(sequence, device)
+                batch = _tensor_sequence(sequence, device, self.model)
                 metrics, valid_count = self._update_sequence(
                     batch,
                     advantage_mean,
@@ -173,7 +174,7 @@ class RecurrentPPO:
         predictions: list[Tensor] = []
         with torch.no_grad():
             for sequence in buffer.iter_sequences(minibatch_size=sequence_minibatch_size):
-                batch = _tensor_sequence(sequence, device)
+                batch = _tensor_sequence(sequence, device, self.model)
                 _, _, values = self.model.evaluate_actions(
                     batch.obs,
                     batch.actions,
@@ -208,7 +209,9 @@ class _TensorSequence:
     loss_mask: Tensor
 
 
-def _tensor_sequence(sequence: RecurrentSequenceBatch, device: torch.device) -> _TensorSequence:
+def _tensor_sequence(
+    sequence: RecurrentSequenceBatch, device: torch.device, model: ActorCritic
+) -> _TensorSequence:
     _require_finite_sequence(sequence)
     obs = {
         "global": torch.as_tensor(sequence.obs["global"], dtype=torch.float32, device=device),
@@ -224,6 +227,10 @@ def _tensor_sequence(sequence: RecurrentSequenceBatch, device: torch.device) -> 
     if sequence.action_masks.ndim > 2:
         action_masks = torch.as_tensor(sequence.action_masks, dtype=torch.bool, device=device)
 
+    # The entity transformer pools a masked set. For local CPU updates it can
+    # skip slots empty throughout the batch, including the burn-in prefix.
+    if device.type == "cpu" and isinstance(model, EntityAttentionRecurrentAC):
+        obs = compact_obs(obs)
     return _TensorSequence(
         obs=obs,
         actions=torch.as_tensor(sequence.actions, dtype=torch.long, device=device),
