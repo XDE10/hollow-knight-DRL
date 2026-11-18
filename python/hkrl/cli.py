@@ -65,6 +65,12 @@ def build_argparser() -> argparse.ArgumentParser:
     parser.add_argument("--step-timeout", type=float, default=15.0)
     parser.add_argument("--sampling-retries", type=int, default=2)
     parser.add_argument(
+        "--reset-retries",
+        type=int,
+        default=0,
+        help="retry a local scene-load rejection before collecting that episode",
+    )
+    parser.add_argument(
         "--save-rollouts", action="store_true", help="archive collected PPO batches"
     )
     parser.add_argument(
@@ -97,6 +103,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.batch_inference and (args.smoke or not args.run_dir):
         parser.error("--batch-inference requires local multi-window training with --run-dir")
+    if args.reset_retries < 0 or (args.reset_retries and (args.smoke or not args.run_dir)):
+        parser.error(
+            "--reset-retries requires a nonnegative budget and local training with --run-dir"
+        )
     if args.ports and (args.smoke or not args.run_dir or args.port is not None):
         parser.error("--ports requires --run-dir and cannot be combined with --smoke or --port")
     if args.init_weights and (args.smoke or not args.run_dir):

@@ -283,6 +283,7 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
         torch.set_num_threads(1)
         games = []
         envs = []
+        reset_wrappers: list[ResetTimeout] = []
         for port in ports:
             env_args = argparse.Namespace(**vars(args))
             if requested_ports:
@@ -293,7 +294,9 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                 step_timeout_s=float(getattr(args, "step_timeout", 15.0)),
             )
             games.append(game)
-            env = NormalizeObservation(ResetTimeout(game, float(args.reset_timeout)))
+            reset = ResetTimeout(game, float(args.reset_timeout), getattr(args, "reset_retries", 0))
+            reset_wrappers.append(reset)
+            env = NormalizeObservation(reset)
             resources.callback(env.close)
             envs.append(env)
         model = _build_model(
@@ -433,6 +436,10 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                     sampling_failures=sum(w.worker_crash_count for w in workers),
                     discarded_rollout_steps=sum(w.discarded_rollout_steps for w in workers),
                 )
+                if getattr(args, "reset_retries", 0):
+                    metrics["retried_scene_loads"] = float(
+                        sum(len(wrapper.retried_seeds) for wrapper in reset_wrappers)
+                    )
                 sink.log_episode({"type": "update", **record})
                 sink.flush()
                 print(json.dumps(record, sort_keys=True), flush=True)

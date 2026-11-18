@@ -196,7 +196,7 @@ For live parallel evaluation, `scripts/run_eval.py --reset-timeout 90 --reset-re
 permits one fresh RESET on the same worker and seed when the mod explicitly
 reports `SCENE_LOAD_FAILED` before an episode starts. Completed fights are kept.
 The report records each retried task, port and seed in `metadata.retried_scene_loads`.
-The default retry budget is zero. Errors after the first action still abort the run.
+Local training accepts the same option and records the number of scene-load retries for the current process in its update metrics. The default retry budget is zero. Evaluation errors after the first action still abort the run.
 
 Multi-window local recurrent PPO can enable `scripts/train.py --batch-inference`
 with `--ports`. Each game still owns its actions, recurrent memory, reset and TCP

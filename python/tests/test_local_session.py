@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import random
 from pathlib import Path
 from types import SimpleNamespace
@@ -158,6 +159,7 @@ def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
         save_rollouts=True,
         checkpoint_every=5,
         reset_timeout=90,
+        reset_retries=1,
     )
     if initial_format != "none":
         teacher = torch.nn.Linear(2, 1)
@@ -200,6 +202,8 @@ def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
     assert state["optimizer_state_dict"]["state"][0]["step"].item() == 2
     assert not (tmp_path / "runs/training/active.json").exists()
     assert len(archived) == 2 and archived[0] != archived[1]
+    log = [json.loads(line) for line in (root / "metrics.jsonl").read_text().splitlines()]
+    assert all(row["metrics"]["retried_scene_loads"] == 0 for row in log)
     if initial_format == "checkpoint":
         # Changing the archive bytes after a run cannot silently change supervised targets.
         with (directory / "episode-0.npz").open("ab") as changed:
