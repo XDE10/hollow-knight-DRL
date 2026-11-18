@@ -13,6 +13,7 @@ from hkrl.eval.sisters_survival import SistersCounterPolicy
 from hkrl.models.recurrent_policy import (
     SingleTaskEntityAttentionGRU,
     SistersLandingGRU,
+    SistersTimingGRU,
     landing_movement_bias,
 )
 from hkrl.training.demonstration_replay import DemonstrationReplay
@@ -48,6 +49,38 @@ def test_landing_bias_brakes_on_descent_and_respects_padding_and_symmetry() -> N
     assert bias[4, 2] < 0
     obs["entity_mask"][..., 3] = False
     assert torch.equal(landing_movement_bias(obs), torch.zeros_like(bias).unsqueeze(0))
+
+
+def test_timing_gru_separates_blade_height_and_checks_all_visible_threats() -> None:
+    state = _arena()
+    obs = {key: value.unsqueeze(1).repeat_interleave(4, dim=1) for key, value in state.items()}
+    obs["player"][..., spaces.PLAYER_FEATURE_INDEX["on_ground"]] = 1
+    rows = obs["entities"]
+    # Equal approach times, with the high return passing overhead in the first two frames.
+    rows[:, :, 1, 10] = -15 / spaces.VEL_SCALE
+    rows[:, :, 1, 14] = 3 / spaces.ARENA_SCALE
+    rows[:, :2, 1, 15] = 4 / spaces.ARENA_SCALE
+    rows[:, 1, 4] = rows[:, 1, 1]
+    rows[:, 1, 4, 15] = 0
+    obs["entity_mask"][:, 1, 4] = True
+    # Grounded, target landed on the left, player already facing it.
+    rows[:, 3, 0, 5] = -1523407744
+    rows[:, 3, 0, 14] = -2.5 / spaces.ARENA_SCALE
+    obs["player"][:, 3, spaces.PLAYER_FEATURE_INDEX["facing"]] = 1
+    obs["entity_mask"][:, 3, 1] = False
+    dims = {k: tuple(v.shape[1:]) for k, v in state.items()}
+    model = SistersTimingGRU(dims, rnn_hidden=16, entity_hidden=16, attention_heads=2)
+    for parameter in model.parameters():
+        parameter.data.zero_()
+    mask = torch.ones(1, 4, model.policy.mask_dim, dtype=torch.bool)
+    jump = spaces.BUTTON_BITS["jump_tap"]
+    mask[:, 2, spaces.N_MOVEMENT_X + spaces.N_AIM_Y + jump] = False
+    dist, _, _ = model(obs, action_mask=mask)
+    assert dist.buttons.probs[0, 0, jump] < 0.1
+    assert dist.buttons.probs[0, 1, jump] > 0.9
+    assert dist.buttons.probs[0, 2, jump] == 0
+    assert dist.buttons.probs[0, 3, spaces.BUTTON_BITS["attack"]] > 0.9
+    assert dist.movement_x.probs[0, 3].argmax() == 1
 
 
 def test_landing_gru_keeps_all_buttons_and_disallowed_movements() -> None:

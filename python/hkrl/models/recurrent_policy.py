@@ -26,6 +26,7 @@ from hkrl.models.heads import (
     HybridPolicyHead,
     ValueHead,
 )
+from hkrl.models.sisters_timing import counter_preferences
 from hkrl.spaces import ARENA_SCALE, DEFAULT_N_MACROS, ENTITY_FEATURE_INDEX, VEL_SCALE
 from hkrl.utils.registry import register_model
 
@@ -229,6 +230,17 @@ class SistersLandingGRU(SingleTaskEntityAttentionGRU):
         bias = landing_movement_bias(obs)
         movement = Categorical(logits=dist.movement_x.logits + bias)
         return replace(dist, movement_x=movement), value, state
+
+
+@register_model("sisters_timing_gru")
+class SistersTimingGRU(SistersLandingGRU):
+    """A residual GRU with soft preferences for verified Sisters counter windows."""
+
+    def forward(
+        self, obs: dict[str, Tensor], rnn_state: RnnState = None, action_mask: Tensor | None = None
+    ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
+        dist, value, state = super().forward(obs, rnn_state, action_mask)
+        return counter_preferences(dist, obs), value, state
 
 
 def landing_movement_bias(obs: dict[str, Tensor]) -> Tensor:
