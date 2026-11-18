@@ -141,6 +141,14 @@ def test_reset_never_injects_policy_actions_or_mutates_boss_state() -> None:
     assert "_nextCandidateScanAt = now + 0.5f" in boss_locator
 
 
+def test_boss_locator_uses_the_game_hit_receiver_for_duplicate_health_managers() -> None:
+    locator = _source("Observation/BossLocator.cs")
+    add = locator[locator.index("private static void AddHealthManager(") :]
+    assert "seen.Add(instanceId)" in add
+    assert "GetComponent<global::IHitResponder>() as global::HealthManager" in add
+    assert "receiver != null && (!requireActive || IsActive(receiver))" in add
+
+
 def test_direct_scene_transition_resets_only_the_entry_handshake() -> None:
     scene_controller = _source("Env/SceneController.cs")
     lifecycle = _source("Env/SceneEntryLifecycle.cs")
@@ -157,3 +165,21 @@ def test_direct_scene_transition_resets_only_the_entry_handshake() -> None:
     assert "PlayMakerFSM" not in lifecycle
     assert ".transform" not in lifecycle
     assert "GetComponent<Rigidbody2D>" not in lifecycle
+
+
+def test_control_replies_leave_transition_rewards_for_step() -> None:
+    source = _source("Env/StepController.cs")
+    start = source.index("private void EnqueueStepResponse(")
+    end = source.index("private bool ShouldDelayStepResponse(", start)
+    body = source[start:end]
+    assert "var reportsTransition = ShouldAdvanceLifecycle(request);" in body
+    assert "_lifecycle.IsRunning && reportsTransition" in body
+    assert "var rewardEvents = reportsTransition" in body
+    assert "? _rewards.Drain()" in body
+
+
+def test_driver_runs_without_focus_and_restores_previous_background_setting() -> None:
+    source = _source("HKRLEnvMod.cs")
+    assert "_previousRunInBackground = Application.runInBackground" in source
+    assert "Application.runInBackground = true" in source
+    assert "Application.runInBackground = _previousRunInBackground.Value" in source

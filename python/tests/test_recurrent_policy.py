@@ -14,6 +14,25 @@ from hkrl.spaces import (
     N_MOVEMENT_X,
     PLAYER_FEATURE_INDEX,
 )
+from hkrl.utils.registry import get
+
+
+def test_single_task_policy_ignores_task_and_episode_ids() -> None:
+    model = get("model", "single_task_entity_attention_gru")(
+        {"global": (9,), "player": (32,), "entities": (4, 24)},
+        entity_hidden=8,
+        rnn_hidden=16,
+    )
+    inputs = torch.zeros((2, 9))
+    inputs[1, GLOBAL_FEATURE_INDEX["task_id"]] = 2010
+    inputs[1, GLOBAL_FEATURE_INDEX["episode_id"]] = 10000
+    encoded = model.global_encoder(inputs)
+    torch.testing.assert_close(encoded[0], encoded[1])
+    legacy = EntityAttentionRecurrentAC(
+        {"global": (9,), "player": (32,), "entities": (4, 24)}, entity_hidden=8, rnn_hidden=16
+    )
+    legacy.load_state_dict(model.state_dict())
+    assert not torch.equal(legacy.global_encoder(inputs)[0], legacy.global_encoder(inputs)[1])
 
 
 def test_recurrent_policy_gru_act_and_evaluate_single_step() -> None:

@@ -72,6 +72,42 @@ def test_evaluator_regression_report_returns_win_rate_delta() -> None:
     assert report == {"a": -0.25, "b": -0.25, "c": 1.0}
 
 
+@pytest.mark.parametrize("ending", ["death", "timeout", "win", "mutual_death"])
+def test_partial_boss_kill_is_not_an_encounter_win(ending: str) -> None:
+    records: list[dict[str, Any]] = []
+    class MultiBossEnv(FakeEvalEnv):
+        def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+            self.step_count += 1
+            terminal = self.step_count == 2
+            events = [protocol.RewardEvent(protocol.RewardEventKind.BOSS_KILLED)]
+            if terminal and ending in {"death", "mutual_death"}:
+                events = [protocol.RewardEvent(protocol.RewardEventKind.PLAYER_DEATH)]
+                if ending == "mutual_death":
+                    events.append(protocol.RewardEvent(protocol.RewardEventKind.BOSS_KILLED))
+            return (
+                _obs(),
+                1.0,
+                terminal and ending != "timeout",
+                terminal and ending == "timeout",
+                {"reward_events": events},
+            )
+
+    task = TaskConfig(task_id="fake_boss", scene="FakeScene")
+    evaluator = Evaluator(
+        ScriptedAggroPolicy(spaces.make_action_space()),
+        tasks=[task],
+        seeds=[0],
+        env_factory=lambda _: MultiBossEnv(),
+        max_steps_per_episode=2,
+        replay_sink=records.append,
+    )
+    assert evaluator.evaluate(episodes_per_task=1)["fake_boss"]["win_rate"] == float(
+        ending == "win"
+    )
+    assert records[0]["won"] is False
+    assert records[1]["won"] == (ending == "win")
+
+
 def test_evaluator_worker_pool_runs_tasks_and_closes_envs() -> None:
     tasks = [
         TaskConfig(task_id="fake_a", scene="FakeScene"),
@@ -216,6 +252,7 @@ def test_evaluator_emits_step_replay_records() -> None:
 
     assert len(records) == 2
     assert records[0]["type"] == "eval_step"
+    assert records[0]["player_x"] == 0.0
     assert records[0]["task_id"] == "fake_boss"
     assert records[0]["wire_id"] == 9
     assert records[0]["seed"] == 0

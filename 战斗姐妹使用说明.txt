@@ -1,0 +1,37 @@
+战斗姐妹环境已配置（2026-11-18）
+
+双击本文件旁边的“启动战斗姐妹.cmd”。Steam 需要先处于已登录状态。
+启动器使用 3 号槽并直接进入战斗姐妹，不需要打通剧情或万神殿。
+启动器完成后窗口可以关闭；游戏窗口需保持运行。
+启动器只负责进入战斗，不会自动启动长期强化学习训练。
+训练正在运行时，不要再次运行启动器，以免占用同一个游戏接口。
+
+游戏：Steam 1.5.78.11833 分支。
+插件：Modding API v77、HKRLEnvMod 0.8.0（当前仓库源码编译）、
+GodSeekerPlus 0.25.0、Osmi 0.2.2、Satchel 0.9.4。
+GodSeekerPlus 仅开启 UnlockAllModes。
+原 BepInEx / DebugMod 的加载入口已经停用并备份。
+不要同时启用两套加载器，也不要切回 Steam 默认最新版。
+
+存档：专用 3 号槽；9 格血、正常纯粹骨钉 21 基础伤害、完整技能。
+1、2 号槽没有被修改。当前护符仅虚空之心。
+目标：sisters_of_battle / GG_Mantis_Lords_V。
+此目标是三姐妹同场的战斗姐妹变体，当前挑战等级为 Attuned。
+
+已通过：鉴权连接、直接进入场景、移动、跳跃、攻击、Boss 状态采集、连续重开。
+首轮加载约 17 秒；同场重开约 3.4 秒（本次实测，不保证每次一致）。
+MLP PPO 与 Attention-GRU PPO 各完成 512 步真实采样和一次更新。
+这属于短训练验证，尚不是训练好的高胜率模型。
+
+证据、检查点和原存档备份：runs\game-setup\
+详细算法与硬件方案：docs\coursework_algorithm_plan.md
+本机配置：configs\train\sisters_cpu_gru.yaml
+单 Colab GPU 配置：configs\train\sisters_colab_gru.yaml
+启动器设置单线程推理，减少与游戏争抢 CPU。当前推理中位数约 19 ms，
+单线程 P95 约 32 ms（游戏同时运行时的合成观测测试，非正式性能保证）。
+
+硬件分工：本机运行游戏及 CPU 小策略推理；Colab CLI GPU 进行批量训练。
+云端同步轨迹与模型权重，实时动作不依赖云端往返。
+
+本机鉴权信息位于游戏 Managed\Mods\HKRLEnvMod\hkrl-runtime.conf，
+已由启动脚本自动读取。不要把这个含令牌的文件公开上传到 Git。

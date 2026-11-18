@@ -7,6 +7,17 @@ the project version tracks the **schema_version** + roadmap phase.
 ## [Unreleased]
 
 ### Added
+- Added ordinary-nail Sisters demonstration collection, recurrent behavior
+  cloning with episode-held-out validation, and a model-only warm start for local
+  PPO. Evaluation replay includes player X in the policy observation's units.
+- Added a single-task GRU configuration that masks task and episode IDs at the
+  global encoder. The original model name retains its original input semantics.
+- Boss observations now resolve duplicate HealthManagers on a single object
+  through the same hit receiver used by the game. This fixes missing damage
+  events for the Sisters of Battle while retaining one stable ID per object.
+- Added bounded CPU training sessions with model/Adam/RNG recovery, immutable
+  resolved configs, a game ownership lock, progress JSON and safe STOP files.
+  Windows Sisters of Battle launchers expose start/resume, stop, status and eval.
 - Added authenticated, versioned live tuning for reward weights, safe
   PPO/APPO optimizer/loss knobs, and game `time_scale`. The learner applies full
   snapshots at update boundaries, checkpoints and restores them, and exposes
@@ -52,6 +63,14 @@ the project version tracks the **schema_version** + roadmap phase.
   workflow.
 
 ### Changed
+- Local sessions now recover bounded transient sampling I/O failures with clean
+  resets, preserve failure tracebacks, and log discarded partial rollouts.
+  The mod enables background execution and lets buffered terminal events escape
+  the input-commit wait during death/scene transitions.
+- Multi-enemy evaluation requires encounter termination without player death;
+  an earlier individual boss kill no longer becomes an episode win.
+- Control replies preserve transition reward events and tick accounting so
+  synchronous optimizer updates can pause the game without consuming rewards.
 - RolloutBatch NPZ/TCP format is now v4 and carries `tuning_version`; learners
   reject objective-version drift. Worker spool sequences also continue across
   restarts instead of overwriting earlier rollout files.

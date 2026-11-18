@@ -38,6 +38,21 @@ def test_checkpoint_client_accepts_file_url(tmp_path: Path) -> None:
     assert client.latest_version() == meta.version
 
 
+@pytest.mark.parametrize("use_file_uri", [False, True])
+def test_checkpoint_client_preserves_special_directory_names(
+    tmp_path: Path, use_file_uri: bool
+) -> None:
+    root = tmp_path / "checkpoints %23 with spaces"
+    registry = CheckpointRegistry(str(root))
+    meta = registry.publish({"model_state_dict": {"weight": torch.tensor([7.0])}}, 1, 1)
+    endpoint = root.as_uri() if use_file_uri else str(root)
+    client = CheckpointClient(endpoint)
+
+    assert client.latest_version() == meta.version
+    state = client.pull(meta.version)
+    torch.testing.assert_close(state["model_state_dict"]["weight"], torch.tensor([7.0]))
+
+
 def test_checkpoint_client_pulls_verified_http_checkpoint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

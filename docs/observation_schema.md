@@ -109,7 +109,10 @@ Boss collection reads
 `BossSceneController`'s configured boss list first and uses name heuristics only
 as a fallback. For HealthManager variants without a max-hp member, the stable
 entity registry caches the highest observed hp for that object so normalization
-and observation-delta rewards remain usable.
+and observation-delta rewards remain usable. When multiple enabled HealthManagers
+share a GameObject, the observer prefers the HealthManager returned by Unity's
+`GetComponent<IHitResponder>()`, matching the game's hit dispatch. This keeps
+the Sisters' reported HP and damage events attached to the same combat entity.
 Reset readiness separately requires HeroController's `acceptingInput` gate,
 non-relinquished gameplay control, and a dynamic/simulated Rigidbody2D with
 unfrozen position constraints, positive gravity, an enabled collider, and

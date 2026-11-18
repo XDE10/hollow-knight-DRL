@@ -13,8 +13,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
 from urllib.error import HTTPError
-from urllib.parse import quote, unquote, urljoin, urlparse
-from urllib.request import ProxyHandler, Request, build_opener, urlopen
+from urllib.parse import quote, urljoin, urlparse
+from urllib.request import ProxyHandler, Request, build_opener, url2pathname, urlopen
 
 import torch
 
@@ -46,7 +46,7 @@ class CheckpointClient:
         self._kind: Literal["local", "http"]
         self._root: Path | None
         self._base_url: str | None
-        if self._parsed_endpoint.scheme in ("", "file"):
+        if Path(registry_endpoint).is_absolute() or self._parsed_endpoint.scheme in ("", "file"):
             self._kind = "local"
             self._root = _resolve_local_endpoint(registry_endpoint)
             self._base_url = None
@@ -131,12 +131,16 @@ class CheckpointClient:
 
 
 def _resolve_local_endpoint(endpoint: str) -> Path:
+    # urlparse treats a Windows drive letter as a URL scheme. Native paths also
+    # preserve literal percent escapes; only a file URI should be URL-decoded.
+    if Path(endpoint).is_absolute():
+        return Path(endpoint).expanduser().resolve()
     parsed = urlparse(endpoint)
     if parsed.scheme in ("", "file"):
         if parsed.scheme == "file" and parsed.netloc not in ("", "localhost"):
             raise ValueError("file checkpoint endpoints must be local")
-        raw_path = parsed.path if parsed.scheme == "file" else endpoint
-        return Path(unquote(raw_path)).expanduser().resolve()
+        raw_path = url2pathname(parsed.path) if parsed.scheme == "file" else endpoint
+        return Path(raw_path).expanduser().resolve()
     raise ValueError(f"unsupported checkpoint registry endpoint scheme {parsed.scheme!r}")
 
 

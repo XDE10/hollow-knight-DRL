@@ -276,6 +276,8 @@ def test_run_eval_builds_reproducibility_metadata() -> None:
 
     assert metadata == {
         "algorithm": "ppo",
+        "game_seed_controlled": False,
+        "time_to_kill_unit": "decision_steps",
         "checkpoint": "checkpoint.pt",
         "checkpoint_dir": None,
         "episodes": 7,

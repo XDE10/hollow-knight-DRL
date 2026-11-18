@@ -12,6 +12,7 @@ import json
 import math
 import os
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Literal
 
@@ -162,13 +163,26 @@ def atomic_write_json(path: str | Path, payload: dict[str, Any]) -> Path:
     )
     temporary = Path(temporary_name)
     try:
-        os.fchmod(fd, 0o600)
+        # POSIX supports descriptor permissions; Windows inherits the directory
+        # ACL and has no os.fchmod. Atomic replacement is needed on both.
+        fchmod = getattr(os, "fchmod", None)
+        if fchmod is not None:
+            fchmod(fd, 0o600)
         with os.fdopen(fd, "wb") as fh:
             fd = -1
             fh.write(encoded)
             fh.flush()
             os.fsync(fh.fileno())
-        temporary.replace(target)
+        # Windows readers can briefly hold the destination without FILE_SHARE_DELETE.
+        # Keep the flushed temp file and retry just the rename.
+        for attempt in range(9):
+            try:
+                temporary.replace(target)
+                break
+            except PermissionError as exc:
+                if getattr(exc, "winerror", None) not in (5, 32, 33) or attempt == 8:
+                    raise
+                time.sleep(min(0.025 * 2**attempt, 1.0))
     finally:
         if fd >= 0:
             os.close(fd)

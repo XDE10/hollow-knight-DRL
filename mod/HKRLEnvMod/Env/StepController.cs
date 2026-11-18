@@ -218,7 +218,11 @@ namespace HKRLEnvMod.Env
                 // InputInjector commits from InControl.OnUpdate after FixedUpdate.
                 // Do not sample s' until the action selected on the previous
                 // FixedUpdate was actually written into the game's action set.
-                if (_actions.SuccessfulCommitCount < _awaitedInputCommitCount)
+                // A death/scene transition may remove the input handler before
+                // the pending action commits. Report that terminal transition
+                // instead of waiting forever for an acknowledgement that cannot arrive.
+                if (_actions.SuccessfulCommitCount < _awaitedInputCommitCount
+                    && !BufferedTerminalEvent())
                 {
                     return;
                 }
@@ -287,12 +291,17 @@ namespace HKRLEnvMod.Env
                 CurrentEpisodeTime(state),
                 appliedInputButtons: _actions.CurrentInput.Buttons);
             var mayReportEpisodeEvents = _lifecycle.IsRunning || IsTerminal(state);
-            if (_lifecycle.IsRunning)
+            // Control replies must not steal events from the next STEP. In
+            // particular PAUSE/RESUME bracket synchronous learner updates.
+            var reportsTransition = ShouldAdvanceLifecycle(request);
+            if (_lifecycle.IsRunning && reportsTransition)
             {
                 _rewardTracker.Update(observation, _rewards);
             }
 
-            var rewardEvents = _rewards.Drain();
+            var rewardEvents = reportsTransition
+                ? _rewards.Drain()
+                : System.Array.Empty<RewardEventRecord>();
             if (!mayReportEpisodeEvents)
             {
                 rewardEvents = System.Array.Empty<RewardEventRecord>();

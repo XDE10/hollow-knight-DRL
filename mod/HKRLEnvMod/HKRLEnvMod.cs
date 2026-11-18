@@ -79,6 +79,7 @@ namespace HKRLEnvMod
         private TcpServer? _server;
         private StepController? _stepController;
         private bool _configured;
+        private bool? _previousRunInBackground;
 
         public void Configure(string host = "127.0.0.1", int port = 5555)
         {
@@ -89,6 +90,8 @@ namespace HKRLEnvMod
 
             try
             {
+                _previousRunInBackground = Application.runInBackground;
+                Application.runInBackground = true;
                 RuntimeConfiguration runtime = RuntimeConfiguration.Load(
                     typeof(HKRLEnvMod).Assembly.Location,
                     host,
@@ -132,6 +135,7 @@ namespace HKRLEnvMod
                 HealHooks.Uninstall();
                 SceneHooks.Uninstall();
                 _configured = false;
+                RestoreBackgroundSetting();
                 global::HKRLEnvMod.Debug.Logger.Error(
                     "Failed to start HKRL TCP environment server",
                     exception);
@@ -174,6 +178,16 @@ namespace HKRLEnvMod
             HealHooks.Uninstall();
             SceneHooks.Uninstall();
             _configured = false;
+            RestoreBackgroundSetting();
+        }
+
+        private void RestoreBackgroundSetting()
+        {
+            if (_previousRunInBackground.HasValue)
+            {
+                Application.runInBackground = _previousRunInBackground.Value;
+                _previousRunInBackground = null;
+            }
         }
 
         private void LogPhase0Snapshot()

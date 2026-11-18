@@ -45,6 +45,14 @@ def build_argparser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--steps", type=int, default=None, help="override total smoke steps")
     parser.add_argument("--updates", type=int, default=1, help="number of PPO updates to run")
+    parser.add_argument("--run-dir", help="resumable local session; updates is the total target")
+    parser.add_argument("--init-weights", help="model-only initial weights for a new local session")
+    parser.add_argument("--checkpoint-every", type=int, default=5)
+    parser.add_argument("--step-timeout", type=float, default=15.0)
+    parser.add_argument("--sampling-retries", type=int, default=2)
+    parser.add_argument(
+        "--save-rollouts", action="store_true", help="archive collected PPO batches"
+    )
     parser.add_argument(
         "--checkpoint-dir",
         default="checkpoints",
@@ -73,6 +81,8 @@ def build_argparser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_argparser()
     args = parser.parse_args(argv)
+    if args.init_weights and (args.smoke or not args.run_dir):
+        parser.error("--init-weights requires training with --run-dir")
 
     summary = run_smoke_from_args(args) if args.smoke else run_training_from_args(args)
     print(json.dumps(summary, sort_keys=True))
@@ -80,6 +90,10 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def run_training_from_args(args: argparse.Namespace) -> dict[str, Any]:
+    if getattr(args, "run_dir", None):
+        from hkrl.training.local_session import run_session_from_args
+
+        return run_session_from_args(args)
     cfg = load_train_config(args.config)
     task = load_task_config(args.task)
 

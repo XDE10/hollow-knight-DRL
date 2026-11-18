@@ -1,0 +1,5 @@
+defaults:
+  - ./sisters_cpu_gru.yaml
+
+model:
+  name: single_task_entity_attention_gru

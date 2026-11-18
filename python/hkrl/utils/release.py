@@ -1935,7 +1935,7 @@ def _verify_phase8_smoke_artifact_references(
     heartbeat_jsonl = artifacts.get("heartbeat_jsonl")
     work_dir = artifacts.get("work_dir")
     expected_batch_dir = (
-        str(Path(work_dir) / "batches") if isinstance(work_dir, str) and work_dir else None
+        (Path(work_dir) / "batches").as_posix() if isinstance(work_dir, str) and work_dir else None
     )
     expected: dict[str, Any] = {
         "coordinator.eval_metrics": eval_metrics,
@@ -1959,7 +1959,7 @@ def _verify_phase8_smoke_artifact_references(
         if not isinstance(expected_value, str)
         or not expected_value
         or not isinstance(actual.get(field), str)
-        or actual.get(field) != expected_value
+        or Path(actual[field]) != Path(expected_value)
     )
     if malformed_fields:
         return {

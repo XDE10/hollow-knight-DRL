@@ -8,6 +8,7 @@ observation, reward, termination flags, and info (including the action mask).
 
 from __future__ import annotations
 
+import math
 import time
 from collections.abc import Mapping
 from typing import Any
@@ -60,8 +61,12 @@ class HKRLEnv(gym.Env):
         transport: Transport,
         task: TaskConfig,
         reward_fn: DefaultReward | None = None,
+        *,
+        step_timeout_s: float = 5.0,
     ) -> None:
         super().__init__()
+        if not math.isfinite(step_timeout_s) or step_timeout_s <= 0:
+            raise ValueError("step_timeout_s must be positive and finite")
         self.transport = transport
         self._custom_reward_fn = reward_fn is not None
         self._reward_overrides: dict[str, float] = {}
@@ -71,7 +76,7 @@ class HKRLEnv(gym.Env):
         self._episode_id = 0
         self._running = False
         self._env_id = 0
-        self._step_timeout_s = 5.0
+        self._step_timeout_s = float(step_timeout_s)
         self._last_server_tick: int | None = None
 
     # -- Gym API --------------------------------------------------------------
@@ -378,7 +383,8 @@ class HKRLEnv(gym.Env):
             time_scale=time_scale,
         )
         self._raise_for_error(response, context=command.name.lower())
-        self._last_server_tick = response.server_tick
+        # Control replies are not transitions. Keep the preceding STEP's tick
+        # so its full elapsed interval is attributed to the next transition.
         return self._info_from_response(response)
 
     def _validate_observation(self, observation: protocol.DecodedObservation) -> None:

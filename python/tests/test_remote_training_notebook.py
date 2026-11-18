@@ -339,7 +339,8 @@ def test_kaggle_training_notebook_smoke_executes_top_to_bottom(
 def test_remote_learner_bootstrap_is_executable_and_gpu_guarded() -> None:
     source = BOOTSTRAP.read_text(encoding="utf-8")
 
-    assert BOOTSTRAP.stat().st_mode & stat.S_IXUSR
+    if sys.platform != "win32":
+        assert BOOTSTRAP.stat().st_mode & stat.S_IXUSR
     assert "torch.cuda.is_available()" in source
     assert "--torch-index-url" in source
     assert "--allow-cpu" in source

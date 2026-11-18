@@ -19,7 +19,7 @@ HASH_EMBEDDING_BUCKETS = 4096
 class GlobalEncoder(nn.Module):
     """Hash embeddings + MLP over continuous GlobalState features."""
 
-    def __init__(self, in_dim: int, hidden: int = 128) -> None:
+    def __init__(self, in_dim: int, hidden: int = 128, *, exclude_run_ids: bool = False) -> None:
         super().__init__()
         self.encoder = _HashAwareFeatureEncoder(
             in_dim,
@@ -27,6 +27,11 @@ class GlobalEncoder(nn.Module):
             hash_indices=(
                 GLOBAL_FEATURE_INDEX["scene_hash"],
                 GLOBAL_FEATURE_INDEX["arena_id"],
+            ),
+            excluded_indices=(
+                (GLOBAL_FEATURE_INDEX["task_id"], GLOBAL_FEATURE_INDEX["episode_id"])
+                if exclude_run_ids
+                else ()
             ),
         )
 
@@ -125,6 +130,7 @@ class _HashAwareFeatureEncoder(nn.Module):
         continuous_mask = torch.ones((in_dim,), dtype=torch.float32)
         if excluded:
             continuous_mask[list(sorted(excluded))] = 0.0
+        self._continuous_mask: Tensor
         self.register_buffer("_continuous_mask", continuous_mask, persistent=False)
         self.net = _mlp(in_dim, hidden)
         self.hash_embeddings = nn.ModuleList(

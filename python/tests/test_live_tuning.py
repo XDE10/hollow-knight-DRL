@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,30 @@ from hkrl.utils.live_tuning import (
     effective_train_config,
     load_live_tuning,
 )
+
+
+def test_atomic_json_retries_a_windows_reader_lock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target = tmp_path / "status.json"
+    atomic_write_json(target, {"step": 1})
+    replace = Path.replace
+    attempts = 0
+
+    def transient_lock(source: Path, destination: Path) -> Path:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            assert json.loads(destination.read_text()) == {"step": 1}
+            exc = PermissionError("sharing violation")
+            exc.winerror = 5
+            raise exc
+        return replace(source, destination)
+
+    monkeypatch.setattr(Path, "replace", transient_lock)
+    atomic_write_json(target, {"step": 2})
+    assert attempts == 2
+    assert json.loads(target.read_text()) == {"step": 2}
 
 
 def test_live_tuning_resolves_from_immutable_startup_values() -> None:
@@ -71,5 +96,19 @@ def test_live_tuning_file_is_atomic_and_round_trips(tmp_path: Path) -> None:
 
     loaded = load_live_tuning(target)
     assert loaded == tuning
-    assert target.stat().st_mode & 0o077 == 0
+    if os.name == "posix":
+        assert target.stat().st_mode & 0o077 == 0
     assert json.loads(target.read_text(encoding="utf-8"))["version"] == 1
+
+
+def test_atomic_json_replacement_without_fchmod(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delattr(os, "fchmod", raising=False)
+    target = tmp_path / "live_tuning.json"
+    target.write_text('{"version": 0}', encoding="utf-8")
+
+    atomic_write_json(target, {"version": 1})
+
+    assert json.loads(target.read_text(encoding="utf-8")) == {"version": 1}
+    assert list(tmp_path.iterdir()) == [target]

@@ -21,7 +21,7 @@ import torch
 
 from hkrl import protocol
 from hkrl.models.base import ActorCritic
-from hkrl.spaces import canonical_noop_action_values
+from hkrl.spaces import PLAYER_FEATURE_INDEX, canonical_noop_action_values
 from hkrl.utils.config import TaskConfig
 from hkrl.worker.game_worker import action_tensor_to_env_action
 
@@ -159,7 +159,8 @@ class Evaluator:
             invalid_actions += event_metrics.invalid_actions
             if event_metrics.death_reason:
                 death_reason = event_metrics.death_reason
-            won = won or event_metrics.won
+            # A single entity kill is not a multi-boss encounter victory.
+            won = bool(terminated and not truncated and event_metrics.won and not death_reason)
             self._emit_replay_step(
                 task=task,
                 seed=seed,
@@ -171,6 +172,8 @@ class Evaluator:
                 truncated=truncated,
                 info=info,
                 event_metrics=event_metrics,
+                observation=obs,
+                won=won,
             )
 
             if terminated or truncated:
@@ -264,6 +267,8 @@ class Evaluator:
         truncated: bool,
         info: dict[str, Any],
         event_metrics: _EventMetrics,
+        observation: Any,
+        won: bool,
     ) -> None:
         if self.replay_sink is None:
             return
@@ -285,8 +290,12 @@ class Evaluator:
             "truncated": bool(truncated),
             "type": "eval_step",
             "wire_id": int(task.wire_id),
-            "won": event_metrics.won,
+            "won": won,
         }
+        if isinstance(observation, Mapping) and "player" in observation:
+            player = np.asarray(observation["player"])
+            if player.ndim == 1 and player.size > PLAYER_FEATURE_INDEX["pos_x"]:
+                record["player_x"] = float(player[PLAYER_FEATURE_INDEX["pos_x"]])
         with self._replay_lock:
             self.replay_sink(record)
 

@@ -265,7 +265,13 @@ namespace HKRLEnvMod.Observation
             int instanceId = health.gameObject.GetInstanceID();
             if (seen.Add(instanceId))
             {
-                bosses.Add(health);
+                // HitTaker dispatches through GetComponent<IHitResponder>(). Some
+                // Godhome actors have two enabled HealthManagers on one GameObject.
+                // Scene scan order can return the one that never receives hits.
+                var receiver = health.GetComponent<global::IHitResponder>() as global::HealthManager;
+                bosses.Add(receiver != null && (!requireActive || IsActive(receiver))
+                    ? receiver
+                    : health);
             }
         }
 

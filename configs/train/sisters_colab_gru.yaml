@@ -1,0 +1,24 @@
+# Matching small CPU worker architecture; one remote GPU learner.
+defaults:
+  - ./remote_learner.yaml
+
+rollout_steps: 512
+minibatch_size: 128
+epochs: 2
+sequence_length: 32
+burn_in: 0  # APPO chunks already carry their recorded recurrent state.
+model:
+  entity_hidden: 64
+  attention_layers: 1
+  attention_heads: 4
+  rnn_hidden: 128
+learner:
+  device: cuda
+  batches_per_update: 1
+  max_staleness: 1
+  compile_mode: "off"
+coordinator:
+  num_workers: 1
+security:
+  bind_scope: localhost
+  require_token: true

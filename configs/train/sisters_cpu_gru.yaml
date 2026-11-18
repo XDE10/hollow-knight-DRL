@@ -1,0 +1,18 @@
+# Hardware-sized recurrent baseline for the i5-1135G7 game PC.
+# This is a baseline, not the proposed world-model algorithm.
+defaults:
+  - ./ppo_attention_gru.yaml
+
+rollout_steps: 512
+minibatch_size: 128
+epochs: 2
+sequence_length: 32
+burn_in: 8
+model:
+  entity_hidden: 64
+  attention_layers: 1
+  attention_heads: 4
+  rnn_hidden: 128
+learner:
+  device: cpu
+  compile_mode: "off"

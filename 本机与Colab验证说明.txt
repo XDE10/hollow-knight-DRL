@@ -1,0 +1,52 @@
+﻿本机与 Colab 验证记录（2026-11-17）
+
+项目位置：本仓库根目录
+上游：myouo/hk_Rl，提交 44a9dd8d311510e7e29e35e69e38c6ad2fd204d4
+结论：数值状态路线具备继续实施的基础。本机 CPU 和 Colab PRO 6000 均已实际执行模型更新；尚未运行真实游戏。
+
+已完成
+- Windows Python 环境位于 .venv，复用 现有 Python 3.11 的 CPU PyTorch，只在项目环境增加依赖。
+- 生成 Python FlatBuffers 绑定，保留生成工具于 runs/tools。
+- 修复 Windows 盘符被当作 URL 协议、file URI 解码、无 fchmod、发布校验路径分隔符问题。
+- 修正相应跨平台测试，并补充 Tensor 类型声明。
+- Windows：904 项通过，1 项跳过；排除只能在 POSIX 运行的启动脚本测试及真实游戏集成测试。
+- Colab Linux 上游：913 项通过，1 项跳过。该测试发生在本地兼容修复前，上游代码与本地修复后的代码不是同一份测试结果。
+- Ruff、63 个源码文件的 Mypy 检查通过。
+- Colab GPU 已确认 NVIDIA RTX PRO 6000 Blackwell Server Edition，约 95 GiB 可见显存。
+- GPU 完成 PPO、Recurrent PPO 更新和一次 APPO learner 合成数据更新。
+- 云端 checkpoint 下载后，Windows 完成 SHA-256 校验、载入模型和 CPU 推理。
+- 临时 Colab 会话已释放。
+
+计算实测（合成观测；512 步、2 epochs、minibatch 128、CPU 2 线程）
+模型                 本机决策中位数   本机更新耗时   Colab GPU 更新耗时
+MLP（约 48 万参数）      6.21 ms          0.27 s          0.70 s
+Attention+GRU（633万）  7.51 ms          4.36 s          0.74 s
+
+这些是单次计算短测，Windows/Colab 的 PyTorch 版本不同，不包含游戏渲染、场景重置、网络延迟，不能转换为打赢 Boss 的训练时间。
+现阶段建议先跑本地 MLP；如采用 GRU，可继续联调本地游戏/推理 + Colab 批量训练。无需把每个动作发到远程。
+
+可重复检查（在本项目目录的 Windows PowerShell 执行）
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\check_local.ps1
+加上 -Tests 可先跑 Windows 适用测试。该脚本只使用合成观测，不启动游戏。
+
+游戏购买、安装并配置好 HKRLEnvMod 后
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\check_game.ps1 -Mode Check
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\check_game.ps1 -Mode Smoke -Task mantis_lords
+Check 只检查连接；Smoke 会重置训练场景并执行短暂随机动作，需要已解锁神居的专用训练存档。
+框架是 HK Modding API；不要混用 Gemini 给的 BepInEx/JSON 模板。
+仓库当前部署文档指定游戏版本 1.5.78.11833；安装时核对 Modding API 兼容性。
+
+已准备配置
+configs/train/local_cpu.yaml：本地 MLP 短跑配置。
+configs/train/colab_single_worker.yaml：单台游戏电脑对应单个远端 learner，避免直接套用四 worker 默认配置。
+Colab 配置已通过配置解析；真实 Windows→Colab 隧道和游戏 rollout 上传尚未联调。
+
+正式训练前仍需完成
+1. 插件在真实游戏中加载，状态、动作、伤害奖励正确。
+2. 三螳螂阶段切换、Boss 暂时离场、胜负判定与连续自动重开验收。
+3. 游戏和模型同时运行的帧率、决策延迟、内存与温度实测。
+4. 本地 scripts/train.py 没有自动恢复优化器/训练进度入口；更新时也未显式暂停游戏，不宜直接作为无人值守长跑入口。
+5. 远端 learner 有恢复逻辑，但真实网络中断恢复和 checkpoint 交接还需要联调。
+
+详细机器可读证据：runs/validation/assessment.json
+所有 synthetic_*.pt 都只来自测试数据，不能当作已训练好的游戏 AI。

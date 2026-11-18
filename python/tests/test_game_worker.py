@@ -155,6 +155,7 @@ def test_game_worker_samples_policy_without_grad_tracking() -> None:
 
 def test_game_worker_collect_rollout_returns_batch() -> None:
     env = FakeEnv()
+    progress: list[dict[str, Any]] = []
     model = MlpActorCritic(
         {
             "global": env.observation_space["global"].shape,
@@ -169,6 +170,7 @@ def test_game_worker_collect_rollout_returns_batch() -> None:
         env=env,  # type: ignore[arg-type]
         model=model,
         config=TrainConfig(algorithm="ppo", rollout_steps=4, gamma=0.99, gae_lambda=0.95),
+        rollout_progress_sink=progress.append,
     )
 
     batch = worker.collect_rollout()
@@ -186,6 +188,9 @@ def test_game_worker_collect_rollout_returns_batch() -> None:
     np.testing.assert_allclose(batch.prev_rewards[:, 0], [0.0, 1.0, 1.0, 0.0])
     assert env.reset_count == 2
     assert worker.arena_auto_reset_count == 1
+    assert len(progress) == 1
+    assert progress[0]["rollout_collected"] == 4
+    assert progress[0]["episode_resets"] == 1
     assert len(env.actions) == 4
     assert set(env.actions[0]) == {"movement_x", "aim_y", "buttons", "duration"}
 
@@ -575,6 +580,7 @@ def test_game_worker_recovers_after_runtime_failure() -> None:
         "checkpoint_version": -1,
         "arena_auto_reset_count": 0,
         "error": "TimeoutError: simulated transport timeout",
+        "discarded_rollout_steps": 0,
         "learner_endpoint": None,
         "learner_upload_accepted_batches": 0,
         "learner_upload_failed_batches": 0,
@@ -803,7 +809,8 @@ def test_game_worker_switches_task_when_scene_differs_with_same_wire_id() -> Non
     assert int(batch.task_ids[0, 0]) == 1
 
 
-def test_game_worker_limits_repeated_runtime_failures() -> None:
+@pytest.mark.parametrize("sampling_only", [False, True])
+def test_game_worker_limits_repeated_runtime_failures(sampling_only: bool) -> None:
     env = AlwaysFailEnv()
     model = MlpActorCritic(
         {
@@ -823,12 +830,48 @@ def test_game_worker_limits_repeated_runtime_failures() -> None:
     )
 
     with pytest.raises(RuntimeError, match="exceeded max_consecutive_failures=1"):
-        worker.run(total_steps=2)
+        if sampling_only:
+            worker.collect_rollout_with_recovery()
+        else:
+            worker.run(total_steps=2)
 
     assert env.transport.reconnect_calls == 1
     assert worker.worker_crash_count == 2
     assert worker.consecutive_failures == 2
     assert worker.last_error == "TimeoutError: persistent transport timeout"
+
+
+@pytest.mark.parametrize("error_type", [TimeoutError, ConnectionError, ValueError])
+def test_sampling_recovery_discards_prefix_and_only_retries_io(error_type: type[Exception]) -> None:
+    class InterruptedEnv(FakeEnv):
+        failed = False
+
+        def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+            if self.step_count == 1 and not self.failed:
+                self.failed = True
+                raise error_type("interrupted")
+            return super().step(action)
+
+    env = InterruptedEnv()
+    model = MlpActorCritic(
+        {key: space.shape for key, space in env.observation_space.items()},
+        hidden=16,
+        enable_macro=False,
+    )
+    worker = GameWorker(
+        env=env, model=model, config=TrainConfig(rollout_steps=2), max_consecutive_failures=1
+    )
+    if error_type is ValueError:
+        with pytest.raises(ValueError, match="interrupted"):
+            worker.collect_rollout_with_recovery()
+        assert env.transport.reconnect_calls == 0
+    else:
+        batch = worker.collect_rollout_with_recovery()
+        assert batch.rewards.size == 2
+        assert worker.discarded_rollout_steps == 1
+        assert env.transport.reconnect_calls == 1
+        assert env.reset_count == 2
+        assert worker.worker_crash_count == 1
 
 
 class FakeEnv:

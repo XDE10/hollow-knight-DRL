@@ -37,6 +37,8 @@ class EntityAttentionRecurrentAC(ActorCritic):
     bosses in a linear sequence — config-controlled).
     """
 
+    exclude_run_ids = False
+
     def __init__(
         self,
         obs_dims: dict[str, Any],
@@ -60,7 +62,9 @@ class EntityAttentionRecurrentAC(ActorCritic):
         entity_shape = _shape(obs_dims, "entities")
         entity_dim = entity_shape[-1]
 
-        self.global_encoder = GlobalEncoder(global_dim, entity_hidden)
+        self.global_encoder = GlobalEncoder(
+            global_dim, entity_hidden, exclude_run_ids=self.exclude_run_ids
+        )
         self.player_encoder = PlayerEncoder(player_dim, entity_hidden)
         self.entity_encoder = EntityEncoder(entity_dim, entity_hidden, n_types=256, n_ids=4096)
         self.entity_attention = EntityTransformerEncoder(
@@ -202,6 +206,13 @@ class EntityAttentionRecurrentAC(ActorCritic):
             dim=-1,
         )
         return memory_input.reshape(batch_size, seq_len, -1), is_sequence
+
+
+@register_model("single_task_entity_attention_gru")
+class SingleTaskEntityAttentionGRU(EntityAttentionRecurrentAC):
+    """Keep bookkeeping IDs on the rollout, outside the single-task policy."""
+
+    exclude_run_ids = True
 
 
 def _shape(obs_dims: dict[str, Any], key: str) -> tuple[int, ...]:

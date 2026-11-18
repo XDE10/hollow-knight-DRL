@@ -386,6 +386,7 @@ def test_mod_step_controller_waits_for_committed_input_before_response() -> None
     assert "_successfulCommitCount++;" in injector
     assert "_awaitedInputCommitCount = _actions.SuccessfulCommitCount + 1" in controller
     assert "_actions.SuccessfulCommitCount < _awaitedInputCommitCount" in controller
+    assert "&& !BufferedTerminalEvent())" in controller
     wait_idx = controller.index("_actions.SuccessfulCommitCount < _awaitedInputCommitCount")
     repeat_response_idx = controller.index(
         "EnqueueStepResponse(sessionId, request, commandError, state)",
@@ -647,7 +648,7 @@ def test_mod_observation_reward_tracker_is_wired_before_drain() -> None:
     assert "PlayerDeath" in tracker
 
     update_idx = controller.index("_rewardTracker.Update(observation, _rewards);")
-    drain_idx = controller.index("var rewardEvents = _rewards.Drain();")
+    drain_idx = controller.index("_rewards.Drain()")
     assert update_idx < drain_idx
     assert "_rewardTracker.Reset();" in controller
     assert "new ObservationRewardTracker()" in mod

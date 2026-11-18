@@ -27,6 +27,18 @@ from hkrl.schema.HKRL import StepResponse as FbStepResponse
 from hkrl.utils.config import load_task_config
 
 
+@pytest.mark.parametrize("timeout", [0, -1, float("nan"), float("inf")])
+def test_env_rejects_invalid_step_timeout(timeout: float) -> None:
+    from hkrl.env import HKRLEnv
+
+    with pytest.raises(ValueError, match="step_timeout_s"):
+        HKRLEnv(
+            transport=DummyTransport(),
+            task=load_task_config("../configs/tasks/gruz_mother.yaml"),
+            step_timeout_s=timeout,
+        )
+
+
 class DummyTransport:
     def __init__(self) -> None:
         self.closed = False
@@ -394,6 +406,34 @@ def test_env_step_uses_server_tick_delta_for_reward_dt() -> None:
 
     assert task.action.action_repeat == 2
     assert reward == pytest.approx(3.0 + task.reward.time_penalty)
+
+
+def test_control_replies_preserve_elapsed_transition_ticks() -> None:
+    from hkrl.env import HKRLEnv
+
+    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    transport = ScriptedTransport(
+        [
+            lambda req: _build_response(
+                req, lifecycle=protocol.LifecycleState.RUNNING, server_tick=100
+            ),
+            lambda req: _build_response(
+                req, lifecycle=protocol.LifecycleState.RUNNING, server_tick=101
+            ),
+            lambda req: _build_response(
+                req, lifecycle=protocol.LifecycleState.RUNNING, server_tick=102
+            ),
+            lambda req: _build_response(
+                req, lifecycle=protocol.LifecycleState.RUNNING, server_tick=104
+            ),
+        ]
+    )
+    env = HKRLEnv(transport=transport, task=task)
+    env.reset()
+    env.pause()
+    env.resume()
+    _, _, _, _, info = env.step(env.action_space.sample())
+    assert info["elapsed_ticks"] == 4
 
 
 def test_env_truncates_at_task_time_limit_and_marks_reason() -> None:

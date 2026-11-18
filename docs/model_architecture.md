@@ -18,6 +18,11 @@ attend to, and composes with `entity_mask`. Recurrence captures temporal state
 that explicit features can't fully cover (boss wind-up, trajectory history,
 "what did I just press", heal-window timing).
 
+The single-task Sisters run uses `single_task_entity_attention_gru`.
+Its global encoder drops the numeric task ID and episode ID before the first
+linear layer. The raw observation and rollout retain both for grouping. Earlier
+`entity_attention_gru` checkpoints use the original encoder.
+
 ## 2. Forward pass
 
 ```text

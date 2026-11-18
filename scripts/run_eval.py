@@ -24,13 +24,13 @@ import hashlib
 import json
 import os
 import threading
+import time
 from collections.abc import Sequence
 from numbers import Integral
 from pathlib import Path
 from typing import Any
 
 import torch
-
 from hkrl import spaces
 from hkrl.env import HKRLEnv
 from hkrl.eval.evaluator import Evaluator
@@ -59,12 +59,8 @@ from hkrl.wrappers import NormalizeObservation
 def build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="HKRL Evaluator")
     p.add_argument("--policy", choices=("scripted", "mlp", "model"), default="scripted")
-    p.add_argument(
-        "--checkpoint", help="checkpoint .pt file or CheckpointRegistry directory"
-    )
-    p.add_argument(
-        "--checkpoint-dir", help="CheckpointRegistry directory; loads latest version"
-    )
+    p.add_argument("--checkpoint", help="checkpoint .pt file or CheckpointRegistry directory")
+    p.add_argument("--checkpoint-dir", help="CheckpointRegistry directory; loads latest version")
     p.add_argument("--train-config", default="configs/train/ppo_mlp.yaml")
     p.add_argument("--tasks", nargs="+", required=True)
     p.add_argument("--episodes", type=int, default=20)
@@ -85,19 +81,38 @@ def build_argparser() -> argparse.ArgumentParser:
         help="number of task-level evaluator workers",
     )
     p.add_argument("--no-normalize", action="store_true")
-    p.add_argument(
-        "--baseline", help="optional baseline metrics JSON for regression diff"
-    )
-    p.add_argument(
-        "--replay-jsonl", help="optional path to write per-step replay JSONL"
-    )
+    p.add_argument("--baseline", help="optional baseline metrics JSON for regression diff")
+    p.add_argument("--replay-jsonl", help="optional path to write per-step replay JSONL")
     p.add_argument("--output", help="optional path to write metrics JSON")
+    p.add_argument("--local-session", help="own the local game lock during evaluation")
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_argparser().parse_args(argv)
-    output = run_from_args(args)
+    if args.local_session:
+        from hkrl.training.local_session import exclusive_game_lock
+        from hkrl.utils.live_tuning import atomic_write_json
+
+        coordination = Path("runs/training")
+        with exclusive_game_lock(coordination / "game.lock"):
+            active = coordination / "active.json"
+            atomic_write_json(
+                active,
+                {
+                    "pid": os.getpid(),
+                    "mode": "evaluation",
+                    "run_dir": str(Path(args.local_session).resolve()),
+                },
+            )
+            try:
+                torch.set_num_threads(1)
+                output = run_from_args(args)
+                _write_output(output, Path(args.local_session) / f"eval-{time.time_ns()}.json")
+            finally:
+                active.unlink(missing_ok=True)
+    else:
+        output = run_from_args(args)
     if args.output:
         _write_output(output, Path(args.output))
     print(json.dumps(output, indent=2, sort_keys=True))
@@ -107,9 +122,7 @@ def main(argv: list[str] | None = None) -> int:
 def run_from_args(args: argparse.Namespace) -> dict[str, Any]:
     _validate_eval_args(args)
     baseline_metrics = (
-        _load_baseline_metrics(Path(args.baseline))
-        if getattr(args, "baseline", None)
-        else None
+        _load_baseline_metrics(Path(args.baseline)) if getattr(args, "baseline", None) else None
     )
     tasks = _load_tasks(args.tasks)
     if args.policy in {"mlp", "model"}:
@@ -119,9 +132,7 @@ def run_from_args(args: argparse.Namespace) -> dict[str, Any]:
     next_port = _make_port_provider(args)
 
     def env_factory(task: TaskConfig) -> Any:
-        env = HKRLEnv(
-            transport=_build_transport(args, train_cfg, port=next_port()), task=task
-        )
+        env = HKRLEnv(transport=_build_transport(args, train_cfg, port=next_port()), task=task)
         return env if args.no_normalize else NormalizeObservation(env)
 
     evaluator = Evaluator(
@@ -158,6 +169,8 @@ def _build_metadata(
 ) -> dict[str, Any]:
     return {
         "algorithm": train_cfg.algorithm,
+        "game_seed_controlled": False,
+        "time_to_kill_unit": "decision_steps",
         "checkpoint": getattr(args, "checkpoint", None),
         "checkpoint_dir": getattr(args, "checkpoint_dir", None),
         "episodes": int(args.episodes),
@@ -180,19 +193,13 @@ def _validate_model_task_layouts(tasks: list[TaskConfig]) -> None:
     base = tasks[0]
     for task in tasks[1:]:
         if task.observation.max_entities != base.observation.max_entities:
-            raise ValueError(
-                "all evaluator model tasks must share observation.max_entities"
-            )
+            raise ValueError("all evaluator model tasks must share observation.max_entities")
         if task.observation.tier != base.observation.tier:
             raise ValueError("all evaluator model tasks must share observation.tier")
         if task.action.enable_macro_actions != base.action.enable_macro_actions:
-            raise ValueError(
-                "all evaluator model tasks must share action.enable_macro_actions"
-            )
+            raise ValueError("all evaluator model tasks must share action.enable_macro_actions")
         if task.action.n_macro_actions != base.action.n_macro_actions:
-            raise ValueError(
-                "all evaluator model tasks must share action.n_macro_actions"
-            )
+            raise ValueError("all evaluator model tasks must share action.n_macro_actions")
 
 
 def _build_policy(
@@ -286,9 +293,7 @@ def _build_transport(
     *,
     port: int | None = None,
 ) -> Transport:
-    return make_transport(
-        train_cfg, host=args.host, port=args.port if port is None else port
-    )
+    return make_transport(train_cfg, host=args.host, port=args.port if port is None else port)
 
 
 def _make_port_provider(args: argparse.Namespace) -> Any:
@@ -321,9 +326,7 @@ def _validate_eval_args(args: argparse.Namespace) -> None:
         _non_empty_path_like(task, name=f"tasks[{index}]")
     _positive_int(getattr(args, "episodes", None), name="episodes")
     _positive_int(getattr(args, "max_steps", None), name="max_steps")
-    eval_workers = _positive_int(
-        getattr(args, "eval_workers", None), name="eval_workers"
-    )
+    eval_workers = _positive_int(getattr(args, "eval_workers", None), name="eval_workers")
     _non_empty_string(getattr(args, "host", "127.0.0.1"), name="host")
     _optional_path_arg(getattr(args, "baseline", None), name="baseline")
     _optional_path_arg(getattr(args, "checkpoint", None), name="checkpoint")
@@ -384,9 +387,7 @@ def _optional_path_arg(value: Any, *, name: str) -> str | os.PathLike[str] | Non
 
 def _write_output(output: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(output, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _make_replay_sink(path: str | None) -> Any:
@@ -419,9 +420,7 @@ def _resolve_checkpoint_path(args: argparse.Namespace) -> Path:
     checkpoint = getattr(args, "checkpoint", None)
     checkpoint_dir = getattr(args, "checkpoint_dir", None)
     if checkpoint is None and checkpoint_dir is None:
-        raise SystemExit(
-            "--checkpoint or --checkpoint-dir is required with --policy mlp/model"
-        )
+        raise SystemExit("--checkpoint or --checkpoint-dir is required with --policy mlp/model")
 
     if checkpoint_dir is not None:
         return _latest_registry_checkpoint(

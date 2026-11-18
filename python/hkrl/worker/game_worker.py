@@ -55,6 +55,7 @@ class GameWorker:
         clock: Callable[[], float] | None = None,
         checkpoint_poll_interval_s: float = 2.0,
         time_scale: float | None = None,
+        rollout_progress_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         if max_consecutive_failures < 0:
             raise ValueError("max_consecutive_failures must be non-negative")
@@ -79,6 +80,7 @@ class GameWorker:
         self.learner_endpoint = learner_endpoint
         self.batch_uploader = batch_uploader
         self.heartbeat_sink = heartbeat_sink
+        self.rollout_progress_sink = rollout_progress_sink
         self.task_provider = task_provider
         self.max_consecutive_failures = max_consecutive_failures
         self.checkpoint_poll_interval_s = float(checkpoint_poll_interval_s)
@@ -143,6 +145,7 @@ class GameWorker:
         self._prev_reward: np.ndarray = np.zeros((1,), dtype=np.float32)
         self.last_batch: RolloutBatch | None = None
         self.worker_crash_count = 0
+        self.discarded_rollout_steps = 0
         self.consecutive_failures = 0
         self.last_error: str | None = None
         self.last_rollout_duration_s = 0.0
@@ -181,6 +184,24 @@ class GameWorker:
                     self._handle_runtime_failure(exc)
         finally:
             self._stop_checkpoint_monitor()
+
+    def collect_rollout_with_recovery(self) -> RolloutBatch:
+        """Retry transient I/O with a fresh episode and no contaminated prefix.
+
+        Model/loss/programming errors deliberately propagate. The existing
+        failure limit bounds reconnect attempts; optimizer updates are never
+        retried by this sampling-only helper.
+        """
+        while True:
+            try:
+                batch = self.collect_rollout()
+            except (TimeoutError, ConnectionError) as exc:
+                self.discarded_rollout_steps += self.buffer.pos
+                self._handle_runtime_failure(exc)
+                continue
+            self.consecutive_failures = 0
+            self.last_error = None
+            return batch
 
     def collect_rollout(self) -> RolloutBatch:
         """Fill one flat rollout and return a GAE-ready RolloutBatch."""
@@ -299,6 +320,17 @@ class GameWorker:
                 else:
                     self._reset()
             collected += 1
+            if self.rollout_progress_sink is not None and (
+                collected % 64 == 0 or collected == self.cfg.rollout_steps
+            ):
+                self.rollout_progress_sink(
+                    {
+                        "rollout_collected": collected,
+                        "rollout_target": self.cfg.rollout_steps,
+                        "rollout_elapsed_seconds": self._clock() - started_at,
+                        "episode_resets": self.arena_auto_reset_count,
+                    }
+                )
 
         last_value = self._bootstrap_value()
         self.buffer.compute_returns(
@@ -544,6 +576,7 @@ class GameWorker:
                 "checkpoint_version": self.checkpoint_version,
                 "arena_auto_reset_count": self.arena_auto_reset_count,
                 "error": f"{type(exc).__name__}: {exc}",
+                "discarded_rollout_steps": self.discarded_rollout_steps,
                 "learner_endpoint": self.learner_endpoint,
                 **self._learner_upload_metrics(),
                 "policy_version": self.policy_version,
