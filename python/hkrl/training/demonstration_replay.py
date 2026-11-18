@@ -12,7 +12,8 @@ from torch import Tensor
 
 from hkrl import spaces
 from hkrl.models.base import ActorCritic
-from hkrl.models.heads import ACTION_TENSOR_DIM_NO_MACRO
+from hkrl.models.heads import ACTION_TENSOR_DIM_NO_MACRO, CompositeActionDistribution
+from hkrl.training.sisters_dodges import DODGE_BUTTONS
 
 DEMO_OBS = ("global", "player", "entities", "entity_mask", "prev_action", "prev_reward")
 
@@ -61,6 +62,7 @@ class DemonstrationReplay:
         self.burn_in = burn_in
         self.episodes: list[dict[str, Tensor]] = []
         self.windows: list[tuple[int, int]] = []
+        self.dodge_windows: list[int] = []
         self.hashes: dict[str, str] = {}
         files, holdout = split_demonstrations(directory)
         if not holdout or length <= 0 or burn_in < 0:
@@ -71,13 +73,32 @@ class DemonstrationReplay:
             episode = {key: data[key] for key in (*DEMO_OBS, "actions", "masks")}
             actions = episode["actions"]
             index = len(self.episodes)
-            self.windows.extend((index, start) for start in range(0, len(actions), length))
+            if "dodge_outcomes" in data:
+                grades = data["dodge_outcomes"]
+                if (
+                    grades.shape != (len(actions), len(DODGE_BUTTONS))
+                    or not ((grades >= -1) & (grades <= 2)).all()
+                ):
+                    raise ValueError(f"invalid dodge outcomes: {path}")
+                episode["dodge_outcomes"] = grades
+            if self.episodes and self.episodes[0].keys() != episode.keys():
+                raise ValueError("cannot mix annotated and unannotated demonstrations")
+            for start in range(0, len(actions), length):
+                if (
+                    "dodge_outcomes" in episode
+                    and (episode["dodge_outcomes"][start : start + length] > 0).any()
+                ):
+                    self.dodge_windows.append(len(self.windows))
+                self.windows.append((index, start))
             self.episodes.append(episode)
             self.hashes[path.name] = hashlib.sha256(payload).hexdigest()
 
     def loss(self, model: ActorCritic, rng: np.random.Generator, device: torch.device) -> Tensor:
         clips = []
-        for choice in rng.integers(len(self.windows), size=3):
+        choices = rng.integers(len(self.windows), size=3)
+        if self.dodge_windows:
+            choices[0] = rng.choice(self.dodge_windows)
+        for choice in choices:
             index, start = self.windows[int(choice)]
             episode = self.episodes[index]
             lo = max(0, start - self.burn_in)
@@ -91,6 +112,8 @@ class DemonstrationReplay:
         valid = data.pop("valid")
         actions = data.pop("actions")
         dist, _, _ = model(compact_obs(data), action_mask=mask)
+        if "dodge_outcomes" in data:
+            return dodge_imitation_loss(dist, actions, mask, valid, data["dodge_outcomes"])
         move_loss = -dist.movement_x.log_prob(actions[..., 0])[valid].mean()
         # An unavailable attack/jump conveys no evidence about whether to press it.
         button_targets = actions[..., 2 : 2 + spaces.N_BUTTONS].float()
@@ -102,3 +125,35 @@ class DemonstrationReplay:
             weights = valid_button * (1 + 3 * button_targets[..., bit])
             loss = loss - (weights * button_logp[..., bit]).sum() / weights.sum().clamp(min=1)
         return loss
+
+
+def dodge_imitation_loss(
+    dist: CompositeActionDistribution,
+    actions: Tensor,
+    mask: Tensor,
+    valid: Tensor,
+    grades: Tensor,
+) -> Tensor:
+    """Keep ordinary movement and attacks while learning infrequent verified evasions."""
+    loss = -dist.movement_x.log_prob(actions[..., 0])[valid].mean()
+    loss -= 0.35 * dist.aim_y.log_prob(actions[..., 1])[valid].mean()
+    targets = actions[..., 2 : 2 + spaces.N_BUTTONS].float()
+    logp = dist.buttons.log_prob(targets)
+    offset = spaces.N_MOVEMENT_X + spaces.N_AIM_Y
+    for name in ("attack", "jump_hold", *DODGE_BUTTONS):
+        bit = spaces.BUTTON_BITS[name]
+        legal = valid & mask[..., offset + bit]
+        if name in DODGE_BUTTONS:
+            grade = grades[..., DODGE_BUTTONS.index(name)]
+            positive = (grade > 0) & legal
+            negative = (targets[..., bit] == 0) & legal
+            # A failed or unobserved attempt is neither a positive nor a negative.
+            weights = positive * (1 + (grade == 2).float())
+            pos_nll = -(weights * logp[..., bit]).sum() / weights.sum().clamp(min=1)
+            neg_nll = -(negative * logp[..., bit]).sum() / negative.sum().clamp(min=1)
+            loss = loss + 0.45 * pos_nll + 0.55 * neg_nll
+        else:
+            weights = legal * (1 + 3 * targets[..., bit])
+            nll = -(weights * logp[..., bit]).sum() / weights.sum().clamp(min=1)
+            loss = loss + nll * (0.35 if name == "jump_hold" else 1)
+    return loss

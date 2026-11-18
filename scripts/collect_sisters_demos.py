@@ -14,7 +14,11 @@ import numpy as np
 from hkrl import protocol, spaces
 from hkrl.env import HKRLEnv
 from hkrl.eval.scripted_policies import ScriptedAggroPolicy
-from hkrl.eval.sisters_survival import SistersCounterPolicy, SistersSurvivalPolicy
+from hkrl.eval.sisters_survival import (
+    SistersCounterPolicy,
+    SistersDodgeCounterPolicy,
+    SistersSurvivalPolicy,
+)
 from hkrl.training.local_session import exclusive_game_lock
 from hkrl.transport.factory import make_transport
 from hkrl.utils.config import load_task_config, load_train_config
@@ -207,7 +211,7 @@ def main() -> None:
     parser.add_argument("--task", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=12)
-    parser.add_argument("--teacher", choices=("aggro", "survival", "counter"), default="aggro")
+    parser.add_argument("--teacher", choices=("aggro", "survival", "counter", "dodge_counter"), default="aggro")
     args = parser.parse_args()
     if os.environ.get("HKRL_SAVE_SLOT") != "3":
         raise ValueError("Sisters demonstrations require save slot 3")
@@ -224,6 +228,7 @@ def main() -> None:
             "aggro": ScriptedAggroPolicy,
             "survival": SistersSurvivalPolicy,
             "counter": SistersCounterPolicy,
+            "dodge_counter": SistersDodgeCounterPolicy,
         }[args.teacher]
         teacher = policy_class(
             env.action_space,

@@ -129,3 +129,70 @@ class SistersCounterPolicy(ScriptedAggroPolicy):
         if mask[movement]:
             action["movement_x"] = movement
         return action
+
+
+class SistersDodgeCounterPolicy(SistersCounterPolicy):
+    """Demonstrate a jump over low attacks or a lateral escape from a descending sister."""
+
+    # The float32 observation carries the mod's stable hash for the FSM state "Dash Antic".
+    DASH_ANTIC = np.float32(-737267062)
+
+    def act(self, obs: Any, action_mask: Any | None = None) -> Any:
+        action = super().act(obs, action_mask)
+        mask, _, _ = _validated_action_mask(self.action_space, action_mask)
+        active = obs["entities"][np.asarray(obs["entity_mask"], dtype=bool)]
+        e, p = spaces.ENTITY_FEATURE_INDEX, spaces.PLAYER_FEATURE_INDEX
+        if active.shape[1] <= e["hurtbox_size_y"]:
+            return action
+        player = obs["player"]
+        x, y = player[:2] * spaces.ARENA_SCALE
+        grounded = bool(player[p["on_ground"]])
+        kind = active[:, e["entity_type"]]
+        enemies = (kind == protocol.EntityType.BOSS) | (
+            (kind == protocol.EntityType.PROJECTILE) & (active[:, e["team"]] == protocol.Team.ENEMY)
+        )
+        threats = active[enemies]
+        if not len(threats):
+            return action
+        dx = threats[:, e["hurtbox_center_x"]] * spaces.ARENA_SCALE - x
+        dy = threats[:, e["hurtbox_center_y"]] * spaces.ARENA_SCALE - y
+        vx = threats[:, e["vel_x"]] * spaces.VEL_SCALE
+        vy = threats[:, e["vel_y"]] * spaces.VEL_SCALE
+        boss = threats[:, e["entity_type"]] == protocol.EntityType.BOSS
+        drop = boss & (abs(dx) < 3.4) & (dy > 2.5) & (dy < 14) & (vy < 1)
+        buttons = action["buttons"]
+        legal = mask[spaces.N_MOVEMENT_X + spaces.N_AIM_Y :]
+        jump, hold, dash, attack = (
+            spaces.BUTTON_BITS[k] for k in ("jump_tap", "jump_hold", "dash", "attack")
+        )
+        if np.any(drop):
+            spikes = active[kind == protocol.EntityType.HAZARD]
+            if len(spikes) == 2:
+                centers = spikes[:, e["hurtbox_center_x"]] * spaces.ARENA_SCALE
+                half = spikes[:, e["hurtbox_size_x"]] * spaces.ARENA_SCALE / 2
+                left, right = int(np.argmin(centers)), int(np.argmax(centers))
+                clearance = (x - centers[left] - half[left], centers[right] - half[right] - x)
+                closest = dx[np.flatnonzero(drop)[np.argmin(abs(dx[drop]))]]
+                side = int(closest < 0) if abs(closest) > 0.6 else int(clearance[1] > clearance[0])
+                if clearance[side] < 5:
+                    side = 1 - side
+                move = 2 * side
+                if mask[move]:
+                    action["movement_x"] = move
+                    if grounded and legal[dash] and clearance[side] > 8:
+                        buttons[dash], buttons[attack], buttons[jump] = 1, 0, 0
+                    return action
+        # Original collector saw horizontal lunges around 55 units/s and low blades
+        # before they crossed the player. Give the jump time to clear their height.
+        antic = boss & (threats[:, e["fsm_state_hash"]] == self.DASH_ANTIC) & (abs(dx) < 14)
+        towards = (dx * vx < 0) & (abs(dx) < 2.5 + 0.31 * abs(vx))
+        low_attack = np.any((abs(dy) < 2.2) & (antic | towards))
+        if grounded and low_attack and legal[jump]:
+            buttons[jump] = 1
+        if low_attack and player[p["vel_y"]] > 0 and legal[hold]:
+            buttons[hold] = 1
+        below = boss & (abs(dx) < 3.0) & (dy < -1.0) & (dy > -5.2)
+        if not grounded and np.any(below) and mask[spaces.N_MOVEMENT_X] and legal[attack]:
+            action["aim_y"] = 0
+            buttons[attack] = 1
+        return action

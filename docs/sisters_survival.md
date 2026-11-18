@@ -74,3 +74,30 @@ $control = 'runs/training/sisters-gru-bc-ppo-seed0/checkpoints/checkpoint_v00002
 ```
 
 从已有检查点接续时可以省略两项初始化数据参数，训练程序会按清单复核示范文件的哈希。游戏存档、逐步回放和权重保存在本机。
+
+## 为什么先做短训练，以及怎样进入长训练
+
+一次决策步包括读取游戏状态、选择一次动作并取得下一次观测。一个动作可能持续多个物理步。一批 512 个决策步，累计 20 批才是前面各轮的 10,240 步。单个检查点可以一直续训；不同实验的步数能否合并，要看它们继承了哪些权重和优化器状态。进攻与生存对照分别训练，上一节的避刺与反击模型继承了进攻模型的权重。
+
+前几轮依次核对真实伤害事件、调整 GRU 输入、采集示范和测试奖励。生存轮的 0/10 命中暴露了退化，加大该轮预算缺少依据。避刺与反击轮恢复到 10/10 命中，建立了下一阶段的起点。本阶段固定同一套奖励、GRU 和 PPO 配置，比较加入闪避示范并连续训练后，实战能走多远。
+
+- 在 3 号槽录下螳螂突进前的跳跃、上方落砸时的侧移或冲刺，以及躲过飞镖后的出刀。每四场留出一整场做模仿验证。
+- 用游戏记录检查动作是否实际起跳或进入冲刺、附近是否掉血。训练中额外抽取包含这些动作的时间段。18 个物理步内无伤是本实验的筛选窗口；动作后 50 个物理步内无换血且出现已核实的普通挥刀命中，记为后续反击。它们描述观察到的结果，无法证明单个动作避免了原本必中的攻击。
+- 从上轮正式检查点微调模仿策略，再用新的 PPO 优化器继续实机训练。新阶段的首个检查点在 4,096 个决策步，随后可在同一目录恢复全部权重、优化器和采样状态，累计到 32,768 步。每个里程碑冻结权重，单独实打 10 场。10 场里命中至少 8 场、场均输出至少 60、本体与飞镖合计每千物理步掉血不高于 7、地刺每千步掉血不高于 0.8，或出现胜场，才扩大这一路的预算。这些数值用于开发筛选。上一轮相应为 10 场、77.7、6.37 和 0.37。
+- 判断模型能否用于通关，最终要看独立对局的胜率、能否打进合击阶段、受伤与用时，以及不同游戏攻击序列下的表现。累计步数和训练奖励都不能替代这项验收。
+
+复用上节的 PowerShell 环境和 `$cfg`、`$task`，选择新的运行目录。以下更新数均指本目录累计完成的 PPO 批数。
+
+```powershell
+$run = 'runs/training/sisters-dodge-stage'
+$control = 'runs/training/sisters-counter-v2-seed0/checkpoints/checkpoint_v000021.pt'
+& $py scripts/collect_sisters_demos.py --teacher dodge_counter --config $cfg --task $task `
+    --episodes 12 --output "$run/demos"
+& $py scripts/fit_sisters_dodges.py --config $cfg --task $task --demos "$run/demos" `
+    --output "$run/imitation" --init-weights $control
+& $py scripts/train.py --config $cfg --task $task --run-dir $run --updates 8 `
+    --init-weights "$run/imitation/bc-weights.pt" --demo-replay "$run/imitation/demos" `
+    --reset-timeout 90 --checkpoint-every 4 --save-rollouts
+```
+
+每个里程碑按上一节的评估命令使用新的结果文件名。通过实战筛选后，同一训练命令改为 `--updates 64` 即可从第 8 批接续。

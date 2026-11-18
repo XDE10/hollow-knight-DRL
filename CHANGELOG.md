@@ -8,6 +8,10 @@ the project version tracks the **schema_version** + roadmap phase.
 
 ### Added
 
+- Added slot-3 dodge-and-counter demonstrations and checkpoint-initialized
+  imitation on motion-confirmed jump/dash windows. Recurrent PPO can replay
+  these outcome-annotated windows alongside ordinary movement and attacks.
+
 - Added a landing-aware Sisters GRU and attack-and-dodge demonstrations. Local
   recurrent PPO can replay demonstration windows during each update and pin
   their hashes on resume. Local model-only warm starts accept registry
