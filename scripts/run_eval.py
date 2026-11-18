@@ -76,6 +76,10 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--max-steps", type=int, default=4096)
     p.add_argument("--reset-timeout", type=int, help="seconds to allow each game to enter RUNNING")
     p.add_argument(
+        "--reset-retries", type=int, default=0,
+        help="retry an acknowledged scene-load failure before the episode starts",
+    )
+    p.add_argument(
         "--eval-workers",
         type=int,
         help="parallel games; a single task is divided by episode",
@@ -146,13 +150,17 @@ def run_from_args(args: argparse.Namespace) -> dict[str, Any]:
     train_cfg = load_train_config(args.train_config)
     policy = _build_policy(args, tasks[0], train_cfg)
     next_port = _make_port_provider(args)
+    reset_wrappers = []
+    retries = getattr(args, "reset_retries", 0)
 
     def env_factory(task: TaskConfig) -> Any:
-        env: Any = HKRLEnv(transport=_build_transport(args, train_cfg, port=next_port()), task=task)
-        if getattr(args, "reset_timeout", None) is not None:
+        port = next_port()
+        env: Any = HKRLEnv(transport=_build_transport(args, train_cfg, port=port), task=task)
+        if getattr(args, "reset_timeout", None) is not None or retries:
             from hkrl.training.local_session import ResetTimeout
 
-            env = ResetTimeout(env, args.reset_timeout)
+            env = ResetTimeout(env, getattr(args, "reset_timeout", None) or 30, retries)
+            reset_wrappers.append((task.task_id, port, env))
         return env if args.no_normalize else NormalizeObservation(env)
 
     evaluator = Evaluator(
@@ -169,6 +177,13 @@ def run_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "metadata": _build_metadata(args, tasks, train_cfg),
         "metrics": metrics,
     }
+    if retries:
+        output["metadata"]["reset_retries"] = retries
+        output["metadata"]["retried_scene_loads"] = [
+            {"task": task_id, "port": port, "seed": seed}
+            for task_id, port, wrapper in reset_wrappers
+            for seed in wrapper.retried_seeds
+        ]
 
     if baseline_metrics is not None:
         output["regression"] = evaluator.regression_report(baseline_metrics, metrics)
@@ -342,6 +357,8 @@ def _ports(args: argparse.Namespace) -> list[int]:
 def _validate_eval_args(args: argparse.Namespace) -> None:
     if getattr(args, "reset_timeout", None) is not None:
         _positive_int(args.reset_timeout, name="reset_timeout")
+    if _integer(getattr(args, "reset_retries", 0), name="reset_retries") < 0:
+        raise ValueError("reset_retries must be nonnegative")
     tasks = getattr(args, "tasks", None)
     if not isinstance(tasks, Sequence) or isinstance(tasks, (str, bytes)) or not tasks:
         raise ValueError("at least one task is required")

@@ -627,6 +627,49 @@ def test_env_reset_surfaces_status_code() -> None:
         env.reset(options={"reset_timeout_s": 1.0, "recv_timeout_s": 0.1})
 
 
+@pytest.mark.parametrize(
+    ("failures", "retries", "succeeds", "expected_attempts"),
+    [
+        ([protocol.StatusCode.SCENE_LOAD_FAILED], 1, True, 2),
+        ([protocol.StatusCode.SCENE_LOAD_FAILED] * 2, 1, False, 2),
+        ([protocol.StatusCode.SCENE_LOAD_FAILED], 0, False, 1),
+        ([protocol.StatusCode.BOSS_NOT_FOUND], 1, False, 1),
+    ],
+)
+def test_reset_retries_only_rejected_scene_loads_before_episode_start(
+    failures: list[protocol.StatusCode], retries: int, succeeds: bool, expected_attempts: int
+) -> None:
+    from hkrl.env import EnvProtocolError, HKRLEnv
+    from hkrl.training.local_session import ResetTimeout
+
+    statuses = iter(failures)
+
+    def rejected(req: Any) -> bytes:
+        return _build_response(
+            req,
+            lifecycle=protocol.LifecycleState.WAIT_BOSS_READY,
+            error_code=next(statuses),
+            include_observation=False,
+        )
+
+    transport = ScriptedTransport(
+        [rejected] * len(failures)
+        + [lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING)]
+    )
+    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    env = ResetTimeout(HKRLEnv(transport=transport, task=task), 1, retries)
+    if succeeds:
+        _, info = env.reset(seed=171, options={"recv_timeout_s": 0.1})
+        assert info["lifecycle_state"] == protocol.LifecycleState.RUNNING
+    else:
+        with pytest.raises(EnvProtocolError):
+            env.reset(seed=171)
+    assert env.retried_seeds == [171] * (expected_attempts - 1)
+    assert [req.Command() for req in transport.requests] == [
+        protocol.Command.RESET
+    ] * expected_attempts
+
+
 def test_env_rejects_mismatched_response_env_id() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 

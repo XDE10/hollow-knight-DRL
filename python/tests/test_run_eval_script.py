@@ -192,6 +192,7 @@ def test_run_eval_allows_worker_count_above_task_count_with_task_ports() -> None
         ("episodes", True, "episodes"),
         ("max_steps", -1, "max_steps"),
         ("reset_timeout", 0, "reset_timeout"),
+        ("reset_retries", -1, "reset_retries"),
         ("eval_workers", 0, "eval_workers"),
         ("seeds", [], "seeds"),
         ("seeds", [1, "2"], "seeds"),

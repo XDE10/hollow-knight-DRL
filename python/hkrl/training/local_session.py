@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import io
 import json
+import logging
 import os
 import random
 import sys
@@ -23,6 +24,7 @@ import numpy as np
 import torch
 
 from hkrl import protocol
+from hkrl.env import EnvProtocolError
 from hkrl.learner.checkpoint_payload import validate_checkpoint_payload, validate_model_state_dict
 from hkrl.learner.checkpoint_registry import CheckpointRegistry
 from hkrl.training.batch_io import save_rollout_batch
@@ -170,13 +172,34 @@ class LocalSession:
 
 
 class ResetTimeout(gym.Wrapper):
-    def __init__(self, env: gym.Env, timeout: float) -> None:
+    def __init__(self, env: gym.Env, timeout: float, scene_load_retries: int = 0) -> None:
         super().__init__(env)
+        if scene_load_retries < 0:
+            raise ValueError("scene_load_retries must be nonnegative")
         self.timeout = timeout
+        self.scene_load_retries = scene_load_retries
+        self.retried_seeds: list[int | None] = []
 
     def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
         options = {"reset_timeout_s": self.timeout, **(kwargs.pop("options", None) or {})}
-        return self.env.reset(options=options, **kwargs)
+        retries = 0
+        while True:
+            try:
+                return self.env.reset(options=options, **kwargs)
+            except EnvProtocolError as exc:
+                if (
+                    exc.status_code != protocol.StatusCode.SCENE_LOAD_FAILED
+                    or retries >= self.scene_load_retries
+                ):
+                    raise
+                retries += 1
+                self.retried_seeds.append(kwargs.get("seed"))
+                logging.getLogger(__name__).warning(
+                    "Retrying scene load before episode start (seed=%s, attempt=%d): %s",
+                    kwargs.get("seed"),
+                    retries + 1,
+                    exc,
+                )
 
 
 def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:

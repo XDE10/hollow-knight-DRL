@@ -45,6 +45,10 @@ from hkrl.utils.config import RewardWeights, TaskConfig
 class EnvProtocolError(RuntimeError):
     """Raised when the mod returns an invalid lifecycle/protocol response."""
 
+    def __init__(self, message: str, *, status_code: protocol.StatusCode | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
 
 class HKRLEnv(gym.Env):
     """Single-env Gymnasium interface to the game.
@@ -493,7 +497,10 @@ class HKRLEnv(gym.Env):
     def _raise_for_error(response: protocol.DecodedStepResponse, *, context: str) -> None:
         if response.error_code != protocol.StatusCode.OK:
             detail = f": {response.info}" if response.info else ""
-            raise EnvProtocolError(f"{context} failed with {response.error_code.name}{detail}")
+            raise EnvProtocolError(
+                f"{context} failed with {response.error_code.name}{detail}",
+                status_code=response.error_code,
+            )
 
     @staticmethod
     def _is_unbound_error_response(response: protocol.DecodedStepResponse) -> bool:
