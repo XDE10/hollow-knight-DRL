@@ -21,7 +21,7 @@ import torch
 
 from hkrl import protocol
 from hkrl.models.base import ActorCritic
-from hkrl.spaces import PLAYER_FEATURE_INDEX, canonical_noop_action_values
+from hkrl.spaces import ENTITY_FEATURE_INDEX, PLAYER_FEATURE_INDEX, canonical_noop_action_values
 from hkrl.utils.config import TaskConfig
 from hkrl.worker.game_worker import action_tensor_to_env_action
 
@@ -330,6 +330,18 @@ class Evaluator:
                     record["player_action_flags"] = int(
                         player[PLAYER_FEATURE_INDEX["action_flags"]]
                     )
+        if isinstance(observation, Mapping) and {"entities", "entity_mask"} <= observation.keys():
+            visible = np.asarray(observation["entities"])[
+                np.asarray(observation["entity_mask"], dtype=bool)
+            ]
+            types = visible[:, ENTITY_FEATURE_INDEX["entity_type"]]
+            teams = visible[:, ENTITY_FEATURE_INDEX["team"]]
+            record["observed_boss_count"] = int(np.count_nonzero(types == protocol.EntityType.BOSS))
+            record["observed_enemy_projectile_count"] = int(
+                np.count_nonzero(
+                    (types == protocol.EntityType.PROJECTILE) & (teams == protocol.Team.ENEMY)
+                )
+            )
         with self._replay_lock:
             self.replay_sink(record)
 

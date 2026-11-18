@@ -66,7 +66,10 @@ arena can be distinguished from a worker that is actively completing and
 resetting attempts.
 `scripts/run_eval.py --replay-jsonl FILE` can additionally emit per-step replay
 records with task/seed/episode/step, action, reward, terminal flags, and
-event-derived metrics. Replay JSONL is debugging evidence; capability decisions
+event-derived metrics. When entity observations are available, `observed_boss_count`
+and `observed_enemy_projectile_count` count the unpadded rows seen after each action.
+These counts measure exposure to simultaneous threats in the observation tier in use.
+Replay JSONL is debugging evidence; capability decisions
 still use the aggregated shaping-free metrics above. The evaluator CLI rejects
 empty task/config/checkpoint/baseline/output/replay paths before connecting to
 live env instances, and preloads optional baseline metrics before starting a

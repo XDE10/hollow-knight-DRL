@@ -141,6 +141,48 @@ def test_partial_boss_kill_is_not_an_encounter_win(ending: str) -> None:
     assert records[1]["won"] == (ending == "win")
 
 
+def test_replay_counts_simultaneous_observed_bosses_and_enemy_projectiles() -> None:
+    class ArenaEnv(FakeEvalEnv):
+        def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+            obs, reward, done, truncated, info = super().step(action)
+            boss, blade = protocol.EntityType.BOSS, protocol.EntityType.PROJECTILE
+            enemy, friendly = protocol.Team.ENEMY, protocol.Team.PLAYER_CREATED
+            entities = np.zeros((8, spaces.ENTITY_FEATURE_DIMS["privileged"]), dtype=np.float32)
+            entities[:, spaces.ENTITY_FEATURE_INDEX["entity_type"]] = [
+                boss,
+                boss,
+                boss,
+                blade,
+                blade,
+                blade,
+                blade,
+                boss,
+            ]
+            entities[:, spaces.ENTITY_FEATURE_INDEX["team"]] = [enemy] * 5 + [
+                friendly,
+                enemy,
+                enemy,
+            ]
+            obs["entities"] = entities
+            obs["entity_mask"] = np.array([1, 1, 1, 1, 1, 1, 0, 0]) * (self.step_count == 1)
+            return obs, reward, done, truncated, info
+
+    records: list[dict[str, Any]] = []
+    env = ArenaEnv()
+    evaluator = Evaluator(
+        ScriptedAggroPolicy(env.action_space),
+        tasks=[TaskConfig(task_id="sisters", scene="Arena")],
+        seeds=[0],
+        env_factory=lambda _: env,
+        replay_sink=records.append,
+    )
+    evaluator.evaluate(episodes_per_task=1)
+    assert [(r["observed_boss_count"], r["observed_enemy_projectile_count"]) for r in records] == [
+        (3, 2),
+        (0, 0),
+    ]
+
+
 def test_evaluator_worker_pool_runs_tasks_and_closes_envs() -> None:
     tasks = [
         TaskConfig(task_id="fake_a", scene="FakeScene"),
