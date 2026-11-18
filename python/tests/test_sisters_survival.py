@@ -47,6 +47,18 @@ def test_many_entities_survival_uses_second_projectile_and_respects_padding() ->
     assert blocked["buttons"][0] == 0
 
 
+def test_third_sister_changes_evasion_independently_of_entity_order() -> None:
+    blades = [(3, -12, 1), (3, 16, 0)]
+    far = _decision([(7, 0), (13, 2), (21, 0)], blades)
+    nearby = [(7, 0), (13, 2), (2.5, 0)]
+    evade = _decision(nearby, blades)
+    reordered = _decision(nearby[::-1], blades[::-1])
+    assert (far["movement_x"], far["buttons"][0]) == (2, 0)
+    assert (evade["movement_x"], evade["buttons"][0]) != (2, 0)
+    assert reordered["movement_x"] == evade["movement_x"]
+    np.testing.assert_array_equal(reordered["buttons"], evade["buttons"])
+
+
 @pytest.mark.parametrize("side", [-1, 1])
 def test_edge_allows_a_safe_jump_in_either_direction(side: int) -> None:
     action = _decision([(10 * side, 0)], [(4, 3 * side, -1.5)])

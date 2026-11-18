@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+
 from hkrl import protocol, spaces
 from hkrl.env import HKRLEnv
 from hkrl.eval.scripted_policies import ScriptedAggroPolicy
