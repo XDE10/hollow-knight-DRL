@@ -338,6 +338,14 @@ internal static class Program
             !mask[ActionMasker.ButtonOffset + ActionMasker.ButtonJumpTap],
             "airborne spent jump is masked");
         Expect(
+            !mask[ActionMasker.ButtonOffset + ActionMasker.ButtonJumpHold],
+            "a released jump cannot be restarted by holding in midair");
+        bool[] risingMask = masker.Compute(new PlayerActionState(
+            onGround: false, doubleJumpAvailable: false, continuingJump: true));
+        Expect(risingMask[ActionMasker.ButtonOffset + ActionMasker.ButtonJumpHold]
+            && !risingMask[ActionMasker.ButtonOffset + ActionMasker.ButtonJumpTap],
+            "the active jump can be held without granting an extra takeoff");
+        Expect(
             !mask[ActionMasker.ButtonOffset + ActionMasker.ButtonDash],
             "unavailable dash is masked");
         Expect(

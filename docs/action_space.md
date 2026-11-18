@@ -68,7 +68,8 @@ dash_cooldown > 0 or !CanDash()    -> mask dash
 soul < cast_cost                   -> mask cast / focus
 spell not learned                  -> mask cast
 attack_lock > 0                    -> mask attack / cast / dash
-not grounded and no double_jump    -> mask jump
+not grounded and no double_jump    -> mask fresh jump_tap
+no fresh jump and no ongoing hold  -> mask jump_hold
 focusing                           -> mask attack / dash / cast
 !CanDreamNail()                    -> mask dream_nail
 !CanNailCharge()                   -> mask nail-art hold/release
@@ -244,3 +245,9 @@ controls or duplicate callbacks after a Mod reload.
 The bridge is disabled throughout RESET/scene transition and enabled only once
 the environment reaches `RUNNING`, so it cannot overwrite inputs used by the
 game's own Godhome entry flow.
+
+A rising jump that the agent is already holding can continue after fresh jump
+input becomes unavailable. The mod checks HeroController's jumping flag,
+upward vertical velocity, and the applied hold bit. The existing jump-tap
+mask still guards a new takeoff. This uses the same button indices and wire
+layout as the other jump actions.

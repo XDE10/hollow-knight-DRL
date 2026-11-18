@@ -17,7 +17,8 @@ namespace HKRLEnvMod.Action
             bool canDash = true,
             bool canDreamNail = true,
             bool canNailCharge = true,
-            bool hasSpell = true)
+            bool hasSpell = true,
+            bool continuingJump = false)
         {
             DashCooldown = dashCooldown;
             Soul = soul;
@@ -33,6 +34,7 @@ namespace HKRLEnvMod.Action
             CanDreamNail = canDreamNail;
             CanNailCharge = canNailCharge;
             HasSpell = hasSpell;
+            ContinuingJump = continuingJump;
         }
 
         public float DashCooldown { get; }
@@ -49,6 +51,7 @@ namespace HKRLEnvMod.Action
         public bool CanDreamNail { get; }
         public bool CanNailCharge { get; }
         public bool HasSpell { get; }
+        public bool ContinuingJump { get; }
     }
 
     /// <summary>
@@ -156,7 +159,10 @@ namespace HKRLEnvMod.Action
             if (cannotJump)
             {
                 MaskButton(mask, ButtonJumpTap);
-                MaskButton(mask, ButtonJumpHold);
+                if (!player.ContinuingJump)
+                {
+                    MaskButton(mask, ButtonJumpHold);
+                }
             }
             if (dashUnavailable)
             {

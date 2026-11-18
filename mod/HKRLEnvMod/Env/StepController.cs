@@ -622,7 +622,9 @@ namespace HKRLEnvMod.Env
                 canDash: player.CanDash,
                 canDreamNail: player.CanDreamNail,
                 canNailCharge: player.CanNailCharge,
-                hasSpell: player.HasSpell);
+                hasSpell: player.HasSpell,
+                continuingJump: player.Jumping && player.VelY > 0
+                    && (player.AppliedInputButtons & (1u << ActionMasker.ButtonJumpHold)) != 0);
         }
 
         private float CurrentEpisodeTime(HKRL.LifecycleState state)
