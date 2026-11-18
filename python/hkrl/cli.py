@@ -46,6 +46,9 @@ def build_argparser() -> argparse.ArgumentParser:
     parser.add_argument("--steps", type=int, default=None, help="override total smoke steps")
     parser.add_argument("--updates", type=int, default=1, help="number of PPO updates to run")
     parser.add_argument("--run-dir", help="resumable local session; updates is the total target")
+    parser.add_argument(
+        "--demo-replay", help="directory of episode NPZ demonstrations for local recurrent PPO"
+    )
     parser.add_argument("--init-weights", help="model-only initial weights for a new local session")
     parser.add_argument("--checkpoint-every", type=int, default=5)
     parser.add_argument("--step-timeout", type=float, default=15.0)
@@ -83,6 +86,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.init_weights and (args.smoke or not args.run_dir):
         parser.error("--init-weights requires training with --run-dir")
+
+    if args.demo_replay and (not args.run_dir or args.smoke):
+        parser.error("--demo-replay requires local training with --run-dir")
 
     summary = run_smoke_from_args(args) if args.smoke else run_training_from_args(args)
     print(json.dumps(summary, sort_keys=True))

@@ -8,6 +8,11 @@ the project version tracks the **schema_version** + roadmap phase.
 
 ### Added
 
+- Added a landing-aware Sisters GRU and attack-and-dodge demonstrations. Local
+  recurrent PPO can replay demonstration windows during each update and pin
+  their hashes on resume. Local model-only warm starts accept registry
+  checkpoints as well as raw weights. See [ADR-0012](docs/adr/0012-sisters-landing-prior-and-demonstrations.md).
+
 - Sisters survival task profile and demonstration teacher. Episode reports include physics ticks, time until first injury or episode end, and per-source HP loss. Replay contacts retain instance IDs.
 - Schema 7 documents source labels for damage received. Sisters observations include pooled blades, the two spike strips and individual active bosses. The encounter uses the arena victory callback across phase changes.
 - Windows background launchers write logs under `runs/launcher/`. The progress command still opens on request.

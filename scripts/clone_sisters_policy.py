@@ -15,28 +15,23 @@ from torch import Tensor
 
 from hkrl import spaces
 from hkrl.cli import _build_model
+from hkrl.training.demonstration_replay import (
+    DEMO_OBS,
+    compact_obs,
+    read_demonstration,
+    split_demonstrations,
+)
 from hkrl.utils.config import load_task_config, load_train_config
 from hkrl.utils.live_tuning import atomic_write_json
 from hkrl.utils.seeding import seed_everything
 
-OBS = ("global", "player", "entities", "entity_mask", "prev_action", "prev_reward")
+OBS = DEMO_OBS
 ATTACK = 2 + spaces.BUTTON_BITS["attack"]
 
 
 def load_demo(path: Path, *, survival: bool = False) -> dict[str, Tensor]:
-    with np.load(path, allow_pickle=False) as archive:
-        data = {k: torch.from_numpy(archive[k]) for k in archive.files}
-    actions = data["actions"].long()
-    data["actions"] = actions
-    data["prev_action"] = torch.cat(
-        (
-            torch.tensor([spaces.canonical_noop_action_values(enable_macro=True)]),
-            actions[:-1],
-        )
-    ).float()
-    data["prev_reward"] = torch.cat((torch.zeros(1), data["rewards"][:-1])).float()[
-        :, None
-    ]
+    data = read_demonstration(path, path.read_bytes())
+    actions = data["actions"]
     direction = actions[:, 0]
     turns = torch.zeros_like(direction, dtype=torch.bool)
     last = 1
@@ -82,17 +77,6 @@ def padded_clips(
             ) & torch.arange(length + burn).lt(keep)
             clips.append(clip)
     return clips
-
-
-def compact_obs(data: dict[str, Tensor]) -> dict[str, Tensor]:
-    obs = {k: data[k] for k in OBS}
-    # All slots removed here are padding in every example of this batch.
-    valid = obs["entity_mask"].any(dim=(0, 1))
-    if not valid.any():
-        valid[0] = True
-    obs["entities"] = obs["entities"][:, :, valid]
-    obs["entity_mask"] = obs["entity_mask"][:, :, valid]
-    return obs
 
 
 @torch.no_grad()
@@ -159,9 +143,7 @@ def main() -> None:
     task = load_task_config(args.task)
     seed_everything(cfg.seed)
     torch.set_num_threads(1)
-    files = sorted(args.demos.glob("episode-*.npz"))
-    train_files = [p for i, p in enumerate(files) if i % 4 != 3]
-    val_files = [p for i, p in enumerate(files) if i % 4 == 3]
+    train_files, val_files = split_demonstrations(args.demos)
     if not val_files or not train_files:
         raise ValueError("need separate complete training and validation episodes")
     summary: dict[str, Any] = {}

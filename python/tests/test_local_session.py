@@ -72,9 +72,9 @@ def test_game_lock_blocks_second_owner_and_releases_on_error(tmp_path: Path) -> 
         pass
 
 
-@pytest.mark.parametrize("use_initial_weights", [False, True])
+@pytest.mark.parametrize("initial_format", ["none", "weights", "checkpoint"])
 def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
-    use_initial_weights: bool,
+    initial_format: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -156,14 +156,20 @@ def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
         checkpoint_every=5,
         reset_timeout=90,
     )
-    if use_initial_weights:
+    if initial_format != "none":
         teacher = torch.nn.Linear(2, 1)
         with torch.no_grad():
             teacher.weight.fill_(3.0)
         args.init_weights = str(tmp_path / "teacher.pt")
-        torch.save(teacher.state_dict(), args.init_weights)
+        weights = teacher.state_dict()
+        payload = (
+            {"model_state_dict": weights, "step": 10240, "optimizer_state_dict": {"old": True}}
+            if initial_format == "checkpoint"
+            else weights
+        )
+        torch.save(payload, args.init_weights)
     first = local_session.run_session_from_args(args)
-    if use_initial_weights:
+    if initial_format != "none":
         initial = torch.load(root / "checkpoints/checkpoint_v000001.pt", weights_only=True)
         torch.testing.assert_close(initial["model_state_dict"]["weight"], teacher.weight)
         assert initial["step"] == 0 and not initial["optimizer_state_dict"]["state"]

@@ -31,4 +31,30 @@
 
 同样的 300 个验证帧里，示范者松开了方向键。给两套权重输入相同的示范状态与上一动作，模仿学习正确复现 250 帧，接续 PPO 后正确复现 11 帧。正式评估中，PPO 的 3,325 个基础移动决策包含 1 次松开方向键。相同状态下的复核能把 PPO 阶段的行为变化和不同回合的攻击序列区分开来。
 
-下一次对照可在 PPO 更新时混入少量边缘示范，保留停步、反向移动和跳后安全落地。模型选择同时看地刺受伤、存活时间和安全反击。只有实际进入三姐妹合击阶段后，才单列该阶段的成绩。
+## 同时训练落地避刺和反击
+
+在相同竞技场重新采了 10 场脚本示范，共 3,388 个决策步。普通挥刀与同一 Boss 的 HP 下降匹配 43 次，10 场均有命中，地刺合计扣 1 HP。其中 13 次从左侧挥刀命中、24 次从右侧命中，6 次出刀时水平位置重叠。10 次先转向、接近再命中，左右两个方向都有。示范分为 8 场训练（2,590 步）和 2 场留出（798 步）。这组示范最多同时出现 1 个 Boss、2 枚敌方飞镖。
+
+从旧进攻模型权重开始，用新的 Adam 优化器。每一次 PPO 小批量更新同时抽取 3 段示范，复习移动、起跳和出刀。击中一次造成 21 点伤害对应 +6.3 奖励，自己掉 1 HP 对应 −12。持续存活或单纯按攻击键均不加分。模型额外使用两侧刺区与小骑士的运动方向估算落点。低空接近危险区域时降低向外走的概率，空中足够高时恢复原有分布，各方向、起跳和普通挥刀仍由策略选择。详见 [ADR-0012](adr/0012-sisters-landing-prior-and-demonstrations.md)。
+
+在游戏和训练 Mod 已就绪的本机上，用以下 PowerShell 命令在独立目录复现实验。旧进攻权重保存在原运行目录。
+
+```powershell
+. ./scripts/windows/game_runtime.ps1
+$null = Initialize-HKRLGameRuntime (Get-Location).Path
+$py = '.venv/Scripts/python.exe'
+$run = 'runs/training/sisters-counter-replica'
+$cfg = 'configs/train/sisters_counter_v2.yaml'
+$task = 'configs/experiments/sisters_counter.yaml'
+$control = 'runs/training/sisters-gru-bc-ppo-seed0/checkpoints/checkpoint_v000021.pt'
+& $py scripts/collect_sisters_demos.py --teacher counter --config $cfg --task $task `
+    --episodes 10 --output "$run/demos"
+& $py scripts/train.py --config $cfg --task $task --run-dir $run `
+    --init-weights $control --demo-replay "$run/demos" --updates 20 `
+    --checkpoint-every 1 --reset-timeout 90 --save-rollouts
+& $py scripts/run_eval.py --policy model --train-config $cfg --tasks $task `
+    --checkpoint-dir "$run/checkpoints" --local-session $run --episodes 10 `
+    --seeds 10001 10002 10003 --output "$run/eval.json" --replay-jsonl "$run/eval-steps.jsonl"
+```
+
+从已有检查点接续时可以省略两项初始化数据参数，训练程序会按清单复核示范文件的哈希。游戏存档、逐步回放和权重保存在本机。

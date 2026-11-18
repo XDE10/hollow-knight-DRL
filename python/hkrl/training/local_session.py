@@ -21,9 +21,10 @@ import numpy as np
 import torch
 
 from hkrl import protocol
-from hkrl.learner.checkpoint_payload import validate_model_state_dict
+from hkrl.learner.checkpoint_payload import validate_checkpoint_payload, validate_model_state_dict
 from hkrl.learner.checkpoint_registry import CheckpointRegistry
 from hkrl.training.batch_io import save_rollout_batch
+from hkrl.training.demonstration_replay import DemonstrationReplay
 from hkrl.utils.config import load_task_config, load_train_config
 from hkrl.utils.live_tuning import atomic_write_json
 from hkrl.utils.logging import JsonlSink
@@ -199,12 +200,33 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
         }
         initial_weights = getattr(args, "init_weights", None)
         initial_bytes = Path(initial_weights).read_bytes() if initial_weights else None
+        prior_manifest = root / "manifest.json"
+        prior = (
+            json.loads(prior_manifest.read_text(encoding="utf-8"))
+            if prior_manifest.exists()
+            else {}
+        )
         if initial_bytes is not None:
             identity["initial_weights_sha256"] = hashlib.sha256(initial_bytes).hexdigest()
-        elif (root / "manifest.json").exists():
-            prior = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-            if "initial_weights_sha256" in prior:
-                identity["initial_weights_sha256"] = prior["initial_weights_sha256"]
+        elif "initial_weights_sha256" in prior:
+            identity["initial_weights_sha256"] = prior["initial_weights_sha256"]
+        replay_path = getattr(args, "demo_replay", None)
+        if replay_path is None and "demo_replay" in prior:
+            replay_path = root / prior["demo_replay"]["directory"]
+        replay = None
+        if replay_path:
+            if cfg.algorithm != "recurrent_ppo":
+                raise ValueError("--demo-replay requires recurrent PPO")
+            directory = Path(replay_path).resolve()
+            replay = DemonstrationReplay(directory, cfg.sequence_length, cfg.burn_in)
+            identity["demo_replay"] = {
+                "directory": (
+                    os.path.relpath(directory, root)
+                    if directory.drive == root.drive
+                    else str(directory)
+                ),
+                "training_files": replay.hashes,
+            }
         session = LocalSession(root, identity)
         seed_everything(cfg.seed)
         torch.set_num_threads(1)
@@ -222,6 +244,9 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             max_entities=task.observation.max_entities,
         )
         algo = get("algo", cfg.algorithm)(model=model, config=cfg)
+
+        if replay is not None:
+            algo.demonstrations = replay
 
         def report_progress(progress: dict[str, Any]) -> None:
             session.status("sampling", target_updates=args.updates, **progress)
@@ -258,6 +283,8 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                     weights = torch.load(
                         io.BytesIO(initial_bytes), map_location="cpu", weights_only=True
                     )
+                    if isinstance(weights, dict) and "model_state_dict" in weights:
+                        weights = validate_checkpoint_payload(weights)["model_state_dict"]
                     model.load_state_dict(validate_model_state_dict(weights), strict=True)
                 session.save(model, algo)
             # A previous stop is acknowledged by launching this session again.

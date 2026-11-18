@@ -9,11 +9,14 @@ training/recurrent_ppo.py.
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from typing import Any, cast
 
 import torch
 from torch import Tensor, nn
+from torch.distributions import Categorical
 
+from hkrl import protocol
 from hkrl.models.base import ActorCritic, RnnState
 from hkrl.models.encoders import EntityEncoder, GlobalEncoder, PlayerEncoder
 from hkrl.models.entity_attention import EntityTransformerEncoder
@@ -23,7 +26,7 @@ from hkrl.models.heads import (
     HybridPolicyHead,
     ValueHead,
 )
-from hkrl.spaces import DEFAULT_N_MACROS
+from hkrl.spaces import ARENA_SCALE, DEFAULT_N_MACROS, ENTITY_FEATURE_INDEX, VEL_SCALE
 from hkrl.utils.registry import register_model
 
 
@@ -213,6 +216,59 @@ class SingleTaskEntityAttentionGRU(EntityAttentionRecurrentAC):
     """Keep bookkeeping IDs on the rollout, outside the single-task policy."""
 
     exclude_run_ids = True
+
+
+@register_model("sisters_landing_gru")
+class SistersLandingGRU(SingleTaskEntityAttentionGRU):
+    """A soft movement prior from the two observed spike strips. Same weight layout."""
+
+    def forward(
+        self, obs: dict[str, Tensor], rnn_state: RnnState = None, action_mask: Tensor | None = None
+    ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
+        dist, value, state = super().forward(obs, rnn_state, action_mask)
+        bias = landing_movement_bias(obs)
+        movement = Categorical(logits=dist.movement_x.logits + bias)
+        return replace(dist, movement_x=movement), value, state
+
+
+def landing_movement_bias(obs: dict[str, Tensor]) -> Tensor:
+    """Return additive left/neutral/right logits for normalized Sisters observations."""
+    player, entities = obs["player"], obs["entities"]
+    fields = ENTITY_FEATURE_INDEX
+    if entities.shape[-1] <= fields["hurtbox_size_y"] or entities.shape[-2] == 0:
+        return player.new_zeros((*player.shape[:-1], 3))
+    spikes = obs["entity_mask"].bool() & (
+        entities[..., fields["entity_type"]] == protocol.EntityType.HAZARD
+    )
+    cx, cy, width, height = (
+        entities[..., fields[k]] * ARENA_SCALE
+        for k in ("hurtbox_center_x", "hurtbox_center_y", "hurtbox_size_x", "hurtbox_size_y")
+    )
+    spikes = spikes & (width > 0) & (height > 0)
+    # Only accept a pair of real, separated colliders. Padding cannot change the ledges.
+    left = (cx + width / 2).masked_fill(~spikes, float("inf")).amin(-1)
+    right = (cx - width / 2).masked_fill(~spikes, -float("inf")).amax(-1)
+    top = (cy + height / 2).masked_fill(~spikes, -float("inf")).amax(-1)
+    valid = (spikes.sum(-1) == 2) & (right > left)
+    x, y = player[..., 0] * ARENA_SCALE, player[..., 1] * ARENA_SCALE
+    vx, vy = player[..., 2] * VEL_SCALE, player[..., 3] * VEL_SCALE
+    # Ground movement and a descending jump need braking distance. High jumps retain
+    # their normal movement distribution while their projected feet clear the spikes.
+    near_floor = ((top + 5.2 - y - 0.22 * vy.clamp(max=0)) / 2.8).clamp(0, 1)
+    left_gap, right_gap = x - left, right - x
+    brake_l = ((2.8 - left_gap - 0.20 * vx.clamp(max=0)) / 1.4).clamp(0, 3)
+    brake_r = ((2.8 - right_gap + 0.20 * vx.clamp(min=0)) / 1.4).clamp(0, 3)
+    recover_l = ((1.5 - left_gap) / 1.2).clamp(0, 2)
+    recover_r = ((1.5 - right_gap) / 1.2).clamp(0, 2)
+    bias = torch.stack(
+        (
+            -7 * brake_l + 6 * recover_r,
+            1.5 * (brake_l + brake_r) - 3 * (recover_l + recover_r),
+            -7 * brake_r + 6 * recover_l,
+        ),
+        dim=-1,
+    )
+    return bias * (near_floor * valid).unsqueeze(-1)
 
 
 def _shape(obs_dims: dict[str, Any], key: str) -> tuple[int, ...]:

@@ -15,6 +15,7 @@ import torch
 from torch import Tensor, nn
 
 from hkrl.models.base import ActorCritic, RnnState
+from hkrl.training.demonstration_replay import DemonstrationReplay
 from hkrl.training.numerics import require_finite_tensor
 from hkrl.training.recurrent_buffer import RecurrentRolloutBuffer, RecurrentSequenceBatch
 from hkrl.utils.config import TrainConfig
@@ -33,6 +34,7 @@ class RecurrentPPO:
 
         self.model = model
         self.cfg = config
+        self.demonstrations: DemonstrationReplay | None = None
         self.optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
         self._rng = np.random.default_rng(config.seed)
 
@@ -50,6 +52,8 @@ class RecurrentPPO:
             "policy_kl": 0.0,
             "grad_norm": 0.0,
         }
+        if self.demonstrations is not None:
+            totals["demonstration_loss"] = 0.0
         seen = 0
 
         for _ in range(self.cfg.epochs):
@@ -126,6 +130,10 @@ class RecurrentPPO:
 
         entropy_mean = _masked_mean(entropy, valid)
         loss = policy_loss + self.cfg.value_coef * value_loss - self.cfg.entropy_coef * entropy_mean
+        replay_loss = None
+        if self.demonstrations is not None:
+            replay_loss = self.demonstrations.loss(self.model, self._rng, values.device)
+            loss = loss + replay_loss
         approx_kl = _masked_mean(batch.old_log_probs - log_probs, valid)
         for name, tensor in (
             ("policy_loss", policy_loss),
@@ -143,6 +151,11 @@ class RecurrentPPO:
         self.optimizer.step()
 
         return {
+            **(
+                {"demonstration_loss": float(replay_loss.detach())}
+                if replay_loss is not None
+                else {}
+            ),
             "policy_loss": float(policy_loss.detach().cpu()),
             "value_loss": float(value_loss.detach().cpu()),
             "action_entropy": float(entropy_mean.detach().cpu()),

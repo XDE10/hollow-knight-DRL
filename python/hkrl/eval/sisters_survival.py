@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from hkrl import spaces
+from hkrl import protocol, spaces
 from hkrl.eval.scripted_policies import ScriptedAggroPolicy, _validated_action_mask
 
 
@@ -73,4 +73,59 @@ class SistersSurvivalPolicy(ScriptedAggroPolicy):
         action["buttons"][jump] = int(leap)
         if risk > 0.25 or (preferred != 1 and move != preferred):
             action["buttons"][spaces.BUTTON_BITS["attack"]] = 0
+        return action
+
+
+class SistersCounterPolicy(ScriptedAggroPolicy):
+    """Demonstrate nail attacks while leaving room to brake or land beside spikes."""
+
+    def act(self, obs: Any, action_mask: Any | None = None) -> Any:
+        action = super().act(obs, action_mask)
+        mask, _, _ = _validated_action_mask(self.action_space, action_mask)
+        visible = obs["entities"][np.asarray(obs["entity_mask"], dtype=bool)]
+        e = spaces.ENTITY_FEATURE_INDEX
+        p = spaces.PLAYER_FEATURE_INDEX
+        kinds = visible[:, e["entity_type"]]
+        if not np.any(kinds == protocol.EntityType.BOSS):
+            action["buttons"][spaces.BUTTON_BITS["attack"]] = 0
+        if visible.shape[-1] <= e["hurtbox_size_y"]:
+            return action
+        player = obs["player"]
+        pos = player[:2] * spaces.ARENA_SCALE
+        movement = int(action["movement_x"])
+        blades = visible[
+            (kinds == protocol.EntityType.PROJECTILE)
+            & (visible[:, e["team"]] == protocol.Team.ENEMY)
+        ]
+        if len(blades):
+            relative = (
+                blades[:, e["hurtbox_center_x"] : e["hurtbox_center_y"] + 1] * spaces.ARENA_SCALE
+                - pos
+            )
+            speeds = blades[:, e["vel_x"]] * spaces.VEL_SCALE
+            approaching = (relative[:, 0] * speeds < 0) & (abs(relative[:, 0]) < 7)
+            if np.any(approaching & (abs(relative[:, 1]) < 1.25)):
+                jump = spaces.BUTTON_BITS["jump_tap"]
+                action["buttons"][jump] = int(
+                    player[p["on_ground"]] and mask[spaces.N_MOVEMENT_X + spaces.N_AIM_Y + jump]
+                )
+        spikes = visible[kinds == protocol.EntityType.HAZARD]
+        if len(spikes) == 2:
+            centers = spikes[:, e["hurtbox_center_x"]] * spaces.ARENA_SCALE
+            half = spikes[:, e["hurtbox_size_x"]] * spaces.ARENA_SCALE * 0.5
+            left = int(np.argmin(centers))
+            right = 1 - left
+            lo, hi = centers[left] + half[left], centers[right] - half[right]
+            # Allow lateral braking and jumping to occur in the same demonstration frame.
+            horizon = 0.20 if player[p["on_ground"]] else 0.30
+            projected = pos[0] + player[p["vel_x"]] * spaces.VEL_SCALE * horizon
+            if lo < hi:
+                if pos[0] < lo + 1.0 or pos[0] > hi - 1.0:
+                    movement = 2 if pos[0] < (lo + hi) / 2 else 0
+                elif (movement == 0 and projected < lo + 2.4) or (
+                    movement == 2 and projected > hi - 2.4
+                ):
+                    movement = 1
+        if mask[movement]:
+            action["movement_x"] = movement
         return action
