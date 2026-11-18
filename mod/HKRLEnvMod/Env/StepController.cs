@@ -296,7 +296,7 @@ namespace HKRLEnvMod.Env
             var reportsTransition = ShouldAdvanceLifecycle(request);
             if (_lifecycle.IsRunning && reportsTransition)
             {
-                _rewardTracker.Update(observation, _rewards);
+                _rewardTracker.Update(observation, _rewards, inferBossKills: !_resetManager.RequiresArenaVictory);
             }
 
             var rewardEvents = reportsTransition
@@ -676,7 +676,7 @@ namespace HKRLEnvMod.Env
             return _rewards.Contains(IsTerminalEvent);
         }
 
-        private static bool HasTerminalEvent(
+        private bool HasTerminalEvent(
             IReadOnlyList<RewardEventRecord> rewardEvents,
             ObservationSnapshot observation)
         {
@@ -691,11 +691,12 @@ namespace HKRLEnvMod.Env
                 }
                 if (kind == HKRL.RewardEventKind.BossKilled)
                 {
+                    if (_resetManager.RequiresArenaVictory && rewardEvents[i].EntityId == 0) return true;
                     bossKilled = true;
                 }
             }
 
-            return bossKilled && !HasLivingBoss(observation);
+            return !_resetManager.RequiresArenaVictory && bossKilled && !HasLivingBoss(observation);
         }
 
         private static bool HasLivingBoss(ObservationSnapshot observation)

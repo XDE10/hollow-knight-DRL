@@ -22,3 +22,28 @@ function Initialize-HKRLGameRuntime {
     $env:SteamGameId = '367520'
     return $settings
 }
+
+# Start a console executable without allocating a Windows Terminal window.
+# Callers supply the same quoted native arguments as Start-Process -ArgumentList.
+function Invoke-HKRLConsole {
+    param([string]$Executable, [string[]]$Arguments, [string]$WorkingDirectory)
+    $info = New-Object System.Diagnostics.ProcessStartInfo
+    $info.FileName = $Executable
+    $info.Arguments = $Arguments -join ' '
+    $info.WorkingDirectory = $WorkingDirectory
+    $info.UseShellExecute = $false
+    $info.CreateNoWindow = $true
+    $info.RedirectStandardOutput = $true
+    $info.RedirectStandardError = $true
+    $child = [System.Diagnostics.Process]::Start($info)
+    try {
+        $errorText = $child.StandardError.ReadToEndAsync()
+        while ($null -ne ($line = $child.StandardOutput.ReadLine())) {
+            [Console]::Out.WriteLine($line)
+        }
+        $child.WaitForExit()
+        [Console]::Error.Write($errorText.GetAwaiter().GetResult())
+        return $child.ExitCode
+    }
+    finally { $child.Dispose() }
+}

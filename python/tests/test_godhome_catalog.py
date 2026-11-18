@@ -449,7 +449,7 @@ def test_report_renders_entry_and_reload_lifecycle_evidence() -> None:
                 "remaining": 0,
                 "selected": 1,
             },
-            "schema_version": 6,
+            "schema_version": 7,
             "catalog_version": 1,
             "tested_mod": {
                 "version": "0.8.0",
@@ -527,7 +527,7 @@ def test_resume_evidence_is_bound_to_the_same_binary_and_game_build(
         json.dumps(
             {
                 "probe_schema": module.PROBE_SCHEMA,
-                "schema_version": 6,
+                "schema_version": 7,
                 "tested_mod": tested_mod,
                 "catalog": catalog,
                 "installed_build": installed_build,

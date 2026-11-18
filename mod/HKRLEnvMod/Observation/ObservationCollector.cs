@@ -113,6 +113,7 @@ namespace HKRLEnvMod.Observation
         private readonly GlobalObserver _global = new();
         private readonly PlayerObserver _player = new();
         private readonly EntityObserver _entities = new();
+        internal EntityRegistry Registry => _entities.Registry;
 
         /// <summary>Collect a snapshot; returns data for MessageCodec to encode.</summary>
         public ObservationSnapshot Collect(

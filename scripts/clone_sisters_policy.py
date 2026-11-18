@@ -23,15 +23,20 @@ OBS = ("global", "player", "entities", "entity_mask", "prev_action", "prev_rewar
 ATTACK = 2 + spaces.BUTTON_BITS["attack"]
 
 
-def load_demo(path: Path) -> dict[str, Tensor]:
+def load_demo(path: Path, *, survival: bool = False) -> dict[str, Tensor]:
     with np.load(path, allow_pickle=False) as archive:
         data = {k: torch.from_numpy(archive[k]) for k in archive.files}
     actions = data["actions"].long()
     data["actions"] = actions
     data["prev_action"] = torch.cat(
-        (torch.tensor([spaces.canonical_noop_action_values(enable_macro=True)]), actions[:-1])
+        (
+            torch.tensor([spaces.canonical_noop_action_values(enable_macro=True)]),
+            actions[:-1],
+        )
     ).float()
-    data["prev_reward"] = torch.cat((torch.zeros(1), data["rewards"][:-1])).float()[:, None]
+    data["prev_reward"] = torch.cat((torch.zeros(1), data["rewards"][:-1])).float()[
+        :, None
+    ]
     direction = actions[:, 0]
     turns = torch.zeros_like(direction, dtype=torch.bool)
     last = 1
@@ -43,6 +48,11 @@ def load_demo(path: Path) -> dict[str, Tensor]:
     data["weight"] = torch.ones(len(actions))
     record = json.loads(path.with_suffix(".json").read_text())
     assert record["steps"] == len(actions)
+    if survival:
+        jumping = actions[:, 2 + spaces.BUTTON_BITS["jump_tap"]].bool()
+        data["weight"] += 2 * jumping
+        data["weight"] += turns
+        return data
     for hit in record["hits"]:
         if hit["approached"]:
             end = hit["step"]
@@ -67,9 +77,9 @@ def padded_clips(
                 clip[k] = torch.cat(
                     (data, data[-1:].expand((length + burn - keep, *data.shape[1:])))
                 )
-            clip["loss_mask"] = torch.arange(length + burn).ge(start - lo) & torch.arange(
-                length + burn
-            ).lt(keep)
+            clip["loss_mask"] = torch.arange(length + burn).ge(
+                start - lo
+            ) & torch.arange(length + burn).lt(keep)
             clips.append(clip)
     return clips
 
@@ -106,7 +116,11 @@ def validate(model: Any, episodes: list[dict[str, Tensor]]) -> dict[str, float]:
     t_attack = true[:, ATTACK].bool()
 
     def recall(mask: Tensor) -> float:
-        return float((pred[mask, 0] == true[mask, 0]).float().mean()) if mask.any() else 0.0
+        return (
+            float((pred[mask, 0] == true[mask, 0]).float().mean())
+            if mask.any()
+            else 0.0
+        )
 
     return dict(
         left_recall=recall(true[:, 0] == 0),
@@ -115,7 +129,19 @@ def validate(model: Any, episodes: list[dict[str, Tensor]]) -> dict[str, float]:
         attack_f1=2
         * float((p_attack & t_attack).sum())
         / max(int(p_attack.sum() + t_attack.sum()), 1),
+        jump_f1=jump_f1(pred, true),
         nll=likelihood / len(true),
+    )
+
+
+def jump_f1(pred: Tensor, true: Tensor) -> float:
+    column = 2 + spaces.BUTTON_BITS["jump_tap"]
+    requested = pred[:, column].bool()
+    target = true[:, column].bool()
+    return (
+        2
+        * float((requested & target).sum())
+        / max(int(requested.sum() + target.sum()), 1)
     )
 
 
@@ -126,7 +152,9 @@ def main() -> None:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--task", type=Path, required=True)
     parser.add_argument("--epochs", type=int, default=36)
+    parser.add_argument("--objective", choices=("attack", "survival"), default="attack")
     args = parser.parse_args()
+    survival = args.objective == "survival"
     cfg = load_train_config(args.config)
     task = load_task_config(args.task)
     seed_everything(cfg.seed)
@@ -138,10 +166,14 @@ def main() -> None:
         raise ValueError("need separate complete training and validation episodes")
     summary: dict[str, Any] = {}
     for split, paths in (("train", train_files), ("validation", val_files)):
-        hits = [h for p in paths for h in json.loads(p.with_suffix(".json").read_text())["hits"]]
+        hits = [
+            h
+            for p in paths
+            for h in json.loads(p.with_suffix(".json").read_text())["hits"]
+        ]
         counts = Counter(h["side"] for h in hits if h["approached"])
         turns = Counter(h["side"] for h in hits if h["turned_and_approached"])
-        if min(turns["from_left"], turns["from_right"]) < 1:
+        if not survival and min(turns["from_left"], turns["from_right"]) < 1:
             raise ValueError(f"{split}: missing a verified turn and hit on one side")
         summary[split] = dict(
             files={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
@@ -149,8 +181,21 @@ def main() -> None:
             turn_and_hit=dict(turns),
             matched_hits=len(hits),
         )
-    train = [load_demo(p) for p in train_files]
-    val = [load_demo(p) for p in val_files]
+    train = [load_demo(p, survival=survival) for p in train_files]
+    val = [load_demo(p, survival=survival) for p in val_files]
+    if survival:
+        for split, episodes in (("train", train), ("validation", val)):
+            jumps = torch.cat(
+                [
+                    ep["actions"][:, 2 + spaces.BUTTON_BITS["jump_tap"]]
+                    for ep in episodes
+                ]
+            )
+            if not (jumps.any() and (jumps == 0).any()):
+                raise ValueError(
+                    f"{split}: survival demonstrations must contain jumps and ground actions"
+                )
+            summary[split]["jump_requests"] = int(jumps.sum())
     dims = {k: tuple(train[0][k].shape[1:]) for k in OBS[:4]}
     model = _build_model(
         cfg,
@@ -168,6 +213,7 @@ def main() -> None:
     if target.exists():
         raise FileExistsError(target)
     report = dict(
+        objective=args.objective,
         splits=summary,
         training_steps=sum(len(ep["actions"]) for ep in train),
         validation_steps=sum(len(ep["actions"]) for ep in val),
@@ -191,10 +237,15 @@ def main() -> None:
             dist, _, _ = model(obs, action_mask=data["masks"])
             actions = data["actions"]
             weights = data["weight"] * data["loss_mask"]
-            attacks = dist.buttons.log_prob(actions[..., 2 : 2 + spaces.N_BUTTONS].float())[
-                ..., spaces.BUTTON_BITS["attack"]
-            ]
-            logp = dist.log_prob(actions) + 3 * dist.movement_x.log_prob(actions[..., 0]) + attacks
+            focus_button = "jump_tap" if survival else "attack"
+            button_logp = dist.buttons.log_prob(
+                actions[..., 2 : 2 + spaces.N_BUTTONS].float()
+            )[..., spaces.BUTTON_BITS[focus_button]]
+            logp = (
+                dist.log_prob(actions)
+                + 3 * dist.movement_x.log_prob(actions[..., 0])
+                + button_logp
+            )
             loss = -(weights * logp).sum() / weights.sum()
             optimizer.zero_grad()
             loss.backward()
@@ -205,7 +256,7 @@ def main() -> None:
             metrics["left_recall"]
             + metrics["right_recall"]
             + metrics["turn_recall"]
-            + metrics["attack_f1"]
+            + metrics["jump_f1" if survival else "attack_f1"]
         ) / 4
         print(json.dumps(dict(epoch=epoch, score=score, **metrics)), flush=True)
         if score > best:

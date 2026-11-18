@@ -126,6 +126,9 @@ class Evaluator:
         rnn_state = self._initial_rnn_state()
         total_reward = 0.0
         damage_taken = 0.0
+        source_damage: dict[str, float] = {}
+        elapsed_ticks = 0
+        first_hit_ticks: int | None = None
         damage_dealt = 0.0
         heal_count = 0
         heal_amount = 0.0
@@ -152,6 +155,11 @@ class Evaluator:
             steps = step + 1
 
             event_metrics = _metrics_from_info(info)
+            elapsed_ticks += int(info.get("elapsed_ticks", 0))
+            if first_hit_ticks is None and event_metrics.damage_taken > 0:
+                first_hit_ticks = elapsed_ticks
+            for source, _, amount in event_metrics.contacts:
+                source_damage[source] = source_damage.get(source, 0.0) + amount
             damage_taken += event_metrics.damage_taken
             damage_dealt += event_metrics.damage_dealt
             heal_count += event_metrics.heal_count
@@ -186,6 +194,11 @@ class Evaluator:
             won=won,
             reward=total_reward,
             length=steps,
+            elapsed_ticks=elapsed_ticks,
+            first_hit_or_end_ticks=first_hit_ticks
+            if first_hit_ticks is not None
+            else elapsed_ticks,
+            source_damage=dict(source_damage),
             damage_taken=damage_taken,
             damage_dealt=damage_dealt,
             heal_count=heal_count,
@@ -276,6 +289,11 @@ class Evaluator:
             "action": _jsonable(action),
             "damage_dealt": event_metrics.damage_dealt,
             "damage_taken": event_metrics.damage_taken,
+            "damage_contacts": [
+                {"source": source, "entity_id": entity, "amount": amount}
+                for source, entity, amount in event_metrics.contacts
+            ],
+            "elapsed_ticks": int(info.get("elapsed_ticks", 0)),
             "death_reason": event_metrics.death_reason,
             "episode": episode_index,
             "episode_id": int(info.get("episode_id", 0)),
@@ -327,6 +345,9 @@ class _EpisodeResult:
     won: bool
     reward: float
     length: int
+    elapsed_ticks: int
+    first_hit_or_end_ticks: int
+    source_damage: dict[str, float]
     damage_taken: float
     damage_dealt: float
     heal_count: int
@@ -340,6 +361,7 @@ class _EpisodeResult:
 
 @dataclass(frozen=True)
 class _EventMetrics:
+    contacts: tuple[tuple[str, int, float], ...] = ()
     won: bool = False
     damage_taken: float = 0.0
     damage_dealt: float = 0.0
@@ -361,6 +383,7 @@ def _metrics_from_info(info: dict[str, Any]) -> _EventMetrics:
     )
     death_reason = _non_negative_int(info.get("death_reason", 0), field="death_reason")
 
+    contacts = [("unknown", 0, damage_taken)] if damage_taken else []
     for event in info.get("reward_events", []):
         kind = _event_kind(event)
         if kind is None:
@@ -373,17 +396,25 @@ def _metrics_from_info(info: dict[str, Any]) -> _EventMetrics:
             won = True
         elif kind == protocol.RewardEventKind.DAMAGE_TAKEN:
             damage_taken += amount
+            try:
+                source = protocol.DamageSource(_event_int(event, "aux_int2", "AuxInt2"))
+            except ValueError:
+                source = protocol.DamageSource.UNKNOWN
+            contacts.append(
+                (source.name.lower(), _event_int(event, "entity_id", "EntityId"), amount)
+            )
         elif kind == protocol.RewardEventKind.DAMAGE_DEALT:
             damage_dealt += amount
         elif kind == protocol.RewardEventKind.HEAL:
             heal_count += 1
             heal_amount += amount
         elif kind == protocol.RewardEventKind.PLAYER_DEATH:
-            death_reason = max(1, _event_aux_int(event))
+            death_reason = max(1, _event_int(event, "aux_int", "AuxInt"))
         elif kind == protocol.RewardEventKind.INVALID_ACTION:
             invalid_actions += 1
 
     return _EventMetrics(
+        contacts=tuple(contacts),
         won=won,
         damage_taken=damage_taken,
         damage_dealt=damage_dealt,
@@ -406,8 +437,8 @@ def _event_kind(event: Any) -> protocol.RewardEventKind | None:
         return None
 
 
-def _event_aux_int(event: Any) -> int:
-    value = getattr(event, "aux_int", getattr(event, "AuxInt", 0))
+def _event_int(event: Any, attr: str, accessor: str) -> int:
+    value = getattr(event, attr, getattr(event, accessor, 0))
     if callable(value):
         value = value()
     try:
@@ -469,6 +500,17 @@ def _aggregate(episodes: Sequence[_EpisodeResult]) -> dict[str, float]:
         "win_rate": win_rate,
         "episode_reward": _mean(episode.reward for episode in episodes),
         "episode_length": _mean(float(episode.length) for episode in episodes),
+        "survival_ticks": _mean(e.elapsed_ticks for e in episodes),
+        "damage_taken_per_1000_ticks": _safe_ratio(
+            1000 * sum(e.damage_taken for e in episodes), sum(e.elapsed_ticks for e in episodes)
+        ),
+        "ticks_until_first_hit_or_end": _mean(e.first_hit_or_end_ticks for e in episodes),
+        **{
+            f"damage_taken_{kind.name.lower()}": _mean(
+                e.source_damage.get(kind.name.lower(), 0.0) for e in episodes
+            )
+            for kind in protocol.DamageSource
+        },
         "damage_taken": damage_taken,
         "damage_dealt": damage_dealt,
         "heal_count": _mean(float(episode.heal_count) for episode in episodes),

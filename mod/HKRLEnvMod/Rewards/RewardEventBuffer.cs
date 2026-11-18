@@ -93,6 +93,14 @@ namespace HKRLEnvMod.Rewards
             return new ReadOnlyCollection<RewardEventRecord>(drained);
         }
 
+        public float TotalAmount(HKRL.RewardEventKind kind)
+        {
+            float total = 0;
+            foreach (var item in _events)
+                if (item.Kind == kind) total += item.Amount;
+            return total;
+        }
+
         public bool Contains(Func<RewardEventRecord, bool> predicate)
         {
             for (var i = 0; i < _events.Count; i++)

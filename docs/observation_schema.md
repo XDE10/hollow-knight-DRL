@@ -157,3 +157,15 @@ The current data is sufficient for a single-Boss baseline and basic entity
 avoidance, but it is not a complete mechanical state for every Boss. Fields
 marked approximate or placeholder must be excluded from a claimed privileged
 benchmark until Boss-specific adapters and data-quality tests land.
+
+### Sisters of Battle in Godhome
+
+Each active sister, hostile blade and damaging spike strip occupies its own masked entity
+slot. A body hitbox such as `Dash Hit` belongs to its sister. The two `Cave Spikes Invis`
+objects provide the damaging rectangles. Their larger child triggers and the hazard
+respawn trigger do not represent additional spikes. Active `Shot Mantis Lord(Clone)`
+instances can reside in Unity's persistent scene. The observer tracks their separate
+IDs and estimates world velocity from successive samples when physics velocity is zero.
+IDs identify continuously observed instances. After despawn or pooling a new ID can appear.
+In this encounter only the arena completion callback awards an encounter kill. A sister
+leaving view or a gap between phases keeps the episode running.

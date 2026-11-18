@@ -118,3 +118,25 @@ Mod `StepController` only emits reward events while the lifecycle is `RUNNING`.
 lifecycle to `TERMINATING` and are included in the terminal `StepResponse`.
 For simultaneous multi-boss tasks, an individual `BossKilled` is reported
 without terminating while another living boss entity remains.
+
+### Sisters survival curriculum
+
+Use `configs/experiments/sisters_survival.yaml` for the first avoidance curriculum.
+Each mask of damage costs 12 points and a 21-HP nail hit earns 2.52. The profile has
+zero time and soul shaping. Victory and outgoing damage remain evaluation metrics.
+Rank survival runs by time until first injury (censored at episode end), survival ticks,
+HP lost per 1,000 physics ticks, and wins. Check output damage and timeouts alongside
+survival to detect a policy that only waits.
+
+In schema 7 each `DamageTaken` event carries the actual HP loss, the observed source
+entity ID when known, the game's hazard code in `aux_int`, and the `DamageSource` enum
+in `aux_int2`. The contact hook scopes measurement to the game damage call. Unmatched
+HP deltas are unknown. A collision during invulnerability contributes no measured
+contact loss. The replay stores each contact, including multiple sources in a step.
+Source labels are for measurement. The policy chooses with the pre-contact observations.
+
+Collect with `scripts/collect_sisters_demos.py --teacher survival` and the survival
+task profile. The teacher scores the predicted path against all visible opponents,
+blades and spike rectangles. Jumping over danger, stopping and moving in either
+direction stay legal. Check the demonstration in the live arena before treating
+success on a held-out imitation episode as evidence of improved survival.

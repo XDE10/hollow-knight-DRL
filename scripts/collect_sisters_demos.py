@@ -10,10 +10,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from hkrl import protocol, spaces
 from hkrl.env import HKRLEnv
 from hkrl.eval.scripted_policies import ScriptedAggroPolicy
+from hkrl.eval.sisters_survival import SistersSurvivalPolicy
 from hkrl.training.local_session import exclusive_game_lock
 from hkrl.transport.factory import make_transport
 from hkrl.utils.config import load_task_config, load_train_config
@@ -47,6 +47,10 @@ def collect_episode(
     }
     history: list[dict[str, Any]] = []
     hits = []
+    contacts = []
+    max_concurrent = {"bosses": 0, "projectiles": 0}
+    maximum_spikes = 0
+    first_hit_tick = None
     attack = spaces.BUTTON_BITS["attack"]
     p = spaces.PLAYER_FEATURE_INDEX
     for step in range(4096):
@@ -68,8 +72,34 @@ def collect_episode(
         saved["masks"].append(info["action_mask"])
         saved["rewards"].append(reward)
         saved["elapsed_ticks"].append(next_info["elapsed_ticks"])
+        visible = obs["entities"][obs["entity_mask"].astype(bool)]
+        types = visible[:, spaces.ENTITY_FEATURE_INDEX["entity_type"]]
+        max_concurrent["bosses"] = max(
+            max_concurrent["bosses"], int((types == 1).sum())
+        )
+        max_concurrent["projectiles"] = max(
+            max_concurrent["projectiles"],
+            int(((types == 3) & (visible[:, 2] == 1)).sum()),
+        )
+        maximum_spikes = max(maximum_spikes, int((types == 4).sum()))
+        for event in next_info["reward_events"]:
+            if event.kind == protocol.RewardEventKind.DAMAGE_TAKEN:
+                contacts.append(
+                    dict(
+                        step=step + 1,
+                        source=protocol.DamageSource(event.aux_int2).name,
+                        source_id=event.entity_id,
+                        amount=event.amount,
+                    )
+                )
+                if first_hit_tick is None:
+                    first_hit_tick = sum(saved["elapsed_ticks"])
         before_boss, after_boss = boss_rows(obs), boss_rows(after)
-        target = min(before_boss, key=lambda i: np.linalg.norm(before_boss[i][8:10]), default=None)
+        target = min(
+            before_boss,
+            key=lambda i: np.linalg.norm(before_boss[i][8:10]),
+            default=None,
+        )
         dx = float(before_boss[target][8]) if target is not None else 0.0
         history.append(
             dict(
@@ -84,7 +114,9 @@ def collect_episode(
                 facing=int(obs["player"][p["facing"]]),
                 facing_after=int(after["player"][p["facing"]]),
                 swinging=bool(int(after["player"][p["action_flags"]]) & 1),
-                applied=bool(int(after["player"][p["applied_input_buttons"]]) & (1 << attack)),
+                applied=bool(
+                    int(after["player"][p["applied_input_buttons"]]) & (1 << attack)
+                ),
             )
         )
         for event in next_info["reward_events"]:
@@ -99,10 +131,17 @@ def collect_episode(
                 continue
             recent = [h for h in history[-32:] if history[-1]["tick"] - h["tick"] <= 18]
             slash = next(
-                (h for h in reversed(recent) if h["slash"] and h["target"] == target_id), None
+                (
+                    h
+                    for h in reversed(recent)
+                    if h["slash"] and h["target"] == target_id
+                ),
+                None,
             )
             if slash is None or not any(
-                h["applied"] or h["swinging"] for h in recent if h["step"] >= slash["step"]
+                h["applied"] or h["swinging"]
+                for h in recent
+                if h["step"] >= slash["step"]
             ):
                 continue
             side = int(np.sign(slash["dx"]))
@@ -133,7 +172,11 @@ def collect_episode(
                     amount=float(event.amount),
                     slash_step=slash["step"],
                     dx_at_slash=slash["dx"],
-                    side="from_left" if side > 0 else "from_right" if side < 0 else "overlap",
+                    side="from_left"
+                    if side > 0
+                    else "from_right"
+                    if side < 0
+                    else "overlap",
                     approached=approach,
                     turned_and_approached=turned,
                 )
@@ -144,7 +187,16 @@ def collect_episode(
     else:
         raise RuntimeError("demonstration episode exceeded decision cap")
     return {k: np.asarray(v) for k, v in saved.items()}, dict(
-        episode_id=episode_id, steps=len(history), hits=hits
+        episode_id=episode_id,
+        steps=len(history),
+        hits=hits,
+        contacts=contacts,
+        max_concurrent=max_concurrent,
+        max_hazards=maximum_spikes,
+        elapsed_ticks=sum(saved["elapsed_ticks"]),
+        first_hit_or_end_ticks=first_hit_tick
+        if first_hit_tick is not None
+        else sum(saved["elapsed_ticks"]),
     )
 
 
@@ -154,6 +206,7 @@ def main() -> None:
     parser.add_argument("--task", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=12)
+    parser.add_argument("--teacher", choices=("aggro", "survival"), default="aggro")
     args = parser.parse_args()
     if os.environ.get("HKRL_SAVE_SLOT") != "3":
         raise ValueError("Sisters demonstrations require save slot 3")
@@ -163,9 +216,17 @@ def main() -> None:
     root = args.output
     root.mkdir(exist_ok=True, parents=True)
     with exclusive_game_lock(Path("runs/training/game.lock")):
-        env = HKRLEnv(make_transport(load_train_config(args.config)), task, step_timeout_s=15)
-        teacher = ScriptedAggroPolicy(
-            env.action_space, attack_range=0.22, approach_deadzone=0.04, vertical_deadzone=0.06
+        env = HKRLEnv(
+            make_transport(load_train_config(args.config)), task, step_timeout_s=15
+        )
+        policy_class = (
+            SistersSurvivalPolicy if args.teacher == "survival" else ScriptedAggroPolicy
+        )
+        teacher = policy_class(
+            env.action_space,
+            attack_range=0.22,
+            approach_deadzone=0.04,
+            vertical_deadzone=0.06,
         )
         try:
             for i in range(args.episodes):
@@ -179,10 +240,17 @@ def main() -> None:
                 dest.with_suffix(".tmp").replace(dest)
                 atomic_write_json(audit, record)
                 sides = Counter(h["side"] for h in record["hits"] if h["approached"])
-                turns = Counter(h["side"] for h in record["hits"] if h["turned_and_approached"])
+                turns = Counter(
+                    h["side"] for h in record["hits"] if h["turned_and_approached"]
+                )
                 print(
                     json.dumps(
-                        dict(episode=i + 1, steps=record["steps"], approaches=sides, turns=turns)
+                        dict(
+                            episode=i + 1,
+                            steps=record["steps"],
+                            approaches=sides,
+                            turns=turns,
+                        )
                     ),
                     flush=True,
                 )

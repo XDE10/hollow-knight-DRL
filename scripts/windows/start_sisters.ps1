@@ -42,7 +42,6 @@ if ($CheckOnly) {
     $arguments = @('scripts/live_action_demo.py', '--config', 'configs/train/local_cpu.yaml',
         '--task', 'configs/tasks/sisters_of_battle.yaml', '--reset-timeout', '90', '--command', 'status')
 }
-$process = Start-Process -FilePath $python -ArgumentList $arguments -WorkingDirectory $repo `
-    -NoNewWindow -Wait -PassThru
-if ($process.ExitCode -ne 0) { throw "Game setup check failed: $($process.ExitCode)" }
+$code = Invoke-HKRLConsole $python $arguments $repo
+if ($code -ne 0) { throw "Game setup check failed: $code" }
 Write-Host 'Sisters of Battle / save slot 3 is ready.'

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 # Mirrors the schema_version carried in every StepRequest/StepResponse and the
 # C# Protocol.SCHEMA_VERSION. See schema/README.md evolution rules.
-SCHEMA_VERSION: int = 6
+SCHEMA_VERSION: int = 7
 
 # FlatBuffers file_identifier (must equal the one in hkrl.fbs).
 FILE_IDENTIFIER: bytes = b"HKRL"
@@ -96,6 +96,15 @@ class Team(enum.IntEnum):
     NEUTRAL = 0
     ENEMY = 1
     PLAYER_CREATED = 2
+
+
+class DamageSource(enum.IntEnum):
+    """DamageTaken.aux_int2 in schema/hkrl.fbs."""
+
+    UNKNOWN = 0
+    BOSS_BODY = 1
+    ENEMY_PROJECTILE = 2
+    SPIKES = 3
 
 
 class RewardEventKind(enum.IntEnum):

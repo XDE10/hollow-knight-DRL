@@ -219,11 +219,13 @@ namespace UnityEngine
         public static float fixedDeltaTime { get; set; } = 0.02f;
         public static float timeScale { get; set; } = 1.0f;
         public static float unscaledDeltaTime { get; set; } = 0.02f;
+        public static float time { get; set; }
         public static float unscaledTime { get; set; }
     }
 
     public static class Application
     {
+        public static bool runInBackground { get; set; }
         public static string persistentDataPath { get; set; } = ".";
     }
 

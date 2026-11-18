@@ -15,7 +15,7 @@ namespace HKRLEnvMod.Observation
             float baseThreat,
             int damage = 0,
             float ttl = 0.0f,
-            uint flags = 0)
+            uint flags = 0, GameObject? identity = null)
         {
             if (component == null)
             {
@@ -29,6 +29,9 @@ namespace HKRLEnvMod.Observation
             var transform = component.transform;
             var position = transform.position;
             var velocity = ReadVelocity(component.gameObject);
+            if (entityType == HKRL.EntityType.Projectile)
+                velocity = registry.ProjectileVelocity((identity ?? component.gameObject).GetInstanceID(),
+                    new Vector2(position.x, position.y), velocity, Time.time);
             var bounds = ReadBounds(component.gameObject);
             var hp = ReadIntMember(component, "hp", "HP", "health");
             var maxHp = ReadIntMember(
@@ -38,7 +41,7 @@ namespace HKRLEnvMod.Observation
                 "MaxHp",
                 "MaxHP",
                 "maxHealth");
-            var instanceId = component.gameObject.GetInstanceID();
+            var instanceId = (identity ?? component.gameObject).GetInstanceID();
             maxHp = registry.ObserveMaxHp(instanceId, hp, maxHp);
             var fsm = ReadFsm(component.gameObject);
             var relX = position.x - player.PosX;
@@ -123,7 +126,7 @@ namespace HKRLEnvMod.Observation
             var components = gameObject.GetComponentsInChildren<Component>(true);
             foreach (var component in components)
             {
-                if (component == null || component.GetType().Name != "DamageHero")
+                if (component == null || !component.gameObject.activeInHierarchy || !(component is global::DamageHero damaging) || !damaging.enabled)
                 {
                     continue;
                 }

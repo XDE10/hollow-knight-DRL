@@ -5,16 +5,14 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import math
-import socket
 import threading
-import time
 from pathlib import Path
 from types import ModuleType
 
 import numpy as np
 import pytest
 import torch
-from hkrl.learner.batch_intake import BatchIntakeClient
+from hkrl.learner.batch_intake import BatchIntakeClient, BatchIntakeServer
 from hkrl.learner.checkpoint_registry import CheckpointRegistry
 from hkrl.spaces import action_mask_layout, make_observation_space
 from hkrl.training.batch_io import save_rollout_batch
@@ -182,15 +180,26 @@ def test_run_learner_ingests_recurrent_batch_dir_and_updates(tmp_path: Path) -> 
 
 
 def test_run_learner_network_intake_accepts_recurrent_batch_and_updates(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _load_script("run_learner.py")
     config = tmp_path / "appo_gru.yaml"
     _write_recurrent_appo_config(config)
-    port = _unused_localhost_port()
+    listening = threading.Event()
+    endpoints: list[str] = []
+
+    class ObservedServer(BatchIntakeServer):
+        def start(self) -> None:
+            super().start()
+            assert self.endpoint is not None
+            endpoints.append(self.endpoint)
+            listening.set()
+
+    monkeypatch.setattr(module, "BatchIntakeServer", ObservedServer)
+    batch = _recurrent_learner_batch(rnn_hidden=16)
     args = argparse.Namespace(
         config=str(config),
-        bind=f"127.0.0.1:{port}",
+        bind="127.0.0.1:0",
         batch_dir=None,
         checkpoint_dir=str(tmp_path / "checkpoints"),
         intake_count=1,
@@ -214,10 +223,8 @@ def test_run_learner_network_intake_accepts_recurrent_batch_and_updates(
     )
     thread.start()
 
-    accepted = _submit_batch_when_ready(
-        f"127.0.0.1:{port}",
-        _recurrent_learner_batch(rnn_hidden=16),
-    )
+    assert listening.wait(timeout=60), errors
+    accepted = BatchIntakeClient(endpoints[0], timeout_s=5.0).submit(batch)
     thread.join(timeout=6.0)
 
     assert not thread.is_alive()
@@ -846,24 +853,6 @@ def _run_learner_thread(
         summaries.append(module.run_from_args(args))
     except BaseException as exc:
         errors.append(exc)
-
-
-def _submit_batch_when_ready(endpoint: str, batch: RolloutBatch) -> bool:
-    deadline = time.monotonic() + 3.0
-    last_error: BaseException | None = None
-    while time.monotonic() < deadline:
-        try:
-            return BatchIntakeClient(endpoint, timeout_s=0.5).submit(batch)
-        except OSError as exc:
-            last_error = exc
-            time.sleep(0.05)
-    raise AssertionError(f"learner intake did not accept connections at {endpoint}") from last_error
-
-
-def _unused_localhost_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind(("127.0.0.1", 0))
-        return int(sock.getsockname()[1])
 
 
 class _FakeResult:

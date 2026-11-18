@@ -75,6 +75,7 @@ def test_evaluator_regression_report_returns_win_rate_delta() -> None:
 @pytest.mark.parametrize("ending", ["death", "timeout", "win", "mutual_death"])
 def test_partial_boss_kill_is_not_an_encounter_win(ending: str) -> None:
     records: list[dict[str, Any]] = []
+
     class MultiBossEnv(FakeEvalEnv):
         def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
             self.step_count += 1

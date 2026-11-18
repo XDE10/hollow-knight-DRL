@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace HKRLEnvMod.Observation
 {
@@ -14,6 +15,20 @@ namespace HKRLEnvMod.Observation
         private readonly Dictionary<int, int> _maxHpByInstanceId = new();
         private readonly List<int> _deadInstanceIds = new();
         private int _nextId = 1;
+        private readonly Dictionary<int, (Vector2 Position, float Time, Vector2 Velocity)> _projectiles = new();
+
+        internal Vector2 ProjectileVelocity(int id, Vector2 pos, Vector2 bodyVelocity, float now)
+        {
+            Vector2 velocity = bodyVelocity;
+            if (_projectiles.TryGetValue(id, out var last) && bodyVelocity.magnitude < 0.001f)
+            {
+                float dt = now - last.Time;
+                velocity = dt > 0.0001f ? new Vector2((pos.x - last.Position.x) / dt,
+                    (pos.y - last.Position.y) / dt) : last.Velocity;
+            }
+            _projectiles[id] = (pos, now, velocity);
+            return velocity;
+        }
 
         /// <summary>Return the stable id for a Unity object (allocating if new).</summary>
         public int GetStableId(int unityInstanceId)
@@ -71,6 +86,7 @@ namespace HKRLEnvMod.Observation
             {
                 _objToStableId.Remove(instanceId);
                 _maxHpByInstanceId.Remove(instanceId);
+                _projectiles.Remove(instanceId);
             }
         }
     }

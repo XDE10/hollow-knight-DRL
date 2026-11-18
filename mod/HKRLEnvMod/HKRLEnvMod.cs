@@ -101,7 +101,9 @@ namespace HKRLEnvMod
 
                 _server = new TcpServer(runtime.Host, runtime.Port, runtime.AuthToken);
                 RewardEventBuffer rewards = new RewardEventBuffer();
+                var observations = new ObservationCollector();
                 DamageHooks.Install(rewards);
+                DamageSourceHook.Install(observations.Registry);
                 DeathHooks.Install(rewards);
                 HealHooks.Install(rewards);
                 SceneHooks.Install(rewards);
@@ -115,7 +117,7 @@ namespace HKRLEnvMod
                     new SimControl(),
                     new ActionMasker(),
                     new Heartbeat(),
-                    new ObservationCollector());
+                    observations);
                 _server.Start();
                 _configured = true;
                 global::HKRLEnvMod.Debug.Logger.Info(
@@ -130,6 +132,7 @@ namespace HKRLEnvMod
                 _stepController = null;
                 _server?.Dispose();
                 _server = null;
+                DamageSourceHook.Uninstall();
                 DamageHooks.Uninstall();
                 DeathHooks.Uninstall();
                 HealHooks.Uninstall();
@@ -173,6 +176,7 @@ namespace HKRLEnvMod
             _stepController = null;
             _server?.Dispose();
             _server = null;
+            DamageSourceHook.Uninstall();
             DamageHooks.Uninstall();
             DeathHooks.Uninstall();
             HealHooks.Uninstall();

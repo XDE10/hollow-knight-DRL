@@ -23,7 +23,7 @@ namespace HKRLEnvMod.Rewards
             _entities.Clear();
         }
 
-        public void Update(ObservationSnapshot observation, RewardEventBuffer rewards)
+        public void Update(ObservationSnapshot observation, RewardEventBuffer rewards, bool inferBossKills = true)
         {
             if (!_hasPrevious)
             {
@@ -32,7 +32,7 @@ namespace HKRLEnvMod.Rewards
             }
 
             EmitPlayerEvents(observation.Player, rewards);
-            EmitEntityEvents(observation.Entities, rewards);
+            EmitEntityEvents(observation.Entities, rewards, inferBossKills);
             Capture(observation);
         }
 
@@ -41,7 +41,9 @@ namespace HKRLEnvMod.Rewards
             var hpDelta = player.Hp - _playerHp;
             if (hpDelta < 0)
             {
-                rewards.AddIfAbsent(HKRL.RewardEventKind.DamageTaken, amount: -hpDelta);
+                float missing = -hpDelta - rewards.TotalAmount(HKRL.RewardEventKind.DamageTaken);
+                if (missing > 0)
+                    rewards.Add(HKRL.RewardEventKind.DamageTaken, amount: missing);
             }
             else if (hpDelta > 0)
             {
@@ -62,7 +64,7 @@ namespace HKRLEnvMod.Rewards
 
         private void EmitEntityEvents(
             IReadOnlyList<EntityObservation> entities,
-            RewardEventBuffer rewards)
+            RewardEventBuffer rewards, bool inferBossKills)
         {
             var observed = new HashSet<int>();
             var hasNewBossIdentity = false;
@@ -88,7 +90,7 @@ namespace HKRLEnvMod.Rewards
                         previous.Hp - entity.Hp);
                 }
 
-                if (previous.EntityType == HKRL.EntityType.Boss
+                if (inferBossKills && previous.EntityType == HKRL.EntityType.Boss
                     && previous.Hp > 0
                     && entity.Hp <= 0)
                 {
@@ -101,6 +103,7 @@ namespace HKRLEnvMod.Rewards
             // tracked boss as the fallback kill signal. StepController only ends
             // the episode after no living boss entities remain, which preserves
             // multi-boss fights.
+            if (!inferBossKills) return;
             foreach (var pair in _entities)
             {
                 if (pair.Value.EntityType == HKRL.EntityType.Boss

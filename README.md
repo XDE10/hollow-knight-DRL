@@ -1,10 +1,12 @@
 # HK-RL — Hollow Knight Reinforcement Learning
 
-[![CI](https://github.com/myouo/hk_Rl/actions/workflows/ci.yml/badge.svg)](https://github.com/myouo/hk_Rl/actions/workflows/ci.yml)
-[![C# Mod Build](https://github.com/myouo/hk_Rl/actions/workflows/mod-build.yml/badge.svg)](https://github.com/myouo/hk_Rl/actions/workflows/mod-build.yml)
+[![CI](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/ci.yml/badge.svg)](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/ci.yml)
+[![C# Mod Build](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/mod-build.yml/badge.svg)](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/mod-build.yml)
 
 > 从 Hollow Knight Mod 获取结构化游戏状态，构建可扩展、高性能的强化学习环境，
 > 训练小骑士在 Godhome / Hall of Gods 中击败 Boss。
+
+本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
 本仓库是 [`hollow_knight_rl_prd.md`](./hollow_knight_rl_prd.md) 的工程落地。**先读 PRD，再读 [`AGENTS.md`](./AGENTS.md)。**
 

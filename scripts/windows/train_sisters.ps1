@@ -2,7 +2,9 @@ param(
     [ValidateSet('Start', 'Stop', 'Status', 'Eval')][string]$Mode = 'Start',
     [int]$Updates = 20,
     [int]$Episodes = 10,
-    [string]$RunDir = 'runs/training/sisters-gru-seed0'
+    [string]$RunDir = 'runs/training/sisters-survival-v1-seed0',
+    [string]$TrainConfig = 'configs/train/sisters_cpu_gru_input_v2.yaml',
+    [string]$Task = 'configs/experiments/sisters_survival.yaml'
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -39,19 +41,20 @@ if ($Mode -eq 'Start') {
         throw 'The verified pause-safe training mod is missing or changed. Rebuild/deploy before training.'
     }
     & (Join-Path $PSScriptRoot 'start_sisters.ps1') -CheckOnly
-    $arguments = @('-u', 'scripts/train.py', '--config', 'configs/train/sisters_cpu_gru.yaml',
-        '--task', 'configs/tasks/sisters_of_battle.yaml', '--run-dir', ('"' + $root + '"'),
-        '--updates', $Updates, '--checkpoint-every', '5', '--reset-timeout', '90', '--save-rollouts')
+    $arguments = @('-u', 'scripts/train.py', '--config', $TrainConfig,
+        '--task', $Task, '--run-dir', ('"' + $root + '"'),
+        '--updates', $Updates, '--checkpoint-every', '1', '--reset-timeout', '90', '--save-rollouts')
+    $initial = Join-Path $root 'imitation/bc-weights.pt'
+    if (Test-Path $initial) { $arguments += @('--init-weights', ('"' + $initial + '"')) }
 } else {
     if (-not (Test-Path (Join-Path $root 'checkpoints/index.jsonl'))) { throw 'No checkpoint to evaluate.' }
     $arguments = @('-u', 'scripts/run_eval.py', '--policy', 'model',
-        '--train-config', 'configs/train/sisters_cpu_gru.yaml',
-        '--tasks', 'configs/tasks/sisters_of_battle.yaml',
+        '--train-config', $TrainConfig,
+        '--tasks', $Task,
         '--checkpoint-dir', ('"' + (Join-Path $root 'checkpoints') + '"'),
         '--episodes', $Episodes, '--seeds', '10001', '10002', '10003',
         '--local-session', ('"' + $root + '"'),
         '--output', ('"' + (Join-Path $root 'eval-latest.json') + '"'))
 }
-$process = Start-Process -FilePath (Join-Path $repo '.venv/Scripts/python.exe') `
-    -ArgumentList $arguments -WorkingDirectory $repo -NoNewWindow -Wait -PassThru
-if ($process.ExitCode -ne 0) { throw "Training/evaluation failed (exit $($process.ExitCode)); see status.json." }
+$code = Invoke-HKRLConsole (Join-Path $repo '.venv/Scripts/python.exe') $arguments $repo
+exit $code

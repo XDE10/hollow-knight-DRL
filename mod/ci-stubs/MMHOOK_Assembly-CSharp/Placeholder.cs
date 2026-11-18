@@ -33,3 +33,15 @@ namespace On
         }
     }
 }
+
+namespace On
+{
+    public static class HeroController
+    {
+        public delegate void orig_TakeDamage(global::HeroController self, UnityEngine.GameObject hit,
+            GlobalEnums.CollisionSide side, int amount, int hazardType);
+        public delegate void hook_TakeDamage(orig_TakeDamage orig, global::HeroController self,
+            UnityEngine.GameObject hit, GlobalEnums.CollisionSide side, int amount, int hazardType);
+        public static event hook_TakeDamage? TakeDamage { add { } remove { } }
+    }
+}

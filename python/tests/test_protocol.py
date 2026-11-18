@@ -35,7 +35,7 @@ from hkrl.spaces import BUTTON_BITS
 
 def test_schema_version_is_positive() -> None:
     assert isinstance(protocol.SCHEMA_VERSION, int)
-    assert protocol.SCHEMA_VERSION == 6
+    assert protocol.SCHEMA_VERSION == 7
 
 
 def test_schema_version_matches_csharp_constant_and_schema_file() -> None:
@@ -647,7 +647,7 @@ def test_mod_observation_reward_tracker_is_wired_before_drain() -> None:
     assert "BossKilled" in tracker
     assert "PlayerDeath" in tracker
 
-    update_idx = controller.index("_rewardTracker.Update(observation, _rewards);")
+    update_idx = controller.index("_rewardTracker.Update(observation, _rewards,")
     drain_idx = controller.index("_rewards.Drain()")
     assert update_idx < drain_idx
     assert "_rewardTracker.Reset();" in controller

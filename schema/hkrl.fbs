@@ -90,6 +90,9 @@ enum RewardEventKind : ubyte {
   Stagger = 8,
 }
 
+/// Source of DamageTaken, carried in RewardEvent.aux_int2. Zero also covers old recordings.
+enum DamageSource : ubyte { Unknown = 0, BossBody = 1, EnemyProjectile = 2, Spikes = 3 }
+
 /// Why a reset / step failed — returned in StepResponse.error_code.
 enum StatusCode : ubyte {
   Ok = 0,
@@ -196,7 +199,7 @@ table RewardEvent {
   entity_id:int;             // target/source/boss entity
   amount:float;              // damage / heal / soul amount
   aux_int:int;              // damage_type / action_id / from_scene
-  aux_int2:int;             // to_scene / reason code
+  aux_int2:int;             // to_scene / reason code / DamageSource for DamageTaken
 }
 
 // ----------------------------------------------------------------------------

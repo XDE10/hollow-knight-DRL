@@ -89,6 +89,12 @@ namespace HKRLEnvMod.Observation
 
         private static bool IsLikelyHazard(GameObject gameObject)
         {
+            if (gameObject.scene.name == SistersContact.Scene)
+            {
+                return gameObject.GetComponent<global::DamageHero>() != null
+                    && SistersContact.Resolve(gameObject, out var owner) == HKRL.DamageSource.Spikes
+                    && owner == gameObject;
+            }
             if (EntityReadHelpers.NameContains(
                 gameObject,
                 "hazard",

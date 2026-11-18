@@ -8,6 +8,7 @@ namespace HKRLEnvMod.Rewards
     public static class DamageHooks
     {
         private static RewardEventBuffer? _buffer;
+        internal static int ContactDepth;
 
         /// <summary>Install the Harmony/MonoMod hooks.</summary>
         public static void Install(RewardEventBuffer buffer)
@@ -25,7 +26,7 @@ namespace HKRLEnvMod.Rewards
 
         private static int OnTakeHealth(int damage)
         {
-            RecordDamageTaken(entityId: 0, amount: damage);
+            if (ContactDepth == 0 && damage > 0) RecordDamageTaken(entityId: 0, amount: damage);
             return damage;
         }
 
@@ -41,11 +42,11 @@ namespace HKRLEnvMod.Rewards
             }
         }
 
-        public static void RecordDamageTaken(int entityId, float amount, int damageType = 0)
+        public static void RecordDamageTaken(int entityId, float amount, int damageType = 0, int sourceKind = 0)
         {
             try
             {
-                _buffer?.Add(HKRL.RewardEventKind.DamageTaken, entityId, amount, damageType);
+                _buffer?.Add(HKRL.RewardEventKind.DamageTaken, entityId, amount, damageType, sourceKind);
             }
             catch (System.Exception exception)
             {

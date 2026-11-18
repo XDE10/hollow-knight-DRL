@@ -101,6 +101,6 @@ def test_mod_observation_reward_fallback_deduplicates_hook_events() -> None:
     buffer = (root / "mod/HKRLEnvMod/Rewards/RewardEventBuffer.cs").read_text(encoding="utf-8")
 
     assert "public void AddIfAbsent(" in buffer
-    assert "rewards.AddIfAbsent(HKRL.RewardEventKind.DamageTaken" in tracker
+    assert "-hpDelta - rewards.TotalAmount(HKRL.RewardEventKind.DamageTaken)" in tracker
     assert "rewards.AddIfAbsent(HKRL.RewardEventKind.Heal" in tracker
     assert "rewards.AddIfAbsent(HKRL.RewardEventKind.BossKilled" in tracker

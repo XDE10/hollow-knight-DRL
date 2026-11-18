@@ -143,6 +143,7 @@ public sealed class PlayerData
     public bool atBench;
     public bool disablePause;
     public int health = 1;
+    public int healthBlue;
     public int maxHealth = 1;
     public int maxMP = 99;
     public int MPCharge;
@@ -189,7 +190,9 @@ public sealed class BossSceneController : MonoBehaviour
     }
 }
 
-public sealed class HealthManager : MonoBehaviour
+public interface IHitResponder { }
+
+public sealed class HealthManager : MonoBehaviour, IHitResponder
 {
     public bool isActiveAndEnabled { get; set; } = true;
     public int hp { get; set; }
@@ -252,3 +255,5 @@ public sealed class InputHandler
     public static InputHandler? Instance { get; set; }
     public HeroActions? inputActions { get; set; }
 }
+
+namespace GlobalEnums { public enum CollisionSide { left, right, top, bottom, other } }

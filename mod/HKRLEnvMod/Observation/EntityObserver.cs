@@ -10,7 +10,7 @@ namespace HKRLEnvMod.Observation
     /// </summary>
     public sealed class EntityObserver
     {
-        private readonly EntityRegistry _registry = new();
+        internal EntityRegistry Registry { get; } = new();
         private readonly BossObserver _boss = new();
         private readonly ProjectileObserver _projectile = new();
         private readonly HazardObserver _hazard = new();
@@ -21,10 +21,10 @@ namespace HKRLEnvMod.Observation
         {
             _entities.Clear();
             _aliveInstanceIds.Clear();
-            _boss.ReadInto(_entities, _registry, _aliveInstanceIds, player);
-            _projectile.ReadInto(_entities, _registry, _aliveInstanceIds, player);
-            _hazard.ReadInto(_entities, _registry, _aliveInstanceIds, player);
-            _registry.PruneDead(_aliveInstanceIds);
+            _boss.ReadInto(_entities, Registry, _aliveInstanceIds, player);
+            _projectile.ReadInto(_entities, Registry, _aliveInstanceIds, player);
+            _hazard.ReadInto(_entities, Registry, _aliveInstanceIds, player);
+            Registry.PruneDead(_aliveInstanceIds);
 
             if (_entities.Count <= maxEntities)
             {

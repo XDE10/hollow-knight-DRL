@@ -37,6 +37,7 @@ namespace HKRLEnvMod.Env
         }
 
         public bool IsActive => _active;
+        public bool RequiresArenaVictory => _scene.TargetSceneName == Observation.SistersContact.Scene;
         public bool IsComplete { get; private set; }
         public string? LastErrorInfo { get; private set; }
 

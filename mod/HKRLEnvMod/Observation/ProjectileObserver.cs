@@ -41,13 +41,14 @@ namespace HKRLEnvMod.Observation
                 Component component = candidate.Component;
                 if (component == null
                     || component.gameObject == null
-                    || !component.gameObject.activeInHierarchy)
+                    || !component.gameObject.activeInHierarchy
+                    || (component is global::DamageHero dh && !dh.enabled))
                 {
                     continue;
                 }
 
                 var gameObject = component.gameObject;
-                var instanceId = gameObject.GetInstanceID();
+                var instanceId = candidate.Owner.GetInstanceID();
                 if (aliveInstanceIds.Contains(instanceId))
                 {
                     continue;
@@ -63,7 +64,7 @@ namespace HKRLEnvMod.Observation
                     baseThreat: 30.0f,
                     damage: candidate.Damage,
                     ttl: 1.0f,
-                    flags: 1u << 3));
+                    identity: candidate.Owner, flags: 1u << 3));
             }
         }
 
@@ -101,12 +102,17 @@ namespace HKRLEnvMod.Observation
             }
 
             GameObject gameObject = component.gameObject;
-            if (gameObject.scene.handle != sceneHandle)
+            bool pooled = gameObject.scene.handle != sceneHandle;
+            if (pooled && !SistersContact.InSistersPool(gameObject))
             {
                 return;
             }
 
-            int instanceId = gameObject.GetInstanceID();
+            GameObject owner = gameObject;
+            if ((pooled || (gameObject.scene.name == SistersContact.Scene && component is global::DamageHero))
+                && SistersContact.Resolve(gameObject, out owner) != HKRL.DamageSource.EnemyProjectile)
+                return;
+            int instanceId = owner.GetInstanceID();
             if (!_candidateIds.Add(instanceId))
             {
                 return;
@@ -115,20 +121,22 @@ namespace HKRLEnvMod.Observation
             bool damagesEnemies = gameObject.GetComponent<global::DamageEnemies>() != null;
             bool damagesHero = gameObject.GetComponent<global::DamageHero>() != null;
             _candidates.Add(new ProjectileCandidate(
-                component,
+                component, owner,
                 damagesEnemies ? HKRL.Team.PlayerCreated : HKRL.Team.Enemy,
                 damagesHero ? 1 : 0));
         }
 
         private readonly struct ProjectileCandidate
         {
-            public ProjectileCandidate(Component component, HKRL.Team team, int damage)
+            public ProjectileCandidate(Component component, GameObject owner, HKRL.Team team, int damage)
             {
                 Component = component;
+                Owner = owner;
                 Team = team;
                 Damage = damage;
             }
 
+            public GameObject Owner { get; }
             public Component Component { get; }
             public HKRL.Team Team { get; }
             public int Damage { get; }

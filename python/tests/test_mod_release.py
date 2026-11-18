@@ -26,10 +26,10 @@ def test_release_metadata_aligns_version_project_and_protocol() -> None:
 
     assert metadata.mod_version == "0.8.0"
     assert metadata.release_tag == "v0.8.0"
-    assert metadata.protocol_schema_version == 6
+    assert metadata.protocol_schema_version == 7
     assert metadata.target_framework == "net472"
     assert metadata.flatbuffers_runtime_version == "23.5.26"
-    assert metadata.archive_stem == "HKRLEnvMod-v0.8.0-schema6"
+    assert metadata.archive_stem == "HKRLEnvMod-v0.8.0-schema7"
 
 
 def test_release_package_is_deterministic_complete_and_secret_free(
@@ -62,7 +62,7 @@ def test_release_package_is_deterministic_complete_and_secret_free(
         require_tag=False,
     )
     assert manifest["mod_version"] == "0.8.0"
-    assert manifest["protocol_schema_version"] == 6
+    assert manifest["protocol_schema_version"] == 7
 
     with zipfile.ZipFile(first.archive) as bundle:
         names = set(bundle.namelist())
@@ -247,7 +247,7 @@ def _release_inputs(tmp_path: Path, version: str) -> dict[str, Path]:
         json.dumps(
             {
                 "probe_schema": "hkrl.godhome_sweep.v2",
-                "schema_version": 6,
+                "schema_version": 7,
                 "boss_mutation_allowed": False,
                 "simulation_control_allowed": False,
                 "tested_mod": {

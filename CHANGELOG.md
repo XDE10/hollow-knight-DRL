@@ -7,6 +7,11 @@ the project version tracks the **schema_version** + roadmap phase.
 ## [Unreleased]
 
 ### Added
+
+- Sisters survival task profile and demonstration teacher. Episode reports include physics ticks, time until first injury or episode end, and per-source HP loss. Replay contacts retain instance IDs.
+- Schema 7 documents source labels for damage received. Sisters observations include pooled blades, the two spike strips and individual active bosses. The encounter uses the arena victory callback across phase changes.
+- Windows background launchers write logs under `runs/launcher/`. The progress command still opens on request.
+
 - Added ordinary-nail Sisters demonstration collection, recurrent behavior
   cloning with episode-held-out validation, and a model-only warm start for local
   PPO. Evaluation replay includes player X in the policy observation's units.

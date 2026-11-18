@@ -36,7 +36,7 @@ namespace HKRLEnvMod.Observation
                 BossBuffer,
                 SeenInstanceIds,
                 requireActive: true);
-            if (BossBuffer.Count > 0)
+            if (BossBuffer.Count > 0 && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != SistersContact.Scene)
             {
                 return BossBuffer;
             }
@@ -112,7 +112,7 @@ namespace HKRLEnvMod.Observation
             }
 
             if (sceneChanged
-                || (!cacheHasLiveCandidate && now >= _nextCandidateScanAt))
+                || ((!cacheHasLiveCandidate || scene.name == SistersContact.Scene) && now >= _nextCandidateScanAt))
             {
                 RefreshSceneBossCandidates(scene, now);
             }
@@ -140,7 +140,8 @@ namespace HKRLEnvMod.Observation
                 }
 
                 int instanceId = health.gameObject.GetInstanceID();
-                if (SceneBossCandidateIds.Add(instanceId))
+                if ((scene.name != SistersContact.Scene || health.gameObject.name.StartsWith("Mantis Lord", StringComparison.OrdinalIgnoreCase))
+                    && SceneBossCandidateIds.Add(instanceId))
                 {
                     SceneBossCandidateCache.Add(health);
                 }

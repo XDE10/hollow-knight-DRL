@@ -510,13 +510,28 @@ namespace HKRLEnvMod.Env
             _ownsBossSetupEvent = false;
         }
 
-        private static void ConfigureBossScene(BossSceneController controller)
+        private void ConfigureBossScene(BossSceneController controller)
         {
             // Mirrors the legitimate Hall of Gods BossChallengeUI bootstrap:
             // providing SetupEvent keeps doTransition enabled, lets Awake call
             // Setup(), and causes Start() to emit the GG TRANSITION IN event.
             controller.BossLevel = 0;
             controller.DreamReturnEvent = "DREAM RETURN";
+            if (_targetSceneName == SistersContact.Scene)
+            {
+                controller.OnBossSceneComplete += () =>
+                {
+                    try
+                    {
+                        if (controller == BossSceneController.Instance && _targetSceneName == SistersContact.Scene)
+                            Rewards.DeathHooks.RecordBossKilled(0);
+                    }
+                    catch (System.Exception error)
+                    {
+                        global::HKRLEnvMod.Debug.Logger.Error("Failed to mark Sisters encounter complete", error);
+                    }
+                };
+            }
             controller.OnBossSceneComplete += controller.DoDreamReturn;
         }
 
