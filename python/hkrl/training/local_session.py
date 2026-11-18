@@ -302,9 +302,10 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             env = NormalizeObservation(reset)
             resources.callback(env.close)
             envs.append(env)
+        obs_dims = _obs_dims(envs[0].observation_space)
         model = _build_model(
             cfg,
-            _obs_dims(envs[0].observation_space),
+            obs_dims,
             enable_macro=task.action.enable_macro_actions,
             n_macros=task.action.n_macro_actions,
             max_entities=task.observation.max_entities,
@@ -328,7 +329,7 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
 
         sampling_cfg = cfg.model_copy(update={"rollout_steps": cfg.rollout_steps // len(ports)})
         batcher = (
-            LocalActionBatcher(model, len(ports), trace=trace_inference)
+            LocalActionBatcher(model, len(ports), trace=trace_inference, warmup_dims=obs_dims)
             if batch_inference
             else None
         )

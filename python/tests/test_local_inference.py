@@ -94,6 +94,12 @@ def test_traced_gru_preserves_windows_masks_rng_and_updated_ppo_weights() -> Non
     sampler = TracedGRUSampler(model)
     with torch.inference_mode(), torch.random.fork_rng(devices=[]):
         torch.manual_seed(719)
+        model.train()
+        initial_rng = torch.get_rng_state().clone()
+        sampler.warmup(dims, 3)
+        assert sampler.graph is not None and model.training
+        torch.testing.assert_close(torch.get_rng_state(), initial_rng)
+        model.eval()
         for batch in (1, 3):
             obs = {key: torch.zeros(batch, *shape) for key, shape in dims.items()}
             obs["entity_mask"] = obs["entity_mask"].bool()

@@ -28,11 +28,21 @@ class _Request:
 class LocalActionBatcher:
     """Each caller has one outstanding decision and keeps its own recurrent state."""
 
-    def __init__(self, model: ActorCritic, windows: int, *, trace: bool = False) -> None:
+    def __init__(
+        self,
+        model: ActorCritic,
+        windows: int,
+        *,
+        trace: bool = False,
+        warmup_dims: dict[str, tuple[int, ...]] | None = None,
+    ) -> None:
         if windows < 2:
             raise ValueError("local inference batching requires at least two game windows")
         self.model = model
-        self._act = TracedGRUSampler(model).act if trace else model.act
+        sampler = TracedGRUSampler(model) if trace else None
+        if sampler is not None and warmup_dims is not None:
+            sampler.warmup(warmup_dims, windows)
+        self._act = sampler.act if sampler is not None else model.act
         self.windows = windows
         self._queue: Queue[_Request | None] = Queue()
         self._lock = Lock()

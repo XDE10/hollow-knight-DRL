@@ -52,6 +52,26 @@ class TracedGRUSampler:
         self.graph: torch.jit.ScriptModule | None = None
 
     @torch.inference_mode()
+    def warmup(self, obs_dims: dict[str, tuple[int, ...]], windows: int) -> None:
+        """Compile and exercise the actor before a real boss starts moving."""
+        was_training = self.policy.training
+        try:
+            self.policy.eval()
+            with torch.random.fork_rng(devices=[]):
+                for batch in (1, windows):
+                    obs = {key: torch.zeros(batch, *shape) for key, shape in obs_dims.items()}
+                    obs["entity_mask"] = obs["entity_mask"].bool()
+                    obs["prev_action"] = torch.zeros(batch, self.policy.action_dim)
+                    obs["prev_reward"] = torch.zeros(batch)
+                    mask = torch.ones(batch, self.policy.policy.mask_dim, dtype=torch.bool)
+                    state = self.policy.initial_state(batch)
+                    # TorchScript also optimizes its execution plan on a later call.
+                    self.act(obs, state, mask)
+                    self.act(obs, state, mask)
+        finally:
+            self.policy.train(was_training)
+
+    @torch.inference_mode()
     def act(
         self, obs: dict[str, Tensor], rnn_state: Tensor, action_mask: Tensor
     ) -> tuple[Tensor, Tensor, Tensor, Tensor]:

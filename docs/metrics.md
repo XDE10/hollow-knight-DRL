@@ -213,3 +213,10 @@ entity slots. `traced_inference` records which backend produced each update.
 On 96 recorded Sisters decisions across three windows, sampled-action log
 probabilities, values and recurrent states agreed with ordinary inference within
 0.000002. Use the measured live sampling duration to assess throughput.
+
+The local trainer prepares this graph on synthetic tensors before resetting any
+game. Warmup covers single-window and batched inputs, preserves the random state,
+and contributes zero decisions to a rollout. In two earlier lazy-trace resumes,
+all six opening decisions took 145–255 physics ticks while the games continued
+moving. Discarding cold-start time from a throughput benchmark would miss those
+actual game events.
