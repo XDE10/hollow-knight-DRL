@@ -319,8 +319,17 @@ class Evaluator:
             record["elapsed_game_seconds"] = float(info["elapsed_game_seconds"])
         if isinstance(observation, Mapping) and "player" in observation:
             player = np.asarray(observation["player"])
-            if player.ndim == 1 and player.size > PLAYER_FEATURE_INDEX["pos_x"]:
-                record["player_x"] = float(player[PLAYER_FEATURE_INDEX["pos_x"]])
+            if player.ndim == 1:
+                if player.size > PLAYER_FEATURE_INDEX["pos_x"]:
+                    record["player_x"] = float(player[PLAYER_FEATURE_INDEX["pos_x"]])
+                if player.size > PLAYER_FEATURE_INDEX["pos_y"]:
+                    record["player_y"] = float(player[PLAYER_FEATURE_INDEX["pos_y"]])
+                if player.size > PLAYER_FEATURE_INDEX["on_ground"]:
+                    record["on_ground"] = bool(player[PLAYER_FEATURE_INDEX["on_ground"]])
+                if player.size > PLAYER_FEATURE_INDEX["action_flags"]:
+                    record["player_action_flags"] = int(
+                        player[PLAYER_FEATURE_INDEX["action_flags"]]
+                    )
         with self._replay_lock:
             self.replay_sink(record)
 

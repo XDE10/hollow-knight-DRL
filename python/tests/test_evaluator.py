@@ -96,6 +96,8 @@ def test_game_seconds_sum_only_fully_timed_episodes(missing_interval: bool) -> N
     metrics = evaluator.evaluate(episodes_per_task=1)["timed"]
     assert metrics["survival_ticks"] == 5
     assert records[0]["elapsed_game_seconds"] == pytest.approx(0.04)
+    assert records[0]["player_action_flags"] == 0
+    assert records[0]["player_y"] == pytest.approx(0.0)
     if missing_interval:
         assert "survival_game_seconds" not in metrics
     else:
