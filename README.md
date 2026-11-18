@@ -8,7 +8,7 @@
 
 本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
-战斗姐妹的逐项对照、伤害来源和松开方向键的复核见[生存训练记录](docs/sisters_survival.md)。
+战斗姐妹 3 号槽的避刺与反击实测、三组模型对照和复现命令见[训练记录](docs/sisters_survival.md)。
 
 本仓库是 [`hollow_knight_rl_prd.md`](./hollow_knight_rl_prd.md) 的工程落地。**先读 PRD，再读 [`AGENTS.md`](./AGENTS.md)。**
 

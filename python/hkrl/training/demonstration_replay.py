@@ -26,18 +26,7 @@ def split_demonstrations(directory: Path) -> tuple[list[Path], list[Path]]:
 def read_demonstration(path: Path, payload: bytes) -> dict[str, Tensor]:
     """Recover the same recurrent context as the live worker at each episode boundary."""
     with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
-        episode = {
-            k: torch.from_numpy(archive[k])
-            for k in (
-                "global",
-                "player",
-                "entities",
-                "entity_mask",
-                "masks",
-                "actions",
-                "rewards",
-            )
-        }
+        episode = {key: torch.from_numpy(archive[key]) for key in archive.files}
     actions = episode["actions"].long()
     if len(actions) == 0 or any(len(x) != len(actions) for x in episode.values()):
         raise ValueError(f"inconsistent or empty demonstration episode: {path}")
@@ -78,8 +67,8 @@ class DemonstrationReplay:
             raise ValueError("demonstration replay needs a whole-episode split and valid lengths")
         for path in files:
             payload = path.read_bytes()
-            episode = read_demonstration(path, payload)
-            del episode["rewards"]
+            data = read_demonstration(path, payload)
+            episode = {key: data[key] for key in (*DEMO_OBS, "actions", "masks")}
             actions = episode["actions"]
             index = len(self.episodes)
             self.windows.extend((index, start) for start in range(0, len(actions), length))

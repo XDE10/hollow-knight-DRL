@@ -128,8 +128,11 @@ def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
             return {"loss": 1.0}
 
     monkeypatch.chdir(tmp_path)
+    algorithm = "recurrent_ppo" if initial_format == "checkpoint" else "ppo"
     monkeypatch.setattr(
-        local_session, "load_train_config", lambda _: TrainConfig(learner={"device": "cpu"})
+        local_session,
+        "load_train_config",
+        lambda _: TrainConfig(algorithm=algorithm, learner={"device": "cpu"}),
     )
     monkeypatch.setattr(
         local_session, "load_task_config", lambda _: TaskConfig(task_id="test", scene="Test")
@@ -168,7 +171,22 @@ def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
             else weights
         )
         torch.save(payload, args.init_weights)
+    if initial_format == "checkpoint":
+        directory = tmp_path / "demonstrations"
+        directory.mkdir()
+        for number in range(4):
+            np.savez(
+                directory / f"episode-{number}.npz",
+                actions=np.zeros((1, 12), dtype=np.int64),
+                masks=np.ones((1, 19), dtype=bool),
+                rewards=np.array([number], dtype=np.float32),
+                **{
+                    key: np.zeros((1, 1)) for key in ("global", "player", "entity_mask", "entities")
+                },
+            )
+        args.demo_replay = str(directory)
     first = local_session.run_session_from_args(args)
+    args.demo_replay = None
     if initial_format != "none":
         initial = torch.load(root / "checkpoints/checkpoint_v000001.pt", weights_only=True)
         torch.testing.assert_close(initial["model_state_dict"]["weight"], teacher.weight)
@@ -182,3 +200,9 @@ def test_safe_stop_then_resume_keeps_counters_and_pauses_updates(
     assert state["optimizer_state_dict"]["state"][0]["step"].item() == 2
     assert not (tmp_path / "runs/training/active.json").exists()
     assert len(archived) == 2 and archived[0] != archived[1]
+    if initial_format == "checkpoint":
+        # Changing the archive bytes after a run cannot silently change supervised targets.
+        with (directory / "episode-0.npz").open("ab") as changed:
+            changed.write(b"changed")
+        with pytest.raises(ValueError, match="configuration changed"):
+            local_session.run_session_from_args(args)
