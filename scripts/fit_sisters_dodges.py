@@ -27,6 +27,7 @@ from hkrl.training.demonstration_replay import (
 )
 from hkrl.training.sisters_dodges import (
     DODGE_BUTTONS,
+    charge_imitation_mask,
     dodge_outcomes,
     landed_counter_labels,
     safe_nail_windows,
@@ -38,7 +39,11 @@ from torch import Tensor
 
 
 def prepare(
-    source: Path, target: Path, *, landed_counters: bool = False
+    source: Path,
+    target: Path,
+    *,
+    landed_counters: bool = False,
+    verify_charges: bool = False,
 ) -> dict[str, Any]:
     training, heldout = split_demonstrations(source)
     if not heldout:
@@ -58,11 +63,25 @@ def prepare(
             )
         elif record.get("teacher") == "body_counter":
             arrays["safe_nail"] = safe_nail_windows(arrays, record)
+        audit: dict[str, int] = {}
+        if verify_charges:
+            eligible = charge_imitation_mask(arrays, record)
+            audit = {
+                "excluded_charge_steps": int((~eligible).sum()),
+                "withdrawn_positive_jumps": int(((grades[:, 0] > 0) & ~eligible).sum()),
+            }
+            arrays["imitation_valid"] = eligible
+            grades[~eligible] = -1
+            if "safe_nail" in arrays:
+                arrays["safe_nail"] &= eligible
+            if "landed_side" in arrays:
+                arrays["landed_side"][~eligible] = 0
         dest = target / path.name
         with dest.with_suffix(".tmp").open("wb") as f:
             np.savez_compressed(f, **arrays, dodge_outcomes=grades)
         dest.with_suffix(".tmp").replace(dest)
         summary[path.name] = {
+            **audit,
             "split": "train" if path in training else "heldout",
             "observations_sha256": hashlib.sha256(payload).hexdigest(),
             "events_sha256": hashlib.sha256(metadata).hexdigest(),
@@ -105,11 +124,20 @@ def validate(model: Any, episodes: list[dict[str, Tensor]]) -> dict[str, Any]:
     actions, grades = (
         torch.cat([ep[k] for ep in episodes]) for k in ("actions", "dodge_outcomes")
     )
+    eligible = torch.cat(
+        [
+            ep.get("imitation_valid", torch.ones(len(ep["actions"]), dtype=torch.bool))
+            for ep in episodes
+        ]
+    )
+    if not eligible.any():
+        raise ValueError("validation set has no eligible decisions")
+    pred, actions, grades = pred[eligible], actions[eligible], grades[eligible]
     metrics: dict[str, Any] = {
         "move_accuracy": float((pred[:, 0] == actions[:, 0]).float().mean())
     }
     if "landed_side" in episodes[0]:
-        sides = torch.cat([ep["landed_side"] for ep in episodes])
+        sides = torch.cat([ep["landed_side"] for ep in episodes])[eligible]
         copied = (
             (pred[:, 0] == actions[:, 0])
             & (pred[:, 1] == 1)
@@ -150,6 +178,11 @@ def main() -> None:
         parser.add_argument("--" + arg, type=Path, required=True)
     parser.add_argument("--updates", type=int, default=320)
     parser.add_argument(
+        "--verify-charges",
+        action="store_true",
+        help="Exclude teacher inputs leading to real same-source dash injuries.",
+    )
+    parser.add_argument(
         "--landed-counters",
         action="store_true",
         help="Focus counter replay on grounded horizontal nail hits against the landed sister.",
@@ -172,7 +205,9 @@ def fit(args: argparse.Namespace, work: Path) -> None:
     seed_everything(cfg.seed)
     torch.set_num_threads(1)
     target = work / "demos"
-    manifest = prepare(args.demos, target, landed_counters=args.landed_counters)
+    manifest = prepare(
+        args.demos, target, landed_counters=args.landed_counters, verify_charges=args.verify_charges
+    )
     replay = DemonstrationReplay(target, cfg.sequence_length, cfg.burn_in)
     holdouts = [
         read_demonstration(p, p.read_bytes()) for p in split_demonstrations(target)[1]
@@ -208,6 +243,7 @@ def fit(args: argparse.Namespace, work: Path) -> None:
         "initial_sha256": hashlib.sha256(payload).hexdigest(),
         "updates": args.updates,
         "landed_counters": args.landed_counters,
+        "verify_charges": args.verify_charges,
     }
     for step in range(1, args.updates + 1):
         model.train()

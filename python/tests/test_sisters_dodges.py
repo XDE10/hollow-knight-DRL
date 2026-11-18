@@ -7,7 +7,30 @@ from hkrl import spaces
 from hkrl.eval.sisters_survival import SistersDodgeCounterPolicy
 from hkrl.models.heads import HybridPolicyHead
 from hkrl.training.demonstration_replay import dodge_imitation_loss
-from hkrl.training.sisters_dodges import dodge_outcomes
+from hkrl.training.sisters_dodges import charge_imitation_mask, dodge_outcomes
+
+
+def test_charge_targets_follow_source_id_past_the_initial_jump_window() -> None:
+    rows = np.zeros((11, 3, 24), np.float32)
+    rows[1:5, 0, :2] = [77, 1]
+    rows[1:5, 0, 5] = -737267072
+    rows[5:8, 1, :2] = [77, 1]  # The same body moves to another observation slot.
+    rows[5:8, 1, 5] = -1374908928
+    rows[:, 2, :2] = [10, 1]
+    rows[:, 2, 5] = -1374908928
+    mask = np.ones((11, 3), bool)
+    mask[:, 2] = False
+    data = {"entities": rows, "entity_mask": mask, "elapsed_ticks": np.full(11, 4)}
+    record = {"contacts": [{"step": 9, "amount": 1, "source": "BOSS_BODY", "source_id": 77}]}
+    assert np.flatnonzero(~charge_imitation_mask(data, record)).tolist() == list(range(1, 9))
+    # A long decision can outlast the observed attack. Its contact is ambiguous.
+    data["elapsed_ticks"][8] = 20
+    assert charge_imitation_mask(data, record).all()
+    data["elapsed_ticks"][8] = 10
+    assert charge_imitation_mask(data, record).all()
+    data["elapsed_ticks"][8] = 4
+    record["contacts"][0]["source_id"] = 10
+    assert charge_imitation_mask(data, record).all()
 
 
 def test_dodge_labels_align_actions_with_next_observation_and_real_injuries() -> None:

@@ -177,7 +177,10 @@ def test_counter_teacher_can_jump_and_hit_while_braking(side: int) -> None:
     assert not act["buttons"][spaces.BUTTON_BITS["jump_tap"]]
 
 
-def test_demo_replay_excludes_held_out_episodes_and_trains_on_short_windows(tmp_path: Path) -> None:
+@pytest.mark.parametrize("filter_targets", [False, True])
+def test_demo_replay_excludes_held_out_episodes_and_trains_on_short_windows(
+    tmp_path: Path, filter_targets: bool
+) -> None:
     obs = _arena()
     length = 3
     mask = spaces.action_mask_layout(enable_macro=False)
@@ -194,9 +197,11 @@ def test_demo_replay_excludes_held_out_episodes_and_trains_on_short_windows(tmp_
             actions=actions,
             masks=np.ones((length, len(mask)), dtype=bool),
             rewards=np.full(length, num, dtype=np.float32),
+            **({"imitation_valid": np.array([True, False, False])} if filter_targets else {}),
         )
     replay = DemonstrationReplay(tmp_path, length=2, burn_in=2)
-    assert len(replay.windows) == 8 and "episode-004.npz" not in replay.hashes
+    assert len(replay.windows) == (4 if filter_targets else 8)
+    assert "episode-004.npz" not in replay.hashes
     assert (
         replay.hashes["episode-001.npz"]
         == hashlib.sha256((tmp_path / "episode-001.npz").read_bytes()).hexdigest()

@@ -90,9 +90,19 @@ class DemonstrationReplay:
                 ):
                     raise ValueError(f"invalid counterattack labels: {path}")
                 episode["safe_nail"] = data["safe_nail"]
+            if "imitation_valid" in data:
+                eligible = data["imitation_valid"]
+                if eligible.dtype != torch.bool or eligible.shape != (len(actions),):
+                    raise ValueError(f"invalid demonstration target mask: {path}")
+                episode["imitation_valid"] = eligible
             if self.episodes and self.episodes[0].keys() != episode.keys():
                 raise ValueError("cannot mix annotated and unannotated demonstrations")
             for start in range(0, len(actions), length):
+                if (
+                    "imitation_valid" in episode
+                    and not episode["imitation_valid"][start : start + length].any()
+                ):
+                    continue
                 if (
                     "dodge_outcomes" in episode
                     and (episode["dodge_outcomes"][start : start + length] > 0).any()
@@ -103,6 +113,8 @@ class DemonstrationReplay:
                 self.windows.append((index, start))
             self.episodes.append(episode)
             self.hashes[path.name] = hashlib.sha256(payload).hexdigest()
+        if not self.windows:
+            raise ValueError("demonstration set has no eligible training decisions")
 
     def loss(self, model: ActorCritic, rng: np.random.Generator, device: torch.device) -> Tensor:
         clips = []
@@ -119,6 +131,8 @@ class DemonstrationReplay:
             times = torch.arange(lo, lo + self.length + self.burn_in)
             clip = {k: t[times.clamp(max=hi - 1)] for k, t in episode.items()}
             clip["valid"] = (times >= start) & (times < hi)
+            if "imitation_valid" in clip:
+                clip["valid"] &= clip.pop("imitation_valid")
             clips.append(clip)
         data = {k: torch.stack([clip[k] for clip in clips]).to(device) for k in clips[0]}
         mask = data.pop("masks").bool()

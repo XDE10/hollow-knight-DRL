@@ -12,6 +12,41 @@ from hkrl import protocol, spaces
 DODGE_BUTTONS = ("jump_tap", "dash")
 
 
+def charge_imitation_mask(data: Mapping[str, np.ndarray], record: dict[str, Any]) -> np.ndarray:
+    """Exclude the observed lead-up to a charge that actually injured the Knight."""
+    e = spaces.ENTITY_FEATURE_INDEX
+    rows = data["entities"]
+    ticks = np.asarray(data["elapsed_ticks"], dtype=np.int64)
+    ends = np.cumsum(ticks)
+    starts = ends - ticks
+    valid = np.ones(len(ticks), dtype=bool)
+    # Slot-3 windup, anticipation, and active horizontal crossing.
+    charge = data["entity_mask"].astype(bool) & (
+        rows[..., e["entity_type"]] == protocol.EntityType.BOSS
+    )
+    charge &= np.isin(rows[..., e["fsm_state_hash"]], (-1376807296, -737267072, -1374908928))
+    for contact in record["contacts"]:
+        if contact["source"] != "BOSS_BODY" or contact["amount"] <= 0:
+            continue
+        hit = int(contact["step"]) - 1
+        if not 0 <= hit < len(ticks):
+            raise ValueError("contact outside demonstration episode")
+        if ticks[hit] > 18:
+            continue
+        source = (charge & (rows[..., e["entity_id"]] == contact["source_id"])).any(axis=1)
+        last = hit
+        if not source[last]:
+            # A contact can be returned just after the attack state changes.
+            if not hit or not source[hit - 1] or ends[hit] - starts[hit - 1] > 12:
+                continue
+            last -= 1
+        first = last
+        while first and source[first - 1] and ends[hit] - starts[first - 1] <= 75:
+            first -= 1
+        valid[first : hit + 1] = False
+    return valid
+
+
 def dodge_outcomes(data: Mapping[str, np.ndarray], record: dict[str, Any]) -> np.ndarray:
     """Grade a requested dodge from observed motion, actual injuries and verified nail hits."""
     player, actions = data["player"], data["actions"]
