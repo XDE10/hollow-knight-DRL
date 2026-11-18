@@ -1,0 +1,4 @@
+defaults:
+  - ./sisters_timing.yaml
+model:
+  name: sisters_blade_gru

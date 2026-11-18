@@ -17,7 +17,7 @@ from hkrl.models.recurrent_policy import (
     SistersTimingGRU,
     landing_movement_bias,
 )
-from hkrl.models.sisters_timing import platform_preferences
+from hkrl.models.sisters_timing import counter_preferences, platform_preferences
 from hkrl.training.demonstration_replay import DemonstrationReplay
 
 
@@ -83,6 +83,31 @@ def test_timing_gru_separates_blade_height_and_checks_all_visible_threats() -> N
     assert dist.buttons.probs[0, 2, jump] == 0
     assert dist.buttons.probs[0, 3, spaces.BUTTON_BITS["attack"]] > 0.9
     assert dist.movement_x.probs[0, 3].argmax() == 1
+
+
+def test_blade_interception_tracks_release_height_and_approaching_edge() -> None:
+    state = _arena()
+    obs = {key: value.repeat_interleave(8, dim=0) for key, value in state.items()}
+    obs["player"][:, 9] = 1
+    entities = obs["entities"]
+    entities[:, 0, 16] = 2 / spaces.ARENA_SCALE
+    entities[:4, 0, 5] = torch.tensor([-1403342080, -1403342080, 739257600, 739257600])
+    entities[:4, 0, 14] = torch.tensor([6, -6, 9, 9]) / spaces.ARENA_SCALE
+    entities[:4, 0, 15] = torch.tensor([1.8, 1.8, 1.8, 4]) / spaces.ARENA_SCALE
+    entities[4:, 1, 14] = 9 / spaces.ARENA_SCALE
+    entities[4:, 1, 16] = 4.8 / spaces.ARENA_SCALE
+    entities[4:, 1, 10] = torch.tensor([-16, 16, -16, -16]) / spaces.VEL_SCALE
+    entities[6, 1, 15] = 4 / spaces.ARENA_SCALE
+    obs["entity_mask"][7, 1] = False
+    head = HybridPolicyHead(4)
+    dist = head(torch.zeros(8, 4))
+    basic = counter_preferences(dist, obs)
+    early = counter_preferences(dist, obs, blade_interception=True)
+    jump = spaces.BUTTON_BITS["jump_tap"]
+    assert early.movement_x.probs[:2].argmax(-1).tolist() == [0, 2]
+    assert torch.all(early.buttons.probs[[2, 4], jump] > 0.99)
+    unchanged = [0, 1, 3, 5, 6, 7]
+    torch.testing.assert_close(early.buttons.probs[unchanged], basic.buttons.probs[unchanged])
 
 
 def test_platform_allows_safe_edge_stance_and_air_recovery_on_either_side() -> None:

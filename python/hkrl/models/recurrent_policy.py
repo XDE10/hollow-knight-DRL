@@ -236,11 +236,24 @@ class SistersLandingGRU(SingleTaskEntityAttentionGRU):
 class SistersTimingGRU(SistersLandingGRU):
     """A residual GRU with soft preferences for verified Sisters counter windows."""
 
+    blade_interception = False
+
     def forward(
         self, obs: dict[str, Tensor], rnn_state: RnnState = None, action_mask: Tensor | None = None
     ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
         dist, value, state = super().forward(obs, rnn_state, action_mask)
-        return counter_preferences(dist, obs), value, state
+        return (
+            counter_preferences(dist, obs, blade_interception=self.blade_interception),
+            value,
+            state,
+        )
+
+
+@register_model("sisters_blade_gru")
+class SistersBladeGRU(SistersTimingGRU):
+    """Use wall throw cues and the approaching edge of each live disc."""
+
+    blade_interception = True
 
 
 @register_model("sisters_platform_gru")

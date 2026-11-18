@@ -76,7 +76,7 @@ def platform_preferences(
 
 
 def counter_preferences(
-    dist: CompositeActionDistribution, obs: dict[str, Tensor]
+    dist: CompositeActionDistribution, obs: dict[str, Tensor], *, blade_interception: bool = False
 ) -> CompositeActionDistribution:
     """Bias only actions whose cues are present; the GRU still sets all base logits."""
     p, e = spaces.PLAYER_FEATURE_INDEX, spaces.ENTITY_FEATURE_INDEX
@@ -105,6 +105,25 @@ def counter_preferences(
     crossing_y = dy + vy * travel
     low = (crossing & (crossing_y.abs() < 2.0)).any(-1)
     high = (crossing & (crossing_y > 2.8)).any(-1)
+    if blade_interception:
+        # The leading edge arrives before the centre. Measured horizontal acceleration
+        # can reach 24 units/s² on the return; evaluate its earliest arrival.
+        half_width = entities[..., e["hurtbox_size_x"]] * (spaces.ARENA_SCALE / 2)
+        gap = (dx.abs() - half_width - 0.56).clamp_min(0)
+        earliest = 2 * gap / (vx.abs() + (vx.square() + 48 * gap).sqrt()).clamp_min(1)
+        low |= (
+            blade
+            & coming
+            & (vx.abs() > 1)
+            & (half_width > 0)
+            & (earliest < 0.36)
+            & ((dy + vy * earliest).abs() < 1.85)
+        ).any(-1)
+        # In live slot-3 trajectories the low thrower crouches close to the floor.
+        # Her release is visible even when the pooled disc has not yet been observed.
+        low_thrower = body & (half_width > 0) & (dy > 0) & (dy < 2.25)
+        release = low_thrower & (state == 739257600) & (dx.abs() < 12)
+        low |= release.any(-1) & grounded
     # The slot-3 departure and landing states are measured by the game collector.
     lunge = (
         body
@@ -130,6 +149,11 @@ def counter_preferences(
     approach = can_counter & (offset.abs() > 3.5)
     back = can_counter & (offset.abs() < 1.55)
     direction = (turn | approach).float() * offset.sign() - back * offset.sign()
+    if blade_interception:
+        # Give a nearby low windup room to resolve before committing to a jump.
+        windup = low_thrower & (state == -1403342080) & (dx.abs() < 7)
+        away_from_throw = -(windup * dx.sign()).sum(-1).sign()
+        direction = torch.where(grounded & (away_from_throw != 0), away_from_throw, direction)
     direction = torch.where(above.any(-1), evade, direction)
     move_bias = torch.stack((-4 * direction, 3 * (reach & ~turn).float(), 4 * direction), dim=-1)
     # A body under the airborne Knight is a downward nail opportunity. Overlapping
