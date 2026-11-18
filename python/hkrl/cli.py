@@ -60,6 +60,11 @@ def build_argparser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--demo-replay", help="directory of episode NPZ demonstrations for local recurrent PPO"
     )
+    parser.add_argument(
+        "--trace-inference",
+        action="store_true",
+        help="use a weight-sharing TorchScript graph when sampling a local batched CPU GRU",
+    )
     parser.add_argument("--init-weights", help="model-only initial weights for a new local session")
     parser.add_argument("--checkpoint-every", type=int, default=5)
     parser.add_argument("--step-timeout", type=float, default=15.0)
@@ -101,7 +106,7 @@ def build_argparser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_argparser()
     args = parser.parse_args(argv)
-    if args.batch_inference and (args.smoke or not args.run_dir):
+    if (args.batch_inference or args.trace_inference) and (args.smoke or not args.run_dir):
         parser.error("--batch-inference requires local multi-window training with --run-dir")
     if args.reset_retries < 0 or (args.reset_retries and (args.smoke or not args.run_dir)):
         parser.error(

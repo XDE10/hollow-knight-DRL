@@ -12,6 +12,7 @@ import torch
 from torch import Tensor
 
 from hkrl.models.base import ActorCritic, RnnState
+from hkrl.worker.traced_inference import TracedGRUSampler
 
 ActionResult = tuple[Tensor, Tensor, Tensor, RnnState]
 
@@ -27,10 +28,11 @@ class _Request:
 class LocalActionBatcher:
     """Each caller has one outstanding decision and keeps its own recurrent state."""
 
-    def __init__(self, model: ActorCritic, windows: int) -> None:
+    def __init__(self, model: ActorCritic, windows: int, *, trace: bool = False) -> None:
         if windows < 2:
             raise ValueError("local inference batching requires at least two game windows")
         self.model = model
+        self._act = TracedGRUSampler(model).act if trace else model.act
         self.windows = windows
         self._queue: Queue[_Request | None] = Queue()
         self._lock = Lock()
@@ -90,7 +92,7 @@ class LocalActionBatcher:
     def _infer(self, batch: list[_Request]) -> list[ActionResult]:
         if len(batch) == 1:
             item = batch[0]
-            return [self.model.act(item.obs, rnn_state=item.state, action_mask=item.mask)]
+            return [self._act(item.obs, rnn_state=item.state, action_mask=item.mask)]
         obs = {key: torch.cat([r.obs[key] for r in batch]) for key in batch[0].obs}
         masks = torch.cat([r.mask for r in batch])
         states = [r.state for r in batch]
@@ -99,7 +101,7 @@ class LocalActionBatcher:
             state = tuple(torch.cat(parts, dim=1) for parts in zip(*states, strict=True))
         elif state is not None:
             state = torch.cat(states, dim=1)
-        actions, logps, values, after = self.model.act(obs, rnn_state=state, action_mask=masks)
+        actions, logps, values, after = self._act(obs, rnn_state=state, action_mask=masks)
         results = []
         for i in range(len(batch)):
             one = slice(i, i + 1)

@@ -205,3 +205,11 @@ waiting to gather a batch. A worker in reset does not block the other games.
 The option is stored in the run manifest and resumed automatically. Look at
 `mean_inference_batch_size`, sampling seconds and SPS together when comparing
 actual runs; an isolated CPU forward benchmark excludes game and reset time.
+
+For CPU entity-attention GRUs, add `--trace-inference` to the batched training
+command to trace the local actor once per process. The sampler shares PPO's live
+parameter storage. The dense attention mask handles empty and non-contiguous
+entity slots. `traced_inference` records which backend produced each update.
+On 96 recorded Sisters decisions across three windows, sampled-action log
+probabilities, values and recurrent states agreed with ordinary inference within
+0.000002. Use the measured live sampling duration to assess throughput.

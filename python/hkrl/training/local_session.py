@@ -255,6 +255,9 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             if len(ports) < 2:
                 raise ValueError("--batch-inference requires at least two local game ports")
             identity["batch_inference"] = True
+        trace_inference = bool(getattr(args, "trace_inference", False))
+        if trace_inference and not batch_inference:
+            raise ValueError("--trace-inference requires --batch-inference or a batched session")
         initial_weights = getattr(args, "init_weights", None)
         initial_bytes = Path(initial_weights).read_bytes() if initial_weights else None
         if initial_bytes is not None:
@@ -324,7 +327,11 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
             print(json.dumps(record, sort_keys=True), flush=True)
 
         sampling_cfg = cfg.model_copy(update={"rollout_steps": cfg.rollout_steps // len(ports)})
-        batcher = LocalActionBatcher(model, len(ports)) if batch_inference else None
+        batcher = (
+            LocalActionBatcher(model, len(ports), trace=trace_inference)
+            if batch_inference
+            else None
+        )
         if batcher is not None:
             resources.callback(batcher.close)
         workers = [
@@ -409,6 +416,7 @@ def run_session_from_args(args: argparse.Namespace) -> dict[str, Any]:
                 update_started = time.monotonic()
                 metrics = {key: float(value) for key, value in algo.update(buffer).items()}
                 if batcher:
+                    metrics["traced_inference"] = float(trace_inference)
                     metrics["mean_inference_batch_size"] = (
                         batcher.decisions - decisions_before
                     ) / max(1, batcher.forward_passes - passes_before)

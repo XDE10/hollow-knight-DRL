@@ -83,3 +83,37 @@ def test_inference_error_reaches_waiter_and_next_request_can_run() -> None:
         assert batcher.act({"player": x}, None, x.bool())[2].item() == 1
     finally:
         batcher.close()
+
+
+def test_traced_gru_preserves_windows_masks_rng_and_updated_ppo_weights() -> None:
+    from hkrl.models.recurrent_policy import SistersPlatformGRU
+    from hkrl.worker.traced_inference import TracedGRUSampler
+
+    dims = {"global": (9,), "player": (32,), "entities": (6, 24), "entity_mask": (6,)}
+    model = SistersPlatformGRU(dims, entity_hidden=16, rnn_hidden=16, attention_heads=2).eval()
+    sampler = TracedGRUSampler(model)
+    with torch.inference_mode(), torch.random.fork_rng(devices=[]):
+        torch.manual_seed(719)
+        for batch in (1, 3):
+            obs = {key: torch.zeros(batch, *shape) for key, shape in dims.items()}
+            obs["entity_mask"] = obs["entity_mask"].bool()
+            obs["entity_mask"][0, [1, 4]] = True
+            obs["entities"][:, 1, 1:3] = torch.tensor([1, 2])
+            obs["prev_action"] = torch.zeros(batch, model.action_dim)
+            obs["prev_reward"] = torch.randn(batch) if batch == 1 else torch.randn(batch, 1)
+            state = torch.randn(1, batch, 16)
+            mask = torch.ones(batch, model.policy.mask_dim, dtype=torch.bool)
+            mask[:, -1] = False
+            before = model(obs, rnn_state=state, action_mask=mask)[1].clone()
+            for mutation in (False, True):
+                if mutation:
+                    model.value.v.bias.add_(2)
+                    model.policy.movement_x.bias[0].add_(1)
+                torch.manual_seed(317)
+                expected = model.act(obs, rnn_state=state, action_mask=mask)
+                torch.manual_seed(317)
+                sampled = sampler.act(obs, state, mask)
+                for actual, reference in zip(sampled, expected, strict=True):
+                    torch.testing.assert_close(actual, reference, atol=1e-5, rtol=1e-5)
+                if mutation:
+                    torch.testing.assert_close(sampled[2], before + 2)
