@@ -27,6 +27,7 @@ from hkrl.reward import DefaultReward
 from hkrl.spaces import (
     ENTITY_FEATURE_DIMS,
     GLOBAL_FEATURE_DIM,
+    GLOBAL_FEATURE_INDEX,
     N_AIM_Y,
     N_BUTTONS,
     N_DURATION,
@@ -173,6 +174,9 @@ class HKRLEnv(gym.Env):
         info = self._info_from_response(response, observation=obs)
         info["action_repeat"] = action_repeat
         info["elapsed_ticks"] = elapsed_ticks
+        fixed_delta = float(obs["global"][GLOBAL_FEATURE_INDEX["fixed_delta_time"]])
+        if fixed_delta > 0:
+            info["elapsed_game_seconds"] = elapsed_ticks * fixed_delta
         info["time_limit_reached"] = time_limit_reached
         return obs, reward, terminated, truncated, info
 

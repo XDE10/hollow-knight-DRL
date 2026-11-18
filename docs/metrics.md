@@ -173,3 +173,14 @@ The report script validates summary and output paths before writing JSON or
 Markdown profile artifacts.
 This report defines a CI-friendly Phase 8 profiling format; live Unity CPU/GPU
 profiling is still performed on the game machine.
+
+### Survival time in game seconds
+
+`survival_game_seconds` is the mean time from reset readiness to an episode ending.
+For each STEP, the evaluator sums the observed server-tick delta multiplied by
+the game's reported fixed physics interval. The replay records each interval as
+`elapsed_game_seconds`. Environments missing timing data for an interval omit the
+seconds metric. `survival_ticks` counts physics updates and `episode_length` counts
+policy decisions. Rendering, movement distance, wall-clock pauses and optimizer
+updates do not determine either game-time measure. The measured slot-3 interval
+was 0.02 seconds, so 1,334.6 physics updates correspond to 26.69 game seconds.

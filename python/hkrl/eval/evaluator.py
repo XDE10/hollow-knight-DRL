@@ -128,6 +128,7 @@ class Evaluator:
         damage_taken = 0.0
         source_damage: dict[str, float] = {}
         elapsed_ticks = 0
+        game_seconds: float | None = 0.0
         first_hit_ticks: int | None = None
         damage_dealt = 0.0
         heal_count = 0
@@ -156,6 +157,9 @@ class Evaluator:
 
             event_metrics = _metrics_from_info(info)
             elapsed_ticks += int(info.get("elapsed_ticks", 0))
+            if game_seconds is not None:
+                dt = info.get("elapsed_game_seconds")
+                game_seconds = None if dt is None else game_seconds + float(dt)
             if first_hit_ticks is None and event_metrics.damage_taken > 0:
                 first_hit_ticks = elapsed_ticks
             for source, _, amount in event_metrics.contacts:
@@ -195,6 +199,7 @@ class Evaluator:
             reward=total_reward,
             length=steps,
             elapsed_ticks=elapsed_ticks,
+            game_seconds=game_seconds,
             first_hit_or_end_ticks=first_hit_ticks
             if first_hit_ticks is not None
             else elapsed_ticks,
@@ -310,6 +315,8 @@ class Evaluator:
             "wire_id": int(task.wire_id),
             "won": won,
         }
+        if "elapsed_game_seconds" in info:
+            record["elapsed_game_seconds"] = float(info["elapsed_game_seconds"])
         if isinstance(observation, Mapping) and "player" in observation:
             player = np.asarray(observation["player"])
             if player.ndim == 1 and player.size > PLAYER_FEATURE_INDEX["pos_x"]:
@@ -346,6 +353,7 @@ class _EpisodeResult:
     reward: float
     length: int
     elapsed_ticks: int
+    game_seconds: float | None
     first_hit_or_end_ticks: int
     source_damage: dict[str, float]
     damage_taken: float
@@ -496,7 +504,9 @@ def _aggregate(episodes: Sequence[_EpisodeResult]) -> dict[str, float]:
     win_rate = _mean(float(episode.won) for episode in episodes)
     damage_taken = _mean(episode.damage_taken for episode in episodes)
     damage_dealt = _mean(episode.damage_dealt for episode in episodes)
+    durations = [e.game_seconds for e in episodes if e.game_seconds is not None]
     return {
+        **({"survival_game_seconds": _mean(durations)} if len(durations) == len(episodes) else {}),
         "win_rate": win_rate,
         "episode_reward": _mean(episode.reward for episode in episodes),
         "episode_length": _mean(float(episode.length) for episode in episodes),

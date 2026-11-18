@@ -72,6 +72,36 @@ def test_evaluator_regression_report_returns_win_rate_delta() -> None:
     assert report == {"a": -0.25, "b": -0.25, "c": 1.0}
 
 
+@pytest.mark.parametrize("missing_interval", [False, True])
+def test_game_seconds_sum_only_fully_timed_episodes(missing_interval: bool) -> None:
+    class TimedEnv(FakeEvalEnv):
+        def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+            obs, reward, done, truncated, info = super().step(action)
+            ticks = self.step_count + 1
+            info["elapsed_ticks"] = ticks
+            if not missing_interval or self.step_count == 1:
+                info["elapsed_game_seconds"] = ticks * (0.02 if self.step_count == 1 else 0.01)
+            return obs, reward, done, truncated, info
+
+    task = TaskConfig(task_id="timed", scene="Test")
+    env = TimedEnv()
+    records: list[dict[str, Any]] = []
+    evaluator = Evaluator(
+        ScriptedAggroPolicy(env.action_space),
+        tasks=[task],
+        seeds=[0],
+        env_factory=lambda _: env,
+        replay_sink=records.append,
+    )
+    metrics = evaluator.evaluate(episodes_per_task=1)["timed"]
+    assert metrics["survival_ticks"] == 5
+    assert records[0]["elapsed_game_seconds"] == pytest.approx(0.04)
+    if missing_interval:
+        assert "survival_game_seconds" not in metrics
+    else:
+        assert metrics["survival_game_seconds"] == pytest.approx(0.07)
+
+
 @pytest.mark.parametrize("ending", ["death", "timeout", "win", "mutual_death"])
 def test_partial_boss_kill_is_not_an_encounter_win(ending: str) -> None:
     records: list[dict[str, Any]] = []

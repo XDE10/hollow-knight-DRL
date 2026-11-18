@@ -402,8 +402,9 @@ def test_env_step_uses_server_tick_delta_for_reward_dt() -> None:
     env = HKRLEnv(transport=transport, task=task)
     env.reset(options={"reset_timeout_s": 1.0, "recv_timeout_s": 0.1})
 
-    _, reward, _, _, _ = env.step(env.action_space.sample())
+    _, reward, _, _, info = env.step(env.action_space.sample())
 
+    assert info["elapsed_game_seconds"] == pytest.approx(info["elapsed_ticks"] * 0.02)
     assert task.action.action_repeat == 2
     assert reward == pytest.approx(3.0 + task.reward.time_penalty)
 
