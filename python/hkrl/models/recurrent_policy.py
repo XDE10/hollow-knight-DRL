@@ -237,13 +237,19 @@ class SistersTimingGRU(SistersLandingGRU):
     """A residual GRU with soft preferences for verified Sisters counter windows."""
 
     blade_interception = False
+    sustain_charge_jump = False
 
     def forward(
         self, obs: dict[str, Tensor], rnn_state: RnnState = None, action_mask: Tensor | None = None
     ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
         dist, value, state = super().forward(obs, rnn_state, action_mask)
         return (
-            counter_preferences(dist, obs, blade_interception=self.blade_interception),
+            counter_preferences(
+                dist,
+                obs,
+                blade_interception=self.blade_interception,
+                sustain_charge_jump=self.sustain_charge_jump,
+            ),
             value,
             state,
         )
@@ -265,6 +271,13 @@ class SistersPlatformGRU(SistersTimingGRU):
     ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
         dist, value, state = super().forward(obs, rnn_state, action_mask)
         return platform_preferences(dist, obs), value, state
+
+
+@register_model("sisters_charge_gru")
+class SistersChargeGRU(SistersPlatformGRU):
+    """Finish an already-held rising jump over an approaching horizontal charge."""
+
+    sustain_charge_jump = True
 
 
 def landing_movement_bias(obs: dict[str, Tensor]) -> Tensor:

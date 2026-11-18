@@ -76,7 +76,11 @@ def platform_preferences(
 
 
 def counter_preferences(
-    dist: CompositeActionDistribution, obs: dict[str, Tensor], *, blade_interception: bool = False
+    dist: CompositeActionDistribution,
+    obs: dict[str, Tensor],
+    *,
+    blade_interception: bool = False,
+    sustain_charge_jump: bool = False,
 ) -> CompositeActionDistribution:
     """Bias only actions whose cues are present; the GRU still sets all base logits."""
     p, e = spaces.PLAYER_FEATURE_INDEX, spaces.ENTITY_FEATURE_INDEX
@@ -168,6 +172,28 @@ def counter_preferences(
     buttons[..., bits["jump_tap"]] = 8 * rise.float() - 4 * (grounded & high & ~rise)
     holding = (player[..., p["vel_y"]] > 0) & (low | lunge.any(-1))
     buttons[..., bits["jump_hold"]] = 6 * (rise | holding).float()
+    primitive = rise | reach | above.any(-1) | downward
+    if sustain_charge_jump and player.shape[-1] > p["applied_input_buttons"]:
+        # Once the Knight clears the lance, the original low-height takeoff cue
+        # disappears. Keep the same jump pressed until the crossing is clear.
+        charging = body & ((state == -737267072) | ((state == -1374908928) & coming))
+        below = (charging & (dx.abs() < 14) & (dy > -7) & (dy < 2.4)).any(-1)
+        jump_bits = (1 << bits["jump_tap"]) | (1 << bits["jump_hold"])
+        key_down = (player[..., p["applied_input_buttons"]].long() & jump_bits) != 0
+        high_disc = (blade & (dx.abs() < 6) & (dy > 1.4) & (dy < 7)).any(-1)
+        continue_jump = (
+            below
+            & ~grounded
+            & player[..., p["jumping"]].bool()
+            & (player[..., p["vel_y"]] > 0.05)
+            & key_down
+            & (dist.buttons.probs[..., bits["jump_hold"]] > 0)
+            & ~player[..., p["invulnerable"]].bool()
+            & ~above.any(-1)
+            & ~high_disc
+        )
+        buttons[..., bits["jump_hold"]] += 7 * continue_jump.float()
+        primitive |= continue_jump
     buttons[..., bits["attack"]] = 6 * (reach | underneath).float() - 4 * dive
     buttons[..., bits["cast"]] = 7 * dive.float()
     # Use a short hold for takeoff and release control promptly in the landing window.
@@ -176,7 +202,7 @@ def counter_preferences(
     macro = dist.macro
     if macro is not None:
         bias = torch.zeros_like(macro.logits)
-        bias[..., 0] = 6 * (rise | reach | above.any(-1) | downward).float()
+        bias[..., 0] = 6 * primitive.float()
         macro = Categorical(logits=macro.logits + bias)
     return replace(
         dist,

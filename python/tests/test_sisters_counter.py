@@ -110,6 +110,40 @@ def test_blade_interception_tracks_release_height_and_approaching_edge() -> None
     torch.testing.assert_close(early.buttons.probs[unchanged], basic.buttons.probs[unchanged])
 
 
+def test_charge_hold_tracks_both_directions_and_yields_to_overhead_threats() -> None:
+    state = _arena()
+    obs = {key: value.repeat_interleave(8, dim=0) for key, value in state.items()}
+    p, e = spaces.PLAYER_FEATURE_INDEX, spaces.ENTITY_FEATURE_INDEX
+    player, rows = obs["player"], obs["entities"]
+    player[:, p["jumping"]] = 1
+    player[:, p["vel_y"]] = 0.45
+    player[:, p["applied_input_buttons"]] = 2
+    rows[:, 0, e["fsm_state_hash"]] = -1374908928
+    rows[:, 0, e["hurtbox_center_x"]] = 4 / spaces.ARENA_SCALE
+    rows[:, 0, e["hurtbox_center_y"]] = -4 / spaces.ARENA_SCALE
+    rows[:, 0, e["vel_x"]] = -1.5
+    rows[1, 0, e["hurtbox_center_x"]] *= -1
+    rows[1, 0, e["vel_x"]] *= -1
+    player[2, p["applied_input_buttons"]] = 0
+    rows[3, 0, e["vel_x"]] *= -1  # Already passing away from the Knight.
+    rows[4, 1, e["hurtbox_center_y"]] = 4 / spaces.ARENA_SCALE  # High disc.
+    rows[5:7, 4, e["entity_type"]] = protocol.EntityType.BOSS
+    rows[5:7, 4, e["hurtbox_center_y"]] = 5 / spaces.ARENA_SCALE
+    obs["entity_mask"][5, 4] = True  # Second falling sister; row 6 is padding.
+    head = HybridPolicyHead(4, enable_macro=True, n_macros=11)
+    mask = torch.ones(8, head.mask_dim, dtype=torch.bool)
+    hold = spaces.BUTTON_BITS["jump_hold"]
+    mask[7, spaces.N_MOVEMENT_X + spaces.N_AIM_Y + hold] = False
+    dist = head(torch.zeros(8, 4), mask)
+    basic = counter_preferences(dist, obs)
+    sustained = counter_preferences(dist, obs, sustain_charge_jump=True)
+    assert torch.all(sustained.buttons.probs[[0, 1, 6], hold] > 0.98)
+    unchanged = [2, 3, 4, 5, 7]
+    torch.testing.assert_close(sustained.buttons.probs[unchanged], basic.buttons.probs[unchanged])
+    torch.testing.assert_close(sustained.aim_y.probs, basic.aim_y.probs)
+    assert sustained.buttons.probs[7, hold] == 0
+
+
 def test_platform_allows_safe_edge_stance_and_air_recovery_on_either_side() -> None:
     state = _arena()
     obs = {key: value.repeat_interleave(5, dim=0) for key, value in state.items()}
