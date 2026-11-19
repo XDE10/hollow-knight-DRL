@@ -102,6 +102,7 @@ namespace HKRLEnvMod
                 _server = new TcpServer(runtime.Host, runtime.Port, runtime.AuthToken);
                 RewardEventBuffer rewards = new RewardEventBuffer();
                 var observations = new ObservationCollector();
+                SistersNailCurriculum.Install(runtime.Port, runtime.SaveSlot);
                 DamageHooks.Install(rewards);
                 DamageSourceHook.Install(observations.Registry);
                 DeathHooks.Install(rewards);
@@ -133,6 +134,7 @@ namespace HKRLEnvMod
                 _server?.Dispose();
                 _server = null;
                 DamageSourceHook.Uninstall();
+                SistersNailCurriculum.Uninstall();
                 DamageHooks.Uninstall();
                 DeathHooks.Uninstall();
                 HealHooks.Uninstall();
@@ -177,6 +179,7 @@ namespace HKRLEnvMod
             _server?.Dispose();
             _server = null;
             DamageSourceHook.Uninstall();
+            SistersNailCurriculum.Uninstall();
             DamageHooks.Uninstall();
             DeathHooks.Uninstall();
             HealHooks.Uninstall();
