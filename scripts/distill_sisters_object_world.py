@@ -97,7 +97,10 @@ def returns(world: ObjectWorld, b: dict[str, Tensor], action: Tensor) -> Tensor:
     height = b["obj"][:, None, None, :, 17] * 2.5
     threat = b["mask"] & (
         ((b["obj"][:, :, 1] - 0.2).abs() < 0.01)
-        | ((b["obj"][:, :, 1] - 0.6).abs() < 0.01)
+        | (
+            ((b["obj"][:, :, 1] - 0.6).abs() < 0.01)
+            & ((b["obj"][:, :, 2] - 0.2).abs() < 0.01)
+        )
         | ((b["obj"][:, :, 1] - 0.8).abs() < 0.01)
     )
     clearance = torch.maximum(dx - width - 0.52, dy - height - 1.05)
@@ -180,8 +183,10 @@ def main() -> None:
     anchor = reference(args.base, device)
     models = []
     for file in sorted(args.models.glob("world-*.pt")):
-        model = ObjectWorld().to(device)
         saved = torch.load(file, map_location=device, weights_only=True)
+        model = ObjectWorld(object_history=saved["entity.0.weight"].shape[1] == 52).to(
+            device
+        )
         saved.setdefault("calibration", model.pos_weight.log())
         model.load_state_dict(saved)
         models.append(model.eval())

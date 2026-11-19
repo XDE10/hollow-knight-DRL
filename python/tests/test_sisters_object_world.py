@@ -21,6 +21,23 @@ def test_native_controls_preserve_a_short_press(monkeypatch: pytest.MonkeyPatch)
     np.testing.assert_array_equal(bins[:, 6], [0, 0.5, 0, 0])
 
 
+def test_entity_history_uses_only_previous_visible_states(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    from sisters_world_data import entity_history
+
+    raw = np.zeros((7, 24), np.float32)
+    raw[:, 0] = [77, 92, 92, 77, 77, 92, 77]
+    raw[:, 5] = [1, 4, 4, 1, 2, 9, 2]
+    raw[:, 10] = [0, 3, 3, 2.4, 4.8, 9, 7.2]
+    frames = np.array([0, 0, 1, 1, 2, 3, 3])
+    times = np.arange(4, dtype=np.float32) * 0.1
+    history = entity_history(raw, frames, times)
+    np.testing.assert_allclose(history[3], [0.1, 0.1, 1, 0], atol=1e-5)
+    np.testing.assert_allclose(history[4], [0, 0.2, 1, 0], atol=1e-5)
+    np.testing.assert_allclose(history[5], [0, 0, 0, 0], atol=1e-5)
+    np.testing.assert_allclose(history[:4], entity_history(raw[:4], frames[:4], times[:2]))
+
+
 def test_object_ids_terminal_masks_and_game_boundaries(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

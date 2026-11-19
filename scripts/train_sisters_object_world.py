@@ -23,12 +23,15 @@ POS_WEIGHT = [2.8, 10, 12, 25, 15, 12, 28, 22]
 
 
 class ObjectWorld(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, object_history: bool = False) -> None:
         super().__init__()
+        self.object_history = object_history
         self.tags = nn.ModuleList(
             [nn.Embedding(STATE_BUCKETS + 1, 8) for _ in range(3)]
         )
-        self.entity = nn.Sequential(nn.Linear(48, 64), nn.LayerNorm(64), nn.SiLU())
+        self.entity = nn.Sequential(
+            nn.Linear(52 if object_history else 48, 64), nn.LayerNorm(64), nn.SiLU()
+        )
         self.hero = nn.Sequential(nn.Linear(32, 64), nn.LayerNorm(64), nn.SiLU())
         self.interaction = nn.MultiheadAttention(64, 4, batch_first=True)
         self.norm = nn.LayerNorm(64)
@@ -45,7 +48,8 @@ class ObjectWorld(nn.Module):
 
     def encode(self, b: dict[str, Tensor]) -> tuple[Tensor, Tensor]:
         tags = [layer(b["cat"][:, :, i]) for i, layer in enumerate(self.tags)]
-        objects = self.entity(torch.cat([b["obj"], *tags], dim=-1))
+        continuous = [b["obj"], b["obj_history"]] if self.object_history else [b["obj"]]
+        objects = self.entity(torch.cat([*continuous, *tags], dim=-1))
         tokens = torch.cat([self.hero(b["player"])[:, None], objects], dim=1)
         mask = torch.cat([torch.ones_like(b["mask"][:, :1]), b["mask"]], dim=1)
         mixed = self.interaction(
@@ -183,6 +187,11 @@ def main() -> None:
     p.add_argument("--batch", type=int, default=160)
     p.add_argument("--seeds", type=int, nargs="+", default=[17, 41, 73])
     p.add_argument("--device", default="cuda")
+    p.add_argument(
+        "--object-history",
+        action="store_true",
+        help="Include causal FSM ages and acceleration.",
+    )
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     if args.device == "cuda" and not torch.cuda.is_available():
@@ -206,7 +215,7 @@ def main() -> None:
         if path.exists():
             continue
         torch.manual_seed(seed)
-        model = ObjectWorld().to(args.device)
+        model = ObjectWorld(object_history=args.object_history).to(args.device)
         opt = torch.optim.AdamW(model.parameters(), lr=7e-4)
         start = time.monotonic()
         for i in range(args.updates):

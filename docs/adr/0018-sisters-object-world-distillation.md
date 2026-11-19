@@ -27,6 +27,10 @@ Three independently initialized teachers encode the player and masked entity set
 
 The student consumes the last four native observations and returns 12 centered movement preference adjustments. It runs alongside the saved movement head and the local tactics planner. It has no API for changing damage, health or game state. Separate real-game trials measure the performance of this combined policy. A native counter records how often the student's residual changed the selected movement plan. The real game also applies the planner's final collision and input rules.
 
+With `--object-history`, the teacher additionally receives each entity's visible age, time in its current FSM state and two velocity derivatives. These are computed from current and earlier observations of the same entity. A disappearance resets the derivative and both clocks. This lets the forecast distinguish the beginning of an attack telegraph from its final frames. The student format stays compatible with the same local game actor.
+
+The optional recovery rules spend SOUL on a heal during a paired wall attack only while the Knight stands near the platform centre before a disc is visible. For a downward spell, the optional timing rule checks collision clearance during both the vulnerable windup and the return to ground control. It also checks where an emergency shadow dash will end. All three actions use the ordinary game input path.
+
 ## Evaluation
 
 Freeze the policy configuration, both weight files and the compiled actor before the first evaluation reset. The arena is Attuned Sisters of Battle at 1×, with the normal 21-damage nail, nine masks and empty SOUL. Each trial begins with the 500 HP opening Sister and the next phase has three 750 HP Sisters. A win requires the arena-complete event, a living Knight and normal termination. Count deaths and timeouts as losses. Record actual full-game outcomes, first-phase clears, damage, body/projectile/spike masks, and resets with infrastructure errors. The world model's event probabilities and the wins in its replay corpus never enter the win-rate numerator.

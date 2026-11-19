@@ -90,6 +90,33 @@ def interval_actions(
     ).astype(np.float32)
 
 
+def entity_history(raw: np.ndarray, frames: np.ndarray, time: np.ndarray) -> np.ndarray:
+    """Causal ages and acceleration for entities visible in consecutive observations."""
+    features = np.zeros((len(raw), 4), np.float32)
+    if not len(raw):
+        return features
+    order = np.lexsort((frames, raw[:, 0]))
+    current = raw[order]
+    frame = frames[order]
+    previous = np.r_[0, np.arange(len(raw) - 1)]
+    idx = np.arange(len(raw))
+    contiguous = (current[:, 0] == current[previous, 0]) & (
+        frame == frame[previous] + 1
+    )
+    new_state = ~contiguous | (current[:, 5] != current[previous, 5])
+    started = np.maximum.accumulate(np.where(new_state, idx, 0))
+    appeared = np.maximum.accumulate(np.where(~contiguous, idx, 0))
+    now = time[frame]
+    features[order, 0] = np.minimum(now - now[started], 4)
+    features[order, 1] = np.minimum(now - now[appeared], 4)
+    dt = np.maximum(now - now[previous], 1e-4)
+    acceleration = (current[:, 10:12] - current[previous, 10:12]) / dt[:, None]
+    features[order, 2:] = np.where(
+        contiguous[:, None], (acceleration / [24, 55]).clip(-4, 4), 0
+    )
+    return features
+
+
 class WorldReplay:
     def __init__(self, folder: Path, device: str):
         entries = json.loads((folder / "manifest.json").read_text())
@@ -148,6 +175,9 @@ class WorldReplay:
                 xzone = np.digitize(raw[:, 14], [20, 26, 34, 40])
                 yz = np.digitize(raw[:, 15], [8.8, 13])
                 frame_ids = np.repeat(np.arange(n), np.diff(ptr))
+                history = np.zeros((n, max_entities, 4), np.float32)
+                slots = np.arange(len(raw)) - ptr[frame_ids]
+                history[frame_ids, slots] = entity_history(raw, frame_ids, t)
                 occupancy[frame_ids, group * 15 + xzone * 3 + yz] = 1
                 # Cache alignment with each of the next H observations once, by local object ID.
                 matches = np.full((n, HORIZON, max_entities), -1, np.int16)
@@ -167,6 +197,7 @@ class WorldReplay:
                 block = {
                     "player": pl,
                     "obj": obj,
+                    "obj_history": history,
                     "cat": obj_cat,
                     "mask": eid >= 0,
                     "action": act,
@@ -247,6 +278,7 @@ class WorldReplay:
         return {
             "player": d["player"][ids],
             "obj": d["obj"][ids],
+            "obj_history": d["obj_history"][ids],
             "cat": d["cat"][ids].long(),
             "mask": d["mask"][ids],
             "action": d["action"][window],
