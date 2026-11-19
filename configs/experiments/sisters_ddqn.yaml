@@ -1,0 +1,5 @@
+defaults:
+  - ./sisters_counter.yaml
+action:
+  action_repeat: 4
+  expose_action_combinations: false

@@ -1,0 +1,14 @@
+model: sisters_dueling_q
+hidden: 48
+seed: 719
+total_steps: 50000
+chunk: 2500
+batch: 128
+updates_per_chunk: 625
+learning_rate: 0.0003
+gamma: 0.99
+discount_ticks: 5
+target_interval: 250
+reward_scale: 12.0
+epsilon_final: 0.10
+epsilon_decay_steps: 35000

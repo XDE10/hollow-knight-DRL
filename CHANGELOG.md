@@ -6,6 +6,8 @@ the project version tracks the **schema_version** + roadmap phase.
 
 ## [Unreleased]
 
+- Added slot-3 movement probes, a 48-action online Double DQN learner, three-instance throughput measurement and frozen original-speed evaluation for Sisters of Battle. See [ADR-0015](docs/adr/0015-sisters-online-double-dqn.md).
+
 - Added local 0.65× native human demonstration capture, win-only behavior cloning, and a one-tick Sisters evaluation profile. Sisters transitions may briefly contain no active boss after a validated reset. See [the live comparison](docs/sisters_survival.md) and [ADR-0014](docs/adr/0014-native-human-demonstrations.md).
 
 ### Added
