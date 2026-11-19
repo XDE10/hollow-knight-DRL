@@ -25,6 +25,7 @@ namespace HKRLEnvMod.Env
         private readonly ActionMasker _masker;
         private readonly Heartbeat _heartbeat;
         private readonly ObservationCollector _observations;
+        private readonly global::HKRLEnvMod.Debug.HumanDemonstration _human = new();
         private ulong _serverTick;
         private ulong _episodeStartServerTick;
         private ulong _runningEpisodeId;
@@ -118,6 +119,7 @@ namespace HKRLEnvMod.Env
             ClearControlState();
             try
             {
+                _human.Dispose();
                 _actions.Dispose();
             }
             finally
@@ -158,6 +160,23 @@ namespace HKRLEnvMod.Env
         {
             _serverTick++;
             RefreshConnectionControlState();
+
+            if (_human.Armed && !_server.HasClient && _lifecycle.IsRunning)
+            {
+                try { RecordHumanTick(); }
+                catch
+                {
+                    try { _human.Finish(false); }
+                    finally { _simControl.SetTimeScale(1.0f); }
+                    throw;
+                }
+                return;
+            }
+            if (_human.Recording && _server.HasClient)
+            {
+                try { _human.Finish(false); }
+                finally { _simControl.SetTimeScale(1.0f); }
+            }
 
             var pendingRequest = DrainLatestRequest();
             var commandError = HKRL.StatusCode.Ok;
@@ -251,6 +270,29 @@ namespace HKRLEnvMod.Env
                 CancelRepeatedStep();
                 EnqueueStepResponse(sessionId, request, commandError, state);
                 _actions.SuspendInput();
+            }
+        }
+
+        private void RecordHumanTick()
+        {
+            // Disconnect has disabled the input injector. The snapshot describes the
+            // boundary before this tick's physics, and events since the previous one.
+            float elapsed = CurrentEpisodeTime(_lifecycle.State);
+            var observation = _observations.Collect(_human.TaskId, _lifecycle.EpisodeId, elapsed, _human.PreviousButtons);
+            _rewardTracker.Update(observation, _rewards, inferBossKills: false);
+            var events = _rewards.Drain();
+            bool terminal = HasTerminalEvent(events, observation);
+            bool truncated = !terminal && elapsed >= 180.0f;
+            if (terminal || truncated) _lifecycle.RequestTerminate();
+            var mask = _masker.Compute(ToPlayerActionState(observation.Player), true, ActionMasker.DefaultMacroCount);
+            byte[] frame = MessageCodec.EncodeStepResponse(0, _serverTick, _serverTick, _lifecycle.State,
+                rewardEvents: events, actionMask: mask, terminated: terminal, truncated: truncated,
+                episodeId: _lifecycle.EpisodeId, observation: observation);
+            _human.Write(global::HKRLEnvMod.Debug.HumanDemonstration.PhysicalKeys(), frame);
+            if (terminal || truncated)
+            {
+                try { _human.Finish(true); }
+                finally { _simControl.SetTimeScale(1.0f); }
             }
         }
 
@@ -435,6 +477,7 @@ namespace HKRLEnvMod.Env
                         _rewards.Clear();
                         _rewardTracker.Reset();
                         _runningEpisodeId = 0;
+                        _human.Finish(false);
                         _resetManager.BeginReset(request.TaskId, request.TaskScene);
                         _lifecycle.RequestReset();
                         break;
@@ -461,6 +504,9 @@ namespace HKRLEnvMod.Env
                         _simControl.Resume();
                         break;
                     case HKRL.Command.SetTimescale:
+                        if (_lifecycle.IsRunning && request.TaskScene == "GG_Mantis_Lords_V"
+                            && Math.Abs(request.TimeScale - 0.65f) < 0.0001f)
+                            _human.ArmFromLocalRequest(request.TaskId);
                         _simControl.SetTimeScale(request.TimeScale);
                         break;
                     case HKRL.Command.Ping:

@@ -223,6 +223,7 @@ namespace InControl
 
     public class PlayerAction
     {
+        public bool IsPressed { get; set; }
         internal void SetValue(float value, ulong updateTick) { }
         public void Commit() { }
         public void CommitWithState(bool state, ulong updateTick, float deltaTime) { }

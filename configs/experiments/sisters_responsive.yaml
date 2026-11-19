@@ -1,0 +1,5 @@
+# Short-response pilot. Keep the action head compatible with the frozen control.
+defaults:
+  - ./sisters_counter.yaml
+action:
+  action_repeat: 1

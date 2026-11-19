@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\HKRLEnvMod\Debug\HumanDemonstration.cs" Link="HumanDemonstration.cs" />
     <Compile Include="..\..\HKRLEnvMod\Action\InputInjector.cs"
              Link="InputInjector.cs" />
     <Compile Include="..\..\HKRLEnvMod\Action\ActionApplier.cs"

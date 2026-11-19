@@ -54,6 +54,8 @@ internal static class Program
         Expect(actions.quickCast.IsPressed, "spell quickCast");
         Expect(actions.cast.IsPressed, "focus cast");
         Expect(actions.dreamNail.IsPressed, "dream nail");
+        Expect(HKRLEnvMod.Debug.HumanDemonstration.PhysicalKeys() == (1 | 8 | 16 | 32 | 64 | 128 | 256 | 512),
+            "human capture uses the current native binding states");
         Expect(actions.moveVector.X == -1.0f, "moveVector.X");
         Expect(actions.moveVector.Y == 1.0f, "moveVector.Y");
         Expect(injector.SuccessfulCommitCount == 1, "input commit acknowledgement");

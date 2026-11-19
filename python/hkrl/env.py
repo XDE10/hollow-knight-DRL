@@ -124,8 +124,8 @@ class HKRLEnv(gym.Env):
             raise EnvProtocolError("reset reached RUNNING without an observation")
 
         self._validate_action_mask(response.action_mask)
+        self._validate_observation(response.observation, at_reset=True)
         self._running = True
-        self._validate_observation(response.observation)
         obs = self._to_gym_observation(response.observation)
         self._episode_id = self._episode_id_from(obs)
         self._last_server_tick = response.server_tick
@@ -238,8 +238,8 @@ class HKRLEnv(gym.Env):
             raise EnvProtocolError("set_task reached RUNNING without an observation")
 
         self._validate_action_mask(response.action_mask)
+        self._validate_observation(response.observation, at_reset=True)
         self._running = True
-        self._validate_observation(response.observation)
         obs = self._to_gym_observation(response.observation)
         self._episode_id = self._episode_id_from(obs)
         self._last_server_tick = response.server_tick
@@ -395,7 +395,9 @@ class HKRLEnv(gym.Env):
         # so its full elapsed interval is attributed to the next transition.
         return self._info_from_response(response)
 
-    def _validate_observation(self, observation: protocol.DecodedObservation) -> None:
+    def _validate_observation(
+        self, observation: protocol.DecodedObservation, *, at_reset: bool = False
+    ) -> None:
         arrays = (
             np.asarray(observation.global_state, dtype=np.float32),
             np.asarray(observation.player_state, dtype=np.float32),
@@ -423,7 +425,8 @@ class HKRLEnv(gym.Env):
             if bool(invalid_hp.any()):
                 raise EnvProtocolError("entity hp exceeds max_hp")
 
-        if self._task_requires_boss():
+        # Bosses may leave the scene between phases and on the final victory tick.
+        if self._task_requires_boss() and (at_reset or self.task.task_id != "sisters_of_battle"):
             if entities.shape[1] <= 1:
                 raise EnvProtocolError("boss task observation contains no boss entity")
             valid_entities = entities[mask]

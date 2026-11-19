@@ -869,6 +869,29 @@ def test_env_rejects_boss_task_without_boss_entity() -> None:
         env.reset(options={"reset_timeout_s": 1.0, "recv_timeout_s": 0.1})
 
 
+def test_boss_can_leave_between_phases_after_a_valid_reset() -> None:
+    from hkrl.env import HKRLEnv
+
+    task = load_task_config("../configs/tasks/sisters_of_battle.yaml")
+    transport = ScriptedTransport(
+        [
+            lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),
+            lambda req: _build_response(
+                req,
+                lifecycle=protocol.LifecycleState.RUNNING,
+                entity_type=protocol.EntityType.PROJECTILE,
+            ),
+        ]
+    )
+    env = HKRLEnv(transport, task)
+    env.reset()
+    obs, _, terminated, truncated, _ = env.step(
+        {"movement_x": 1, "aim_y": 1, "buttons": {}, "duration": 0, "macro": 0}
+    )
+    assert not terminated and not truncated
+    assert obs["entities"][0, 1] == protocol.EntityType.PROJECTILE
+
+
 @pytest.mark.integration
 def test_random_policy_episode() -> None:
     pytest.skip("requires live Hollow Knight + HKRLEnvMod TCP connection")

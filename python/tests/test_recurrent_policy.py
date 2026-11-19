@@ -235,3 +235,16 @@ def _live_scale_obs(*, device: torch.device) -> dict[str, torch.Tensor]:
         "entities": entities,
         "entity_mask": entity_mask,
     }
+
+
+def test_single_tick_sisters_reuses_frozen_heads_and_samples_only_primitives() -> None:
+    from hkrl.models.recurrent_policy import SistersPlatformGRU, SistersPrimitiveGRU
+
+    kwargs = dict(entity_hidden=8, attention_layers=1, attention_heads=2, rnn_hidden=16)
+    original = SistersPlatformGRU(_live_obs_dims(), **kwargs)
+    pilot = SistersPrimitiveGRU(_live_obs_dims(), **kwargs)
+    pilot.load_state_dict(original.state_dict(), strict=True)
+    dist, _, _ = pilot(_live_scale_obs(device=torch.device("cpu")))
+    assert (dist.mode()[..., -2:] == 0).all()
+    assert (dist.sample()[..., -2:] == 0).all()
+    assert torch.isfinite(dist.log_prob(dist.mode())).all()

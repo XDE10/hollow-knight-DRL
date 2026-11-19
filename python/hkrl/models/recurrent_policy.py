@@ -273,6 +273,31 @@ class SistersPlatformGRU(SistersTimingGRU):
         return platform_preferences(dist, obs), value, state
 
 
+@register_model("sisters_primitive_gru")
+class SistersPrimitiveGRU(SistersPlatformGRU):
+    """Keep the frozen heads compatible while requesting one primitive tick at a time."""
+
+    def forward(
+        self, obs: dict[str, Tensor], rnn_state: RnnState = None, action_mask: Tensor | None = None
+    ) -> tuple[CompositeActionDistribution, Tensor, RnnState]:
+        dist, value, state = super().forward(obs, rnn_state, action_mask)
+
+        def first_only(options: Categorical) -> Categorical:
+            logits = torch.full_like(options.logits, torch.finfo(options.logits.dtype).min)
+            logits[..., 0] = 0.0
+            return Categorical(logits=logits)
+
+        return (
+            replace(
+                dist,
+                duration=first_only(dist.duration),
+                macro=first_only(dist.macro) if dist.macro is not None else None,
+            ),
+            value,
+            state,
+        )
+
+
 @register_model("sisters_charge_gru")
 class SistersChargeGRU(SistersPlatformGRU):
     """Finish an already-held rising jump over an approaching horizontal charge."""

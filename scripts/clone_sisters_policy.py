@@ -11,8 +11,6 @@ from typing import Any
 
 import numpy as np
 import torch
-from torch import Tensor
-
 from hkrl import spaces
 from hkrl.cli import _build_model
 from hkrl.training.demonstration_replay import (
@@ -24,12 +22,15 @@ from hkrl.training.demonstration_replay import (
 from hkrl.utils.config import load_task_config, load_train_config
 from hkrl.utils.live_tuning import atomic_write_json
 from hkrl.utils.seeding import seed_everything
+from torch import Tensor
 
 OBS = DEMO_OBS
 ATTACK = 2 + spaces.BUTTON_BITS["attack"]
 
 
-def load_demo(path: Path, *, survival: bool = False) -> dict[str, Tensor]:
+def load_demo(
+    path: Path, *, survival: bool = False, human: bool = False
+) -> dict[str, Tensor]:
     data = read_demonstration(path, path.read_bytes())
     actions = data["actions"]
     direction = actions[:, 0]
@@ -42,7 +43,22 @@ def load_demo(path: Path, *, survival: bool = False) -> dict[str, Tensor]:
     data["turns"] = turns
     data["weight"] = torch.ones(len(actions))
     record = json.loads(path.with_suffix(".json").read_text())
-    assert record["steps"] == len(actions)
+    if record["steps"] != len(actions):
+        raise ValueError(f"demonstration metadata length mismatch: {path}")
+    if human:
+        if not (
+            record.get("teacher") == "human"
+            and record.get("qualified") is True
+            and record.get("won") is True
+            and record.get("truncated") is False
+            and record.get("first_bosses") == 1
+            and record["max_concurrent"]["bosses"] >= 2
+            and "server_ticks" in data
+            and "raw_keys" in data
+            and (data["server_ticks"].diff() == 1).all()
+        ):
+            raise ValueError(f"expected a complete winning human demonstration: {path}")
+        return data
     if survival:
         jumping = actions[:, 2 + spaces.BUTTON_BITS["jump_tap"]].bool()
         data["weight"] += 2 * jumping
@@ -87,9 +103,10 @@ def validate(model: Any, episodes: list[dict[str, Tensor]]) -> dict[str, float]:
     turns = []
     likelihood = 0.0
     for ep in episodes:
-        data = {k: v.unsqueeze(0) for k, v in ep.items()}
+        device = next(model.parameters()).device
+        data = {k: v.unsqueeze(0).to(device) for k, v in ep.items()}
         dist, _, _ = model(compact_obs(data), action_mask=data["masks"])
-        predictions.append(dist.mode()[0])
+        predictions.append(dist.mode()[0].cpu())
         labels.append(ep["actions"])
         turns.append(ep["turns"])
         likelihood -= float(dist.log_prob(data["actions"]).sum())
@@ -106,16 +123,16 @@ def validate(model: Any, episodes: list[dict[str, Tensor]]) -> dict[str, float]:
             else 0.0
         )
 
-    return dict(
-        left_recall=recall(true[:, 0] == 0),
-        right_recall=recall(true[:, 0] == 2),
-        turn_recall=recall(turn),
-        attack_f1=2
+    return {
+        "left_recall": recall(true[:, 0] == 0),
+        "right_recall": recall(true[:, 0] == 2),
+        "turn_recall": recall(turn),
+        "attack_f1": 2
         * float((p_attack & t_attack).sum())
         / max(int(p_attack.sum() + t_attack.sum()), 1),
-        jump_f1=jump_f1(pred, true),
-        nll=likelihood / len(true),
-    )
+        "jump_f1": jump_f1(pred, true),
+        "nll": likelihood / len(true),
+    }
 
 
 def jump_f1(pred: Tensor, true: Tensor) -> float:
@@ -136,8 +153,12 @@ def main() -> None:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--task", type=Path, required=True)
     parser.add_argument("--epochs", type=int, default=36)
-    parser.add_argument("--objective", choices=("attack", "survival"), default="attack")
+    parser.add_argument(
+        "--objective", choices=("attack", "survival", "human"), default="attack"
+    )
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     args = parser.parse_args()
+    human = args.objective == "human"
     survival = args.objective == "survival"
     cfg = load_train_config(args.config)
     task = load_task_config(args.task)
@@ -155,16 +176,22 @@ def main() -> None:
         ]
         counts = Counter(h["side"] for h in hits if h["approached"])
         turns = Counter(h["side"] for h in hits if h["turned_and_approached"])
-        if not survival and min(turns["from_left"], turns["from_right"]) < 1:
+        if (
+            not human
+            and not survival
+            and min(turns["from_left"], turns["from_right"]) < 1
+        ):
             raise ValueError(f"{split}: missing a verified turn and hit on one side")
-        summary[split] = dict(
-            files={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
-            approaches=dict(counts),
-            turn_and_hit=dict(turns),
-            matched_hits=len(hits),
-        )
-    train = [load_demo(p, survival=survival) for p in train_files]
-    val = [load_demo(p, survival=survival) for p in val_files]
+        summary[split] = {
+            "files": {
+                p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in paths
+            },
+            "approaches": dict(counts),
+            "turn_and_hit": dict(turns),
+            "matched_hits": len(hits),
+        }
+    train = [load_demo(p, survival=survival, human=human) for p in train_files]
+    val = [load_demo(p, survival=survival, human=human) for p in val_files]
     if survival:
         for split, episodes in (("train", train), ("validation", val)):
             jumps = torch.cat(
@@ -186,48 +213,55 @@ def main() -> None:
         n_macros=task.action.n_macro_actions,
         max_entities=task.observation.max_entities,
     )
+    model.to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0008)
     rng = np.random.default_rng(cfg.seed)
     clips = padded_clips(train, cfg.sequence_length, cfg.burn_in)
-    best = -1.0
+    best = -float("inf")
     args.output.mkdir(parents=True, exist_ok=True)
     target = args.output / "bc-weights.pt"
     if target.exists():
         raise FileExistsError(target)
-    report = dict(
-        objective=args.objective,
-        splits=summary,
-        training_steps=sum(len(ep["actions"]) for ep in train),
-        validation_steps=sum(len(ep["actions"]) for ep in val),
-        initial=validate(model, val),
-        seed=cfg.seed,
-        epochs=args.epochs,
-    )
+    report = {
+        "objective": args.objective,
+        "splits": summary,
+        "training_steps": sum(len(ep["actions"]) for ep in train),
+        "validation_steps": sum(len(ep["actions"]) for ep in val),
+        "initial": validate(model, val),
+        "seed": cfg.seed,
+        "epochs": args.epochs,
+    }
     print(json.dumps(report), flush=True)
     for epoch in range(1, args.epochs + 1):
         model.train()
         indices = rng.permutation(len(clips))
         for start in range(0, len(indices), 6):
             batch = [clips[int(i)] for i in indices[start : start + 6]]
-            data = {k: torch.stack([row[k] for row in batch]) for k in batch[0]}
+            data = {
+                k: torch.stack([row[k] for row in batch]).to(args.device)
+                for k in batch[0]
+            }
             obs = compact_obs(data)
             # Break the shortcut of repeating the teacher's previous direction.
             # The labels, observed geometry and directional supervision stay paired.
-            prev = obs["prev_action"].clone()
-            prev[..., 0].masked_fill_(torch.rand(prev.shape[:2]) < 0.65, 1)
-            obs["prev_action"] = prev
+            if not human:
+                prev = obs["prev_action"].clone()
+                prev[..., 0].masked_fill_(
+                    torch.rand(prev.shape[:2], device=prev.device) < 0.65, 1
+                )
+                obs["prev_action"] = prev
             dist, _, _ = model(obs, action_mask=data["masks"])
             actions = data["actions"]
             weights = data["weight"] * data["loss_mask"]
-            focus_button = "jump_tap" if survival else "attack"
-            button_logp = dist.buttons.log_prob(
-                actions[..., 2 : 2 + spaces.N_BUTTONS].float()
-            )[..., spaces.BUTTON_BITS[focus_button]]
-            logp = (
-                dist.log_prob(actions)
-                + 3 * dist.movement_x.log_prob(actions[..., 0])
-                + button_logp
-            )
+            logp = dist.log_prob(actions)
+            if not human:
+                focus_button = "jump_tap" if survival else "attack"
+                button_logp = dist.buttons.log_prob(
+                    actions[..., 2 : 2 + spaces.N_BUTTONS].float()
+                )[..., spaces.BUTTON_BITS[focus_button]]
+                logp = (
+                    logp + 3 * dist.movement_x.log_prob(actions[..., 0]) + button_logp
+                )
             loss = -(weights * logp).sum() / weights.sum()
             optimizer.zero_grad()
             loss.backward()
@@ -240,6 +274,8 @@ def main() -> None:
             + metrics["turn_recall"]
             + metrics["jump_f1" if survival else "attack_f1"]
         ) / 4
+        if human:
+            score = -metrics["nll"]
         print(json.dumps(dict(epoch=epoch, score=score, **metrics)), flush=True)
         if score > best:
             best = score
