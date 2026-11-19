@@ -29,6 +29,10 @@ if ($manifest.head_sha256) {
     Copy-Item -LiteralPath (Join-Path $checkpointPath 'head.weights') -Destination ($policy+'.weights')
     if ((Get-FileHash -LiteralPath ($policy+'.weights')).Hash -ne $manifest.head_sha256) { throw 'Movement weight digest differs.' }
 }
+if ($manifest.world_sha256) {
+    Copy-Item -LiteralPath (Join-Path $checkpointPath 'world.weights') -Destination ($policy+'.wm.weights')
+    if ((Get-FileHash -LiteralPath ($policy+'.wm.weights')).Hash -ne $manifest.world_sha256) { throw 'World student digest differs.' }
+}
 $previous=@{}
 foreach($name in 'HKRL_HOST','HKRL_PORT','HKRL_SAVE_SLOT','HKRL_TACTICS_POLICY','HKRL_TACTICS_TRACE','HKRL_SISTERS_NAIL_MULTIPLIER'){
     $previous[$name]=[Environment]::GetEnvironmentVariable($name,'Process')

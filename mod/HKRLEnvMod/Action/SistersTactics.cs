@@ -17,8 +17,10 @@ namespace HKRLEnvMod.Action
         private const int WallWait = -1368652544, WallEnd = 1871902336;
         private readonly string _file;
         private readonly SistersPolicyHead _head = new();
-        private float _headWeight;
         private bool _physicsModel, _sequence, _groundTakeoff;
+        private bool _resource, _trioSeen, _spacing;
+        private float _reserve, _lastOpener;
+        private int _openerHp;
         private float _hurtAt;
         private int _previousHp;
         private readonly Dictionary<string,float> _param = new();
@@ -79,11 +81,13 @@ namespace HKRLEnvMod.Action
             _lag=Param("lag",.07f);_margin=Param("margin",.28f);_hold=Param("hold",.27f);
             _heal=Param("heal",1)>0;_dash=Param("dash",1)>0;_cast=Param("cast",1)>0;
             _smart=Param("smart",0)>0;_arts=Param("arts",0)>0;
-            _headWeight=Param("head_weight",0);
             _physicsModel=Param("physics",0)>0;
             _sequence=Param("sequence",0)>0;_groundTakeoff=false;
+            _resource=Param("resource",0)>0;_trioSeen=false;_reserve=Param("reserve",66);
+            _spacing=Param("spacing",0)>0;
+            _openerHp=500;_lastOpener=-10;
             _hurtAt=-10;_previousHp=-1;
-            _head.Reset(_file,id,_headWeight!=0);
+            _head.Reset(_file,id,Param("head_weight",0),Param("world_weight",0));
             _dropGap=Param("drop_gap",4.9f);_discBias=Param("disc_bias",.08f);
             _castRisk=Param("cast_risk",.29f);_focusHp=Param("focus_hp",5);_hpPriority=Param("hp_priority",.6f);
             _discMotion.Clear();_artAt=-10;_artReleased=-10;
@@ -349,9 +353,17 @@ namespace HKRLEnvMod.Action
             _lastTick=tick;
             float now=obs.Global.TimeInEpisode;
             var p=obs.Player;
+            if(_resource)
+                foreach(var entity in obs.Entities)
+                {
+                    if(entity.EntityType!=HKRL.EntityType.Boss)continue;
+                    if(entity.MaxHp==500){_openerHp=entity.Hp;_lastOpener=now;}
+                    else if(entity.MaxHp==750)_trioSeen=true;
+                }
             if(_previousHp>p.Hp)_hurtAt=now;
             _previousHp=p.Hp;
             _head.Observe(obs);
+            _head.BeginChoice();
             Predict(obs,now);
             float best=float.MaxValue, chosenRisk=0;
             int chosenMove=0;float chosenDelay=2,chosenHold=0;bool chosenDash=false;
@@ -421,17 +433,20 @@ namespace HKRLEnvMod.Action
                             float reverse=PathCost(p,now,m,stop,jd,hold,false,out float reverseRisk,-m)+1.4f;
                             if(reverse<cost){cost=reverse;risk=reverseRisk;}
                         }
-                        cost-=_headWeight*_head.Preference(m,jd==0 || now<_jumpEnd,false);
+                        cost-=_head.Preference(m,jd==0 || now<_jumpEnd,false);
+                        _head.Compare(cost,m,jd==0 || now<_jumpEnd,false);
                         if(cost<best) {best=cost;chosenMove=m;chosenDelay=jd;chosenHold=hold;chosenDash=false;chosenRisk=risk;}
                     }
                 }
                 if(_dash && m!=0 && p.CanDash && now-_lastDash>1.60f)
                 {
                     float cost=PathCost(p,now,m,stop,2,0,true,out float risk);
-                    cost-=_headWeight*_head.Preference(m,now<_jumpEnd,true);
+                    cost-=_head.Preference(m,now<_jumpEnd,true);
+                    _head.Compare(cost,m,now<_jumpEnd,true);
                     if(cost<best) {best=cost;chosenMove=m;chosenDelay=2;chosenDash=true;chosenRisk=risk;}
                 }
             }
+            _head.FinalizeChoice(chosenMove,chosenDelay==0 || now<_jumpEnd,chosenDash);
             uint buttons=0;int aim=0;
             if(chosenDelay==0){_jumpAt=now;_jumpEnd=now+chosenHold;_groundTakeoff=p.OnGround;buttons|=1;}
             if(now<_jumpEnd)buttons|=2;
@@ -439,7 +454,9 @@ namespace HKRLEnvMod.Action
             if(now-_lastDash<.075f)buttons|=4;
             float targetScore=-1,darkScore=0,artScore=-100;int facing=-Sign(p.Facing),artFacing=0;
             int wantedFacing=0,wantedAim=0, potentialCast=9; bool safeHeal=false;
-            int live=0, dropMove=0;float nearest=100,dropUrgency=0, stationarySafe=1.0f;
+            int live=0, dropMove=0, landedSide=0;
+            float nearest=100,dropUrgency=0, landedGap=float.PositiveInfinity;
+            float stationarySafe=_resource?float.PositiveInfinity:1.0f;
             for(int i=0;i<Frames;i++)
             {
                 for(int n=0;n<_count[i];n++)
@@ -456,6 +473,11 @@ namespace HKRLEnvMod.Action
                 float dx=b.HurtboxCenterX-p.PosX,dy=b.HurtboxCenterY-p.PosY;
                 float w=b.HurtboxSizeX*.5f,h=b.HurtboxSizeY*.5f;
                 int s=unchecked((int)(float)b.FsmStateHash);
+                if(_spacing && (s==Land || s==Rest) && Abs(dy)<h+1.12f)
+                {
+                    float gap=Abs(dx)-w-.52f;
+                    if(gap<landedGap){landedGap=gap;landedSide=-Sign(dx);}
+                }
                 if((s==Drop || s==Fall) && _evadeSide.TryGetValue(b.EntityId,out int side))
                 {
                     float separation=(p.PosX-b.PosX)*side;
@@ -483,9 +505,11 @@ namespace HKRLEnvMod.Action
                 if(ax<5 && (ay<3 || ((s==Fall || s==Drop) && ay<9)))darkScore+=1;
                 if((s==WallSet && dy>2.5f && ax>9) || ((s==Land||s==Rest) && ax>3.4f && _states[b.EntityId].since>now-.16f))safeHeal=true;
             }
+            bool transitionBreak=_resource && !_trioSeen && _openerHp<=110 && live==0 && now-_lastOpener>.48f;
             if(_healAt>=0 && (p.Hp!=_healHp || now-_healAt>1.40f || stationarySafe<Math.Max(.18f,1.12f-(now-_healAt)) || dropUrgency>0))_healAt=-10;
+            bool focusWindow=_spacing?transitionBreak:(safeHeal || transitionBreak || (live==0 && nearest>15));
             if(_heal && p.Hp<p.MaxHp && p.Soul>=33 && p.CanFocus && p.OnGround && now-_lastCast>.7f && _healAt<0 &&
-               stationarySafe>=.99f && dropUrgency<=0 && (safeHeal || (live==0 && nearest>15)))
+               stationarySafe>=.99f && dropUrgency<=0 && focusWindow)
             {_healAt=now;_healHp=p.Hp;}
             if(_healAt>=0)
             {Input=new PrimitiveInput(0,0,32);_lastMove=0;return;}
@@ -501,6 +525,7 @@ namespace HKRLEnvMod.Action
                 bool escape=_sequence && stationarySafe<=.30f && chosenRisk>=.42f && (p.Hp<=4 || p.Soul>=66 || live>=2);
                 if(escape)potentialCast=-1;
                 if(_sequence && !escape && potentialCast!=-1 && p.Hp<7 && p.Soul<66)potentialCast=9;
+                if(_resource && !_trioSeen && _openerHp<235 && !escape && p.Soul<=_reserve+22)potentialCast=9;
                 if(potentialCast!=9 && (escape || p.Hp>=(_smart?_focusHp:4) || p.Soul>=55 || darkScore>=2 || (_smart && potentialCast==-1 && stationarySafe<.26f)))
                 {_castAim=potentialCast;_lastCast=now;}
             }
@@ -521,6 +546,15 @@ namespace HKRLEnvMod.Action
                 {buttons|=4;_lastDash=now;}
             }
             if(p.PosX<21.4f && chosenMove<0 || p.PosX>38.6f && chosenMove>0)chosenMove=0;
+            if(_spacing && dropUrgency<=0 && landedSide!=0 && now-_hurtAt>1 &&
+               ((landedSide>0 && p.PosX<38) || (landedSide<0 && p.PosX>22)))
+            {
+                // A landed Sister remains solid while the Knight turns to punish her.
+                // Leave room for the accepted input and physical braking after the turn.
+                float braking=1.0f+Math.Max(0,-p.VelX*landedSide)*.105f;
+                if(landedGap<.48f)chosenMove=landedSide;
+                else if(landedGap<braking && chosenMove==-landedSide)chosenMove=0;
+            }
             if(_arts && (buttons&16)==0 && now-_artReleased>.12f)
             {
                 bool charging=_artAt>=0;

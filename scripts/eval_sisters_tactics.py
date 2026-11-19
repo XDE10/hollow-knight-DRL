@@ -20,6 +20,7 @@ def verify_checkpoint(directory: Path, manifest: dict[str, Any]) -> None:
     for name, expected in (
         ("model.txt", manifest["policy_sha256"]),
         ("head.weights", manifest.get("head_sha256")),
+        ("world.weights", manifest.get("world_sha256")),
     ):
         if expected is not None:
             actual = hashlib.sha256((directory / name).read_bytes()).hexdigest()
@@ -119,11 +120,13 @@ def main() -> None:
     verify_checkpoint(args.checkpoint, manifest)
     if args.policy_file.read_bytes() != (args.checkpoint / "model.txt").read_bytes():
         raise ValueError("The active policy file differs from the frozen checkpoint.")
-    weight_file = Path(str(args.policy_file) + ".weights")
-    if manifest.get("head_sha256") and (
-        hashlib.sha256(weight_file.read_bytes()).hexdigest() != manifest["head_sha256"]
-    ):
-        raise ValueError("The active movement weights differ from the checkpoint.")
+    for suffix, key in ((".weights", "head_sha256"), (".wm.weights", "world_sha256")):
+        if manifest.get(key):
+            active_weights = Path(str(args.policy_file) + suffix)
+            if hashlib.sha256(active_weights.read_bytes()).hexdigest() != manifest[key]:
+                raise ValueError(
+                    f"The active weights differ from the checkpoint for {suffix}."
+                )
     task = load_task_config("configs/experiments/sisters_counter.yaml")
     task.action.action_repeat = 5
     task.time_limit_seconds = manifest["time_limit"]

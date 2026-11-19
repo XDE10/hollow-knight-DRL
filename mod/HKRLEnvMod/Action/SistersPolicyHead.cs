@@ -17,16 +17,28 @@ namespace HKRLEnvMod.Action
         private readonly float[] _bossDistances = new float[3];
         private readonly float[] _discDistances = new float[2];
         private float[]? _weights;
+        private SistersWorldStudent? _world;
+        private float _baseScale, _worldScale;
+        private string? _usageFile;
+        private ulong _usageEpisode;
+        private int _decisions, _different, _baselineChoice;
+        private float _bestBaseline;
         private BinaryWriter? _trace;
         private int _rows;
         private static float Clip(float v) => Math.Max(-2f, Math.Min(2f,v));
 
-        public void Reset(string config, ulong episode, bool withModel)
+        public void Reset(string config, ulong episode, float baseScale, float worldScale)
         {
             Dispose();
             _weights = null;
+            _baseScale = baseScale;
+            _worldScale = worldScale;
+            _world = worldScale == 0 ? null : new SistersWorldStudent(config + ".wm.weights");
+            _usageFile = _world == null ? null : config + ".usage";
+            _usageEpisode = episode;
+            _decisions = _different = 0;
             Array.Clear(_q,0,Actions);
-            if (withModel)
+            if (baseScale != 0)
             {
                 var path=config+".weights";
                 var values=File.ReadAllLines(path);
@@ -45,7 +57,7 @@ namespace HKRLEnvMod.Action
         // Stable physical slots sorted by distance; no episode, instance ID or seed enters the policy.
         public void Observe(ObservationSnapshot obs)
         {
-            if(_trace==null && _weights==null)return;
+            if(_trace==null && _weights==null && _world==null)return;
             var p=obs.Player;
             Array.Clear(_features,0,Features);
             _features[0]=Clip((p.PosX-30)/10); _features[1]=Clip((p.PosY-7.41f)/8);
@@ -93,6 +105,7 @@ namespace HKRLEnvMod.Action
                     _features[n+6]=Clip(e.HurtboxSizeY/2);
                 }
             }
+            _world?.Observe(_features);
             if(_weights==null)return;
             int k=0;
             for(int j=0;j<Hidden;j++)
@@ -110,8 +123,29 @@ namespace HKRLEnvMod.Action
             }
         }
 
-        public float Preference(int move,bool jump,bool dash) =>
-            _q[(move+1)*4+(jump?2:0)+(dash?1:0)];
+        public float Preference(int move,bool jump,bool dash)
+        {
+            int index=(move+1)*4+(jump?2:0)+(dash?1:0);
+            return _baseScale*_q[index]+_worldScale*(_world?.Value(index) ?? 0);
+        }
+
+        public void BeginChoice() => _bestBaseline = float.PositiveInfinity;
+
+        public void Compare(float cost, int move, bool jump, bool dash)
+        {
+            if (_world == null) return;
+            int code = (move + 1) * 4 + (jump ? 2 : 0) + (dash ? 1 : 0);
+            float baseline = cost + _worldScale * _world.Value(code);
+            if (baseline < _bestBaseline) { _bestBaseline = baseline; _baselineChoice = code; }
+        }
+
+        public void FinalizeChoice(int move, bool jump, bool dash)
+        {
+            if (_world == null || float.IsPositiveInfinity(_bestBaseline)) return;
+            _decisions++;
+            int code = (move + 1) * 4 + (jump ? 2 : 0) + (dash ? 1 : 0);
+            if (_baselineChoice != code) _different++;
+        }
 
         public void Record(float time,PrimitiveInput input)
         {
@@ -122,7 +156,12 @@ namespace HKRLEnvMod.Action
             if(++_rows%32==0)_trace.Flush();
         }
 
-        public void Flush() => _trace?.Flush();
+        public void Flush()
+        {
+            _trace?.Flush();
+            if (_usageFile != null)
+                File.WriteAllText(_usageFile, string.Join(" ", _usageEpisode, _decisions, _different));
+        }
         public void Dispose() { _trace?.Dispose();_trace=null; }
     }
 }
