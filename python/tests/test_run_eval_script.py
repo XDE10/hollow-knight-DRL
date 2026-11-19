@@ -514,6 +514,18 @@ def test_sisters_gate_scores_interleaved_fights_and_rejects_partial_replays() ->
     assert result["multi_boss_fights"] == result["both_directions_fights"] == 10
     assert result["body_blade_per_1000_ticks"] == 5
     assert result["primitive_movement"] == {"left": 10, "neutral": 0, "right": 10}
+    solo = [dict(row, observed_boss_count=1) for row in rows]
+    opening = score(report, solo)
+    assert opening["opening_skills_passed"]
+    assert opening["wins"] == opening["multi_boss_fights"] == 0
+    assert not opening["continue_training"]
+    solo[-1]["won"] = True
+    winning_report = dict(report, metrics={task: dict(report["metrics"][task], win_rate=0.1)})
+    winner = score(winning_report, solo)
+    assert winner["wins"] == 1 and winner["continue_training"]
+    solo[-1]["truncated"] = True
+    with pytest.raises(ValueError, match="win without encounter completion"):
+        score(winning_report, solo)
     with pytest.raises(ValueError, match="incomplete"):
         score(report, rows[:-1])
     rows[-1]["seed"] = seeds[0]

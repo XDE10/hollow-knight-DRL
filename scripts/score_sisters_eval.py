@@ -42,6 +42,8 @@ def score(report: dict[str, Any], rows: Iterable[dict[str, Any]]) -> dict[str, A
             )
         if row["step"] != len(group) + 1 or row["elapsed_ticks"] <= 0:
             raise ValueError(f"missing, duplicate or invalid step in episode {i}")
+        if row["won"] and (not row["terminated"] or row["truncated"]):
+            raise ValueError(f"win without encounter completion in episode {i}")
         contact_hp = sum(event["amount"] for event in row["damage_contacts"])
         if not math.isclose(contact_hp, row["damage_taken"]):
             raise ValueError(f"damage contacts disagree with HP loss in episode {i}")
@@ -99,6 +101,8 @@ def score(report: dict[str, Any], rows: Iterable[dict[str, Any]]) -> dict[str, A
     damaging = sum(f["damage"] > 0 for f in fights)
     combat = 1000 * (totals["boss_body"] + totals["enemy_projectile"]) / ticks
     spikes = 1000 * totals["spikes"] / ticks
+    opening_skills_passed = damaging >= 8 and damage >= 60 and combat <= 7 and spikes <= 0.8
+    multi_boss_fights = sum(f["max_bosses_seen"] >= 2 for f in fights)
     return {
         "checkpoint": meta.get("checkpoint"),
         "model": meta.get("model"),
@@ -117,10 +121,9 @@ def score(report: dict[str, Any], rows: Iterable[dict[str, Any]]) -> dict[str, A
             for k, label in enumerate(("left", "neutral", "right"), -1)
         },
         "both_directions_fights": sum(f["both_directions"] for f in fights),
-        "multi_boss_fights": sum(f["max_bosses_seen"] >= 2 for f in fights),
-        "continue_training": bool(
-            wins or (damaging >= 8 and damage >= 60 and combat <= 7 and spikes <= 0.8)
-        ),
+        "multi_boss_fights": multi_boss_fights,
+        "opening_skills_passed": opening_skills_passed,
+        "continue_training": bool(wins or (multi_boss_fights and opening_skills_passed)),
         "episodes": fights,
     }
 
