@@ -39,3 +39,12 @@ def test_only_a_live_arena_completion_counts(tmp_path: Path) -> None:
     marker.write_text("11\nmode=0\n")
     with pytest.raises(RuntimeError, match="different active episode"):
         module.play_episode(env, policy, tmp_path, 4)
+    marker.write_text("12\nmode=0\n")
+    (tmp_path / "world.weights").touch()
+    usage = Path(str(policy) + ".usage")
+    usage.write_text("12 90 4")
+    result = module.play_episode(env, policy, tmp_path, 5)
+    assert (result["planner_decisions"], result["world_changed_plan"]) == (90, 4)
+    usage.write_text("11 90 4")
+    with pytest.raises(RuntimeError, match="usage"):
+        module.play_episode(env, policy, tmp_path, 6)

@@ -34,7 +34,7 @@ if ($manifest.world_sha256) {
     if ((Get-FileHash -LiteralPath ($policy+'.wm.weights')).Hash -ne $manifest.world_sha256) { throw 'World student digest differs.' }
 }
 $previous=@{}
-foreach($name in 'HKRL_HOST','HKRL_PORT','HKRL_SAVE_SLOT','HKRL_TACTICS_POLICY','HKRL_TACTICS_TRACE','HKRL_SISTERS_NAIL_MULTIPLIER'){
+foreach($name in 'HKRL_HOST','HKRL_PORT','HKRL_SAVE_SLOT','HKRL_TACTICS_POLICY','HKRL_TACTICS_TRACE','HKRL_SISTERS_NAIL_MULTIPLIER','HKRL_COMPACT_RENDER'){
     $previous[$name]=[Environment]::GetEnvironmentVariable($name,'Process')
 }
 $child=$null
@@ -45,6 +45,7 @@ try {
     $env:HKRL_SAVE_SLOT=[string]$SaveSlot
     $env:HKRL_TACTICS_POLICY=$policy
     $env:HKRL_TACTICS_TRACE='0'
+    $env:HKRL_COMPACT_RENDER='1'
     $env:HKRL_SISTERS_NAIL_MULTIPLIER='1'
     # The visible game is the requested playback window.
     $child=Start-Process -FilePath $game -WorkingDirectory $GameRoot -ArgumentList @(

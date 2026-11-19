@@ -89,6 +89,17 @@ def play_episode(
         and previous_health > 0
         and obs["player"][4] > 0
     )
+    usage = {}
+    if (checkpoint / "world.weights").is_file():
+        identity, decisions, changed = map(
+            int,
+            Path(str(policy_file) + ".usage").read_text(encoding="utf-8-sig").split(),
+        )
+        if identity != episode or decisions <= 0 or not 0 <= changed <= decisions:
+            raise RuntimeError(
+                "The world student usage record differs from this episode."
+            )
+        usage = {"planner_decisions": decisions, "world_changed_plan": changed}
     return {
         "episode_id": episode,
         "win": won,
@@ -98,6 +109,7 @@ def play_episode(
         "physics_ticks": ticks,
         "hp": previous_health if won else int(obs["player"][4]),
         "truncated": bool(truncated),
+        **usage,
     }
 
 
