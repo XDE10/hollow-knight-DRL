@@ -1,0 +1,152 @@
+"""Play the frozen Sisters movement checkpoint using its opt-in local game actor."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import time
+from collections import Counter
+from pathlib import Path
+from typing import Any
+
+from hkrl import protocol, spaces
+from hkrl.env import HKRLEnv
+from hkrl.transport.factory import make_transport
+from hkrl.utils.config import load_task_config, load_train_config
+
+
+def verify_checkpoint(directory: Path, manifest: dict[str, Any]) -> None:
+    for name, expected in (
+        ("model.txt", manifest["policy_sha256"]),
+        ("head.weights", manifest.get("head_sha256")),
+    ):
+        if expected is not None:
+            actual = hashlib.sha256((directory / name).read_bytes()).hexdigest()
+            if actual != expected:
+                raise ValueError(f"Checkpoint digest differs for {name}")
+
+
+def verify_actor(policy_file: Path, episode: int, checkpoint: Path) -> None:
+    active = Path(str(policy_file) + ".active")
+    identity, _, parameters = active.read_text(encoding="utf-8-sig").partition("\n")
+    if int(identity) != episode or parameters != (checkpoint / "model.txt").read_text():
+        raise RuntimeError("The game has a different active episode or policy.")
+
+
+def play_episode(
+    env: HKRLEnv, policy_file: Path, checkpoint: Path, seed: int
+) -> dict[str, Any]:
+    obs, info = env.reset(seed=seed, options={"reset_timeout_s": 90})
+    episode = int(info["episode_id"])
+    if list(obs["player"][4:7]) != [9, 9, 0]:
+        raise RuntimeError("Expected an original nine-mask start with empty SOUL.")
+    env.set_timescale(1.0)
+    damage = 0.0
+    losses: Counter[str] = Counter()
+    ticks = 0
+    peak = 0
+    arena_complete = False
+    noop: dict[str, Any] = {
+        "movement_x": 1,
+        "aim_y": 1,
+        "buttons": [0] * spaces.N_BUTTONS,
+        "duration": 0,
+    }
+    if env.task.action.enable_macro_actions:
+        noop["macro"] = 0
+    while True:
+        visible = obs["entities"][obs["entity_mask"].astype(bool)]
+        bosses = visible[visible[:, 1] == protocol.EntityType.BOSS]
+        peak = max(peak, len(bosses))
+        if ticks == 0 and sorted(int(b[13]) for b in bosses) != [500]:
+            raise RuntimeError("Unexpected Sisters opening health.")
+        if len(bosses) == 3 and sorted(int(b[13]) for b in bosses) != [750] * 3:
+            raise RuntimeError("Unexpected Sisters second-phase health.")
+        previous_health = int(obs["player"][4])
+        obs, _, terminated, truncated, info = env.step(noop)
+        if int(info["episode_id"]) != episode:
+            raise RuntimeError("The game changed episode during the fight.")
+        ticks += int(info["elapsed_ticks"])
+        for event in info["reward_events"]:
+            if event.kind == protocol.RewardEventKind.DAMAGE_DEALT:
+                damage += event.amount
+            elif event.kind == protocol.RewardEventKind.DAMAGE_TAKEN:
+                losses[protocol.DamageSource(event.aux_int2).name] += int(event.amount)
+            elif (
+                event.kind == protocol.RewardEventKind.BOSS_KILLED
+                and event.entity_id == 0
+            ):
+                arena_complete = True
+        if terminated or truncated:
+            break
+    verify_actor(policy_file, episode, checkpoint)
+    won = bool(
+        arena_complete
+        and terminated
+        and not truncated
+        and previous_health > 0
+        and obs["player"][4] > 0
+    )
+    return {
+        "episode_id": episode,
+        "win": won,
+        "first_cleared": peak >= 3,
+        "damage": damage,
+        "damage_taken": dict(losses),
+        "physics_ticks": ticks,
+        "hp": previous_health if won else int(obs["player"][4]),
+        "truncated": bool(truncated),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--checkpoint", required=True, type=Path)
+    parser.add_argument(
+        "--policy-file",
+        required=True,
+        type=Path,
+        help="The running game's HKRL_TACTICS_POLICY file.",
+    )
+    parser.add_argument("--port", default=5555, type=int)
+    parser.add_argument("--episodes", default=1, type=int)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    if args.episodes < 1:
+        parser.error("--episodes must be at least one")
+    manifest = json.loads((args.checkpoint / "frozen.json").read_text())
+    verify_checkpoint(args.checkpoint, manifest)
+    if args.policy_file.read_bytes() != (args.checkpoint / "model.txt").read_bytes():
+        raise ValueError("The active policy file differs from the frozen checkpoint.")
+    weight_file = Path(str(args.policy_file) + ".weights")
+    if manifest.get("head_sha256") and (
+        hashlib.sha256(weight_file.read_bytes()).hexdigest() != manifest["head_sha256"]
+    ):
+        raise ValueError("The active movement weights differ from the checkpoint.")
+    task = load_task_config("configs/experiments/sisters_counter.yaml")
+    task.action.action_repeat = 5
+    task.time_limit_seconds = manifest["time_limit"]
+    train = load_train_config("configs/train/sisters_platform.yaml")
+    env = HKRLEnv(make_transport(train, port=args.port), task, step_timeout_s=18)
+    results = []
+    try:
+        for index in range(args.episodes):
+            result = play_episode(
+                env, args.policy_file, args.checkpoint, 9000000 + index
+            )
+            results.append(result)
+            print(json.dumps(result), flush=True)
+            if result["win"] and index + 1 < args.episodes:
+                time.sleep(8)
+    finally:
+        try:
+            env.set_timescale(1.0)
+        finally:
+            env.close()
+    if args.output:
+        args.output.write_text(json.dumps(results, indent=2), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

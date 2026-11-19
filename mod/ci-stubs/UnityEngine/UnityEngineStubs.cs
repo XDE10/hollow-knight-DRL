@@ -226,7 +226,13 @@ namespace UnityEngine
     public static class Application
     {
         public static bool runInBackground { get; set; }
+        public static int targetFrameRate { get; set; } = -1;
         public static string persistentDataPath { get; set; } = ".";
+    }
+
+    public static class QualitySettings
+    {
+        public static int vSyncCount { get; set; }
     }
 
     public static class Debug

@@ -28,6 +28,12 @@ namespace HKRLEnvMod.Action
         public ulong SuccessfulCommitCount => _input.SuccessfulCommitCount;
         public bool InputEnabled => _input.Enabled;
 
+        internal void ApplyLocalInput(PrimitiveInput input)
+        {
+            _input.Apply(input);
+            _input.Enable();
+        }
+
         /// <summary>Apply one action for this tick (held for `duration` ticks).</summary>
         public void Apply(DecodedAction action, bool isNewDecision = true)
         {

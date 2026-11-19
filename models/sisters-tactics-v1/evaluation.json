@@ -1,0 +1,96 @@
+{
+  "finished": 10,
+  "expected": 10,
+  "wins": 9,
+  "first_cleared": 10,
+  "damage_mean": 2613.8,
+  "sources": {
+    "BOSS_BODY": 32.0,
+    "ENEMY_PROJECTILE": 17.0
+  },
+  "no_damage_wins": 1,
+  "within_180_wins": 8,
+  "missing": [],
+  "episodes": [
+    {
+      "index": 1,
+      "win": true,
+      "damage": 2709.0,
+      "spikes": 0,
+      "hp": 5.0,
+      "seconds": 171.62
+    },
+    {
+      "index": 2,
+      "win": true,
+      "damage": 2715.0,
+      "spikes": 0,
+      "hp": 5.0,
+      "seconds": 168.3
+    },
+    {
+      "index": 3,
+      "win": true,
+      "damage": 2678.0,
+      "spikes": 0,
+      "hp": 5.0,
+      "seconds": 164.44
+    },
+    {
+      "index": 4,
+      "win": true,
+      "damage": 2709.0,
+      "spikes": 0,
+      "hp": 6.0,
+      "seconds": 182.92
+    },
+    {
+      "index": 5,
+      "win": true,
+      "damage": 2695.0,
+      "spikes": 0,
+      "hp": 3.0,
+      "seconds": 167.3
+    },
+    {
+      "index": 6,
+      "win": true,
+      "damage": 2723.0,
+      "spikes": 0,
+      "hp": 1.0,
+      "seconds": 178.74
+    },
+    {
+      "index": 7,
+      "win": true,
+      "damage": 2702.0,
+      "spikes": 0,
+      "hp": 5.0,
+      "seconds": 154.34
+    },
+    {
+      "index": 8,
+      "win": true,
+      "damage": 2664.0,
+      "spikes": 0,
+      "hp": 2.0,
+      "seconds": 158.12
+    },
+    {
+      "index": 9,
+      "win": true,
+      "damage": 2705.0,
+      "spikes": 0,
+      "hp": 9.0,
+      "seconds": 157.98
+    },
+    {
+      "index": 10,
+      "win": false,
+      "damage": 1838.0,
+      "spikes": 0,
+      "hp": 0.0,
+      "seconds": 126.32
+    }
+  ]
+}

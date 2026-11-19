@@ -26,6 +26,9 @@ namespace HKRLEnvMod.Env
         private readonly Heartbeat _heartbeat;
         private readonly ObservationCollector _observations;
         private readonly global::HKRLEnvMod.Debug.HumanDemonstration _human = new();
+        private readonly SistersTactics? _tactics = SistersTactics.FromEnvironment();
+        private ulong _lastLocalStep;
+        private bool _localInputActive;
         private ulong _serverTick;
         private ulong _episodeStartServerTick;
         private ulong _runningEpisodeId;
@@ -81,6 +84,25 @@ namespace HKRLEnvMod.Env
             try
             {
                 FixedTickCore();
+                if (_tactics != null && _server.HasClient && _lifecycle.IsRunning
+                    && _lastLocalStep != 0 && _serverTick - _lastLocalStep <= 75
+                    && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == SistersContact.Scene)
+                {
+                    if (_tactics.NeedsObservation(_serverTick, _lifecycle.EpisodeId, _actions.SuccessfulCommitCount))
+                    {
+                        var snapshot = _observations.Collect(2010, _lifecycle.EpisodeId,
+                            CurrentEpisodeTime(_lifecycle.State), _actions.CurrentInput.Buttons);
+                        _tactics.Decide(snapshot, _serverTick);
+                        _tactics.Record(snapshot.Global.TimeInEpisode);
+                    }
+                    _actions.ApplyLocalInput(_tactics.Input);
+                    _localInputActive = true;
+                }
+                else if (_localInputActive)
+                {
+                    _actions.Clear();
+                    _localInputActive = false;
+                }
             }
             catch (System.Exception exception)
             {
@@ -120,6 +142,7 @@ namespace HKRLEnvMod.Env
             try
             {
                 _human.Dispose();
+                _tactics?.Dispose();
                 _actions.Dispose();
             }
             finally
@@ -185,6 +208,15 @@ namespace HKRLEnvMod.Env
             {
                 var request = pendingRequest.Value.Request;
                 var sessionId = pendingRequest.Value.SessionId;
+                if (_tactics != null)
+                {
+                    _lastLocalStep = request.Command == HKRL.Command.Step && request.TaskId == 2010 ? _serverTick : 0;
+                    if (_lastLocalStep == 0 && _localInputActive)
+                    {
+                        _actions.Clear();
+                        _localInputActive = false;
+                    }
+                }
                 if (!_server.IsCurrentSession(sessionId))
                 {
                     return;
@@ -355,6 +387,7 @@ namespace HKRLEnvMod.Env
             }
 
             var terminated = IsTerminal(state);
+            if (terminated) _tactics?.Flush();
             var errorCode = commandError == HKRL.StatusCode.Ok
                 ? ShouldReportLifecycleError(request)
                     ? _lifecycle.ErrorCode
