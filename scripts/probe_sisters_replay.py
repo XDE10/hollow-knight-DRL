@@ -23,27 +23,14 @@ P = spaces.PLAYER_FEATURE_INDEX
 G = spaces.GLOBAL_FEATURE_INDEX
 
 
-def batch_examples(data: Mapping[str, np.ndarray], horizon: int) -> tuple[np.ndarray, np.ndarray]:
-    """Use only contiguous, nonterminal decisions for the same boss and worker."""
-    player = data["obs_player"]
-    entities = data["obs_entities"]
-    mask = data["entity_mask"].astype(bool)
+def frame_geometry(
+    player: np.ndarray, entities: np.ndarray, mask: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Extract the same masked geometry for batched rollouts and live observations."""
     kinds = entities[..., E["entity_type"]]
     bodies = mask & (kinds == protocol.EntityType.BOSS)
     boss = np.take_along_axis(entities, bodies.argmax(axis=2)[..., None, None], axis=2)[:, :, 0]
     single = (bodies.sum(axis=2) == 1) & (boss[..., E["max_hp"]] > 0)
-    ids = data["episode_ids"]
-    times = data["obs_global"][..., G["time_in_episode"]]
-    valid = (
-        single[:-1]
-        & single[1:]
-        & (boss[:-1, :, E["entity_id"]] == boss[1:, :, E["entity_id"]])
-        & (ids[:-1] == ids[1:])
-        & (times[1:] > times[:-1])
-        & ~data["dones"][:-1].astype(bool)
-        & ~data["truncateds"][:-1].astype(bool)
-    )
-
     center = [E["hurtbox_center_x"], E["hurtbox_center_y"]]
     hero_xy = player[..., [P["pos_x"], P["pos_y"]]]
     delta = entities[..., center] - hero_xy[:, :, None, :]
@@ -79,11 +66,40 @@ def batch_examples(data: Mapping[str, np.ndarray], horizon: int) -> tuple[np.nda
             boss[..., [E["vel_x"], E["vel_y"], E["hp"]]],
             blades.sum(axis=2)[..., None],
             blade_features,
-            data["actions"],
         ),
         axis=-1,
     ).astype(np.float32)
+    return features, boss, single
+
+
+def decision_rows(
+    data: Mapping[str, np.ndarray],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Return geometry, both HP values, valid next-state links, and the selected boss."""
+    player = data["obs_player"]
+    features, boss, single = frame_geometry(
+        player, data["obs_entities"], data["entity_mask"].astype(bool)
+    )
+    ids = data["episode_ids"]
+    times = data["obs_global"][..., G["time_in_episode"]]
+    valid = (
+        single[:-1]
+        & single[1:]
+        & (boss[:-1, :, E["entity_id"]] == boss[1:, :, E["entity_id"]])
+        & (ids[:-1] == ids[1:])
+        & (times[1:] > times[:-1])
+        & ~data["dones"][:-1].astype(bool)
+        & ~data["truncateds"][:-1].astype(bool)
+    )
+
     hp = np.stack((player[..., P["hp"]], boss[..., E["hp"]]), axis=-1)
+    return features, hp, valid, boss
+
+
+def batch_examples(data: Mapping[str, np.ndarray], horizon: int) -> tuple[np.ndarray, np.ndarray]:
+    """Use only contiguous, nonterminal decisions for the same boss and worker."""
+    state, hp, valid, _ = decision_rows(data)
+    features = np.concatenate((state, data["actions"]), axis=-1).astype(np.float32)
     if len(hp) <= horizon:
         return features[:0, 0], np.empty((0, len(TARGETS)), dtype=bool)
     keep = sliding_window_view(valid, horizon, axis=0).all(axis=-1)
