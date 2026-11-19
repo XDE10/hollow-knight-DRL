@@ -273,6 +273,13 @@ class SistersPlatformGRU(SistersTimingGRU):
         return platform_preferences(dist, obs), value, state
 
 
+@register_model("sisters_platform_blade_gru")
+class SistersPlatformBladeGRU(SistersPlatformGRU):
+    """Anticipate low discs while retaining the platform landing preferences."""
+
+    blade_interception = True
+
+
 @register_model("sisters_primitive_gru")
 class SistersPrimitiveGRU(SistersPlatformGRU):
     """Keep the frozen heads compatible while requesting one primitive tick at a time."""

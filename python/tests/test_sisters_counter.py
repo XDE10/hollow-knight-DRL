@@ -14,6 +14,8 @@ from hkrl.models.heads import HybridPolicyHead
 from hkrl.models.recurrent_policy import (
     SingleTaskEntityAttentionGRU,
     SistersLandingGRU,
+    SistersPlatformBladeGRU,
+    SistersPlatformGRU,
     SistersTimingGRU,
     landing_movement_bias,
 )
@@ -165,6 +167,29 @@ def test_platform_allows_safe_edge_stance_and_air_recovery_on_either_side() -> N
     assert after.buttons.probs[3, jump] == 0
     assert torch.allclose(after.movement_x.probs[-1], dist.movement_x.probs[-1])
     assert torch.equal(after.buttons.probs[-1], dist.buttons.probs[-1])
+
+
+def test_original_recovery_loads_platform_weights_and_evades_a_low_throw_near_spikes() -> None:
+    obs = _arena()
+    scale = spaces.ARENA_SCALE
+    obs["player"][0, spaces.PLAYER_FEATURE_INDEX["pos_x"]] = 9.8 / scale
+    obs["player"][0, spaces.PLAYER_FEATURE_INDEX["vel_x"]] = 8 / spaces.VEL_SCALE
+    obs["player"][0, spaces.PLAYER_FEATURE_INDEX["on_ground"]] = 1
+    boss = obs["entities"][0, 0]
+    boss[5] = 739257600  # Low disc release, near the right edge of the platform.
+    boss[14:18] = torch.tensor([2.0, 1.8, 2.0, 1.0]) / scale
+    dims = {key: tuple(value.shape[1:]) for key, value in obs.items()}
+    options = dict(entity_hidden=8, rnn_hidden=8, attention_heads=2)
+    baseline = SistersPlatformGRU(dims, **options).eval()
+    candidate = SistersPlatformBladeGRU(dims, **options).eval()
+    for parameter in baseline.parameters():
+        parameter.data.zero_()
+    candidate.load_state_dict(baseline.state_dict(), strict=True)
+    old, _, _ = baseline(obs)
+    new, _, _ = candidate(obs)
+    jump = spaces.BUTTON_BITS["jump_tap"]
+    assert new.buttons.probs[0, jump] > old.buttons.probs[0, jump]
+    assert new.movement_x.probs[0, 2] < new.movement_x.probs[0, 0]
 
 
 def test_landing_gru_keeps_all_buttons_and_disallowed_movements() -> None:

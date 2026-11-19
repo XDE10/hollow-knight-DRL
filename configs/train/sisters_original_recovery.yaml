@@ -1,0 +1,5 @@
+defaults:
+  - ./sisters_platform.yaml
+model:
+  name: sisters_platform_blade_gru
+learning_rate: 0.000015
