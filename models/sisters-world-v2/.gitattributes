@@ -1,0 +1,4 @@
+model.txt -text whitespace=cr-at-eol
+*.weights binary
+teachers/*.pt binary
+teachers/*.weights binary

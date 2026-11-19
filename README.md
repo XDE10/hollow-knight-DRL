@@ -8,6 +8,8 @@
 
 本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
+战斗姐妹的冻结世界模型策略在 100 场原速、原伤实机评估中通关 99 场，7 场无伤，踩刺掉血共 0 格。在配置好的 Windows 项目里双击 [观看世界模型通关.vbs](观看世界模型通关.vbs) 即可观看一场。[模型、Colab 教师权重与逐场记录](models/sisters-world-v2/README.md)。
+
 战斗姐妹 3 号槽的避刺与反击实测、三组模型对照和复现命令见[训练记录](docs/sisters_survival.md)。
 
 本仓库是 [`hollow_knight_rl_prd.md`](./hollow_knight_rl_prd.md) 的工程落地。**先读 PRD，再读 [`AGENTS.md`](./AGENTS.md)。**
