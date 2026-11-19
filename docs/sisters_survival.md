@@ -331,3 +331,11 @@ python scripts/score_sisters_eval.py path/to/eval.json path/to/eval-steps.jsonl
 从玩家满血、单只螳螂开场，观测到多体、实际产生操作、玩家存活且收到整场胜利事件的战斗进入 `wins`，其余完整战斗进入 `attempts`。录制器实机空操作验收保存了 991 个连续转移，9 血至 0，正确归入失败。原始示范保留每个物理步，部署时实际决策间隔更长，能否迁移需回到原速独立验收。
 
 有完整真人通关示范后，可用 `scripts/clone_sisters_policy.py --objective human --device cuda --config configs/train/sisters_primitive.yaml --task configs/experiments/sisters_responsive.yaml --demos runs/human-sisters/wins --output runs/human-bc`。按整场切分，每四场留一场，使用纯行为克隆，以留出场的动作负对数似然挑权重。在原速独立评估中分别报告过首只、整场胜利和无伤场数。当前可用的真人通关文件为零。
+
+### 可复用的战斗姐妹专家参考
+
+已有真人视频覆盖单体、转场、三体和结束。可把画面确认的“朝哪侧让位、何时转向挥刀、是否让高镖从头顶通过”用作局部战术标签。从三号槽自己的轨迹中匹配相同来招，再用实际按键、落点、受伤与敌方 HP 变化校验。只有可信的动作维度参与模仿；视频时间戳不能补齐每个物理步的按键，也不能把录像中的护符攻击距离搬到三号槽。这条路线无需项目使用者亲自通关。
+
+wp-bit 发布过 STORM 打战斗姐妹的实机录像。作者说明以 9 FPS 采样和控制；公开预览帧可见“战斗姐妹”标题、三只参战、战后鞠躬，且 HUD 显示中途损血。可用于比较进攻时机与换血。核查时未在作者这条视频简介、STORM 或 OC-STORM 仓库及其发行附件中找到该场次的策略权重。OC-STORM 论文表 4 的普通 Mantis Lords 胜率需另列。[作者实机录像](https://www.bilibili.com/video/BV1VMaqzsEWw/) · [STORM](https://github.com/weipu-zhang/STORM) · [OC-STORM 发行附件](https://github.com/weipu-zhang/OC-STORM/releases) · [原论文](https://openreview.net/pdf?id=qmEyJadwHA)
+
+Zippy Rhys 另有完整第五万神殿 TAS。核对发行包与源码目录的 inputs，二者逐字节一致，均有 61,151 行输入。作者指定 Linux 1.4.3.2、libTAS 1.4.0 与转场同步步骤。该输入流覆盖整座万神殿，仓库的 annotations.txt 记录的是环境，同步到具体 Boss 的帧号仍待验证。不要把这套按键与另一位玩家的 MP4 按时间拼接。若能在匹配的版本同步重放，才可导出该场的画面和对应按键。[作者的输入文件及说明](https://github.com/zacred0rryn/HollowKnightTAS-PoH)
