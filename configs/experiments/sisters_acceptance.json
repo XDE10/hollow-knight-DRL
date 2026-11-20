@@ -1,0 +1,25 @@
+{
+  "arena": "Sisters of Battle",
+  "policy": "frozen native neural actor",
+  "initial_masks": 9,
+  "initial_soul": 0,
+  "game_speed": 1,
+  "nail_multiplier": 1,
+  "goals": [
+    {
+      "id": 1,
+      "episodes": 100,
+      "minimum_wins": 98,
+      "minimum_no_hit_wins": 0,
+      "next_goal": 2
+    },
+    {
+      "id": 2,
+      "requires_passed_goal": 1,
+      "episodes": 100,
+      "minimum_wins": 98,
+      "minimum_no_hit_wins": 95,
+      "next_goal": null
+    }
+  ]
+}
