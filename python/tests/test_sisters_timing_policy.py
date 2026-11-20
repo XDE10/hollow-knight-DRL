@@ -5,6 +5,7 @@ import struct
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
 
 
@@ -21,6 +22,25 @@ def test_measured_returns_use_game_seconds_gaps_and_terminal(monkeypatch) -> Non
     np.testing.assert_array_equal(last, [1, 1, 2, 4, 4, 5])
     short, _, _ = mod.measured_returns(t, rewards, discounts, valid, 0.04)
     np.testing.assert_array_equal(short, [0, 4, 0, 2, 6, 0])
+
+
+def test_motion_history_masks_gaps_and_only_reads_past(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    clock = np.array([0, .08, .16, .24, .32, .40, .48, 1., 1.08, 1.16], dtype="f4")
+    state = np.zeros((len(clock), mod.WIDTH), dtype="f4")
+    state[:, 0] = np.arange(len(clock)) + 1
+    x = mod.motion_history(clock, state)
+    short = x[:, mod.WIDTH:mod.WIDTH + mod.HISTORY_BLOCK]
+    long = x[:, mod.WIDTH + mod.HISTORY_BLOCK:]
+    np.testing.assert_array_equal(short[:, 0], [0, 0, 1, 2, 3, 4, 5, 0, 0, 8])
+    np.testing.assert_array_equal(long[:, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+    np.testing.assert_allclose([short[3, -1], long[6, -1]], [.16, .48], atol=1e-6)
+    policy = mod.TimingPolicy(torch.tensor([[-1, 0, 2], [1, 0, 8]]), history=True)
+    raw = torch.from_numpy(x)
+    expected = policy(raw)[0]
+    raw[:, mod.WIDTH + 25:mod.WIDTH + 60] = 100
+    torch.testing.assert_close(expected, policy(raw)[0])
 
 
 def test_masked_inference_and_native_export(tmp_path: Path, monkeypatch) -> None:
@@ -104,25 +124,31 @@ def test_future_box_labels_respect_family_position_and_episode_end(monkeypatch) 
     assert np.isnan(field[-1]).all()
 
 
+@pytest.mark.parametrize("history", [False, True])
 def test_phase_bundle_preserves_the_opener_and_maps_action_rows(
-    tmp_path: Path, monkeypatch
+    tmp_path: Path, monkeypatch, history: bool
 ) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")
     old = torch.tensor([[-1, 0, 8], [0, 1, 0], [1, 0, 2]])
     new = torch.tensor([[0, 1, 0], [1, 1, 128], [-1, 0, 8]])
     teacher = mod.TimingPolicy(old)
-    student = mod.TimingPolicy(new)
+    student = mod.TimingPolicy(new, history)
     learner = tmp_path / "previous.pt"
     torch.save({"actor": teacher.state_dict(), "catalogue": old}, learner)
     assert mod.initialize_actor(student, new.numpy(), learner) == 2
     torch.testing.assert_close(student.out.weight[0], teacher.out.weight[1])
     torch.testing.assert_close(student.out.bias[2], teacher.out.bias[0])
     torch.testing.assert_close(student.basis, mod.TimingPolicy(new).basis)
+    raw = torch.randn(6, mod.WIDTH)
+    extra = torch.randn(6, len(mod.HISTORY_LAGS) * mod.HISTORY_BLOCK)
+    historical = torch.cat((raw, extra), 1) if history else raw
+    torch.testing.assert_close(student(historical)[0][:, [0, 2]], teacher(raw)[0][:, [1, 0]])
     paths = [tmp_path / "opener.bin", tmp_path / "trio.bin"]
     for net, cat, path in zip((teacher, student), (old, new), paths, strict=True):
         mod.save_native(net, cat.numpy(), path)
     a, b = (p.read_bytes() for p in paths)
+    assert struct.unpack_from("<i", b)[0] == (0x344C5149 if history else 0x324C5149)
     pair = mod.phase_checkpoint(a, b)
     assert struct.unpack_from("<3i", pair) == (0x334C5149, len(a), len(b))
     assert pair[12 : 12 + len(a)] == a and pair[12 + len(a) :] == b

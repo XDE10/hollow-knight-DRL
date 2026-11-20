@@ -17,6 +17,8 @@ from torch.nn import functional as F
 from train_sisters_native_iql import REWARD_WEIGHTS, attribute_events, quantile_loss
 
 WIDTH = 192
+HISTORY_LAGS = (0.16, 0.48)
+HISTORY_BLOCK = WIDTH + 1
 FOES, DISCS, CONTROL = 24, 132, 160
 MIRROR = [0, 2, 6, CONTROL]
 for offset in (24, 60, 96):
@@ -30,13 +32,17 @@ for offset in (24, 60, 96, 132, 146):
 
 
 class TimingPolicy(nn.Module):
-    def __init__(self, catalogue: Tensor) -> None:
+    def __init__(self, catalogue: Tensor, history: bool = False) -> None:
         super().__init__()
         catalogue = catalogue.long()
         self.boss = nn.Linear(36, 48)
         self.disc = nn.Linear(14, 24)
+        self.past = nn.Linear(HISTORY_BLOCK, 32) if history else None
         self.dense = nn.Sequential(
-            nn.Linear(WIDTH + 72, 256), nn.ReLU(), nn.Linear(256, 192), nn.ReLU()
+            nn.Linear(WIDTH + 72 + (64 if history else 0), 256),
+            nn.ReLU(),
+            nn.Linear(256, 192),
+            nn.ReLU(),
         )
         self.out = nn.Linear(192, len(catalogue))
         # Per-factor supervision shares the same representation; these heads are
@@ -66,19 +72,30 @@ class TimingPolicy(nn.Module):
         discs = discs * discs[:, :, :1]
         boss = self.pool(bosses, self.boss)
         disc = self.pool(discs, self.disc)
-        return self.dense(
-            torch.cat(
-                [
-                    state[:, :FOES],
-                    bosses.flatten(1),
-                    discs.flatten(1),
-                    state[:, CONTROL:],
-                    boss,
-                    disc,
-                ],
+        features = [
+            state[:, :FOES],
+            bosses.flatten(1),
+            discs.flatten(1),
+            state[:, CONTROL:WIDTH],
+            boss,
+            disc,
+        ]
+        if self.past is not None:
+            past = state[:, WIDTH:].reshape(-1, HISTORY_BLOCK)
+            foes = past[:, FOES:DISCS].reshape(-1, 3, 36)
+            blades = past[:, DISCS:CONTROL].reshape(-1, 2, 14)
+            measured = torch.cat(
+                (
+                    past[:, :FOES],
+                    (foes * foes[:, :, :1]).flatten(1),
+                    (blades * blades[:, :, :1]).flatten(1),
+                    past[:, CONTROL:],
+                ),
                 1,
             )
-        )
+            embedded = F.relu(self.past(measured)) * (past[:, -1:] > 0)
+            features.append(embedded.reshape(len(state), -1))
+        return self.dense(torch.cat(features, 1))
 
     def heads(self, x: Tensor) -> tuple[Tensor, Tensor]:
         factors = self.factors(x)
@@ -93,9 +110,18 @@ def save_native(actor: TimingPolicy, catalogue: np.ndarray, path: Path) -> None:
         return t.detach().cpu().numpy().astype("<f4").tobytes()
 
     with path.open("wb") as out:
-        out.write(struct.pack("<5i", 0x324C5149, WIDTH, 256, 192, len(catalogue)))
+        magic = 0x344C5149 if actor.past is not None else 0x324C5149
+        out.write(struct.pack("<5i", magic, WIDTH, 256, 192, len(catalogue)))
         out.write(catalogue.astype("<i4").tobytes())
-        for layer in (actor.boss, actor.disc, actor.dense[0], actor.dense[2]):
+        for layer in (
+            actor.boss,
+            actor.disc,
+            actor.past,
+            actor.dense[0],
+            actor.dense[2],
+        ):
+            if layer is None:
+                continue
             out.write(array(layer.weight))
             out.write(array(layer.bias))
         out.write(array(actor.out.weight + actor.basis @ actor.factors.weight))
@@ -109,6 +135,25 @@ def teacher_history_age(
     different = np.any(applied != labels, axis=1)
     last_mismatch = np.maximum.accumulate(np.where(different, times, -np.inf))
     return times - np.r_[-np.inf, last_mismatch[:-1]]
+
+
+def motion_history(times: np.ndarray, state: np.ndarray) -> np.ndarray:
+    """Attach the last observation available at each lag on this uninterrupted tape."""
+    clock = times.astype("f8")
+    rows = np.arange(len(clock))
+    segment = np.maximum.accumulate(
+        np.where(np.r_[True, np.diff(clock) > 0.24001], rows, 0)
+    )
+    blocks = [state]
+    for lag in HISTORY_LAGS:
+        j = np.searchsorted(clock, clock - lag + 0.00001, side="right") - 1
+        age = clock - clock[j.clip(0)]
+        known = (j >= segment) & (age <= lag + 0.24001)
+        block = np.zeros((len(clock), HISTORY_BLOCK), dtype="f4")
+        block[known, :WIDTH] = state[j[known]]
+        block[known, -1] = age[known]
+        blocks.append(block)
+    return np.concatenate(blocks, axis=1)
 
 
 def measured_returns(
@@ -148,6 +193,7 @@ def build_data(
     forecast: bool = False,
     trio_only: bool = False,
     return_seconds: float = 0.0,
+    history: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -160,6 +206,10 @@ def build_data(
     fields: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     windows: dict[str, list[tuple]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
+    mirror_axes = list(MIRROR)
+    if history:
+        for k in range(len(HISTORY_LAGS)):
+            mirror_axes.extend(WIDTH + k * HISTORY_BLOCK + j for j in MIRROR)
     for game in games:
         path = directory / game["file"]
         if hashlib.sha256(path.read_bytes()).hexdigest() != game["sha256"]:
@@ -183,6 +233,8 @@ def build_data(
         dt = np.r_[np.diff(t), 0.04].astype("f4")
         d = (0.995 ** (dt / 0.04)) * (~terminal)
         good = (dt <= 0.24) & (np.r_[np.ones(n - 1, bool), False] | terminal)
+        if history:
+            s = motion_history(t, s)
         next_state = np.r_[s[1:], s[-1:]]
         reward = ev @ REWARD_WEIGHTS
         agreement = teacher_history_age(t, act, teacher)
@@ -190,7 +242,7 @@ def build_data(
         if trio_only and not selected.any():
             continue
         if forecast:
-            fields[game["split"]].append(future_occupancy(t, s)[selected])
+            fields[game["split"]].append(future_occupancy(t, s[:, :WIDTH])[selected])
         if return_seconds:
             total, remaining, last = measured_returns(
                 t, reward, d, good, return_seconds
@@ -215,8 +267,8 @@ def build_data(
         stats[split] = {"fights": len(items), "decisions": len(s)}
         if split == "train" and mirror:
             ms, mns, ma, ml = s.copy(), ns.copy(), a.copy(), label.copy()
-            ms[:, MIRROR] *= -1
-            mns[:, MIRROR] *= -1
+            ms[:, mirror_axes] *= -1
+            mns[:, mirror_axes] *= -1
             ma[:, 0] *= -1
             ml[:, 0] *= -1
             s, a, label, ns = [
@@ -244,7 +296,7 @@ def build_data(
             ]
             if split == "train" and mirror:
                 mirrored = successor.copy()
-                mirrored[:, MIRROR] *= -1
+                mirrored[:, mirror_axes] *= -1
                 successor = np.concatenate((successor, mirrored))
                 total, remaining = np.tile(total, 2), np.tile(remaining, 2)
             result[split] += tuple(
@@ -272,11 +324,10 @@ def previous_commands(states: Tensor) -> Tensor:
 
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     for component in (opener, trio):
-        if len(component) < 20 or struct.unpack_from("<4i", component) != (
-            0x324C5149,
-            WIDTH,
-            256,
-            192,
+        if (
+            len(component) < 20
+            or struct.unpack_from("<i", component)[0] not in (0x324C5149, 0x344C5149)
+            or struct.unpack_from("<3i", component, 4) != (WIDTH, 256, 192)
         ):
             raise ValueError("Expected a native timing actor for each battle phase")
     return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
@@ -284,13 +335,20 @@ def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
 
 def initialize_actor(actor: TimingPolicy, commands: np.ndarray, path: Path) -> int:
     saved = torch.load(path, map_location="cpu", weights_only=True)
-    source = TimingPolicy(saved["catalogue"])
+    source = TimingPolicy(saved["catalogue"], "past.weight" in saved["actor"])
     source.load_state_dict(saved["actor"])
-    for name in ("boss", "disc", "dense", "factors"):
+    for name in ("boss", "disc", "factors"):
         getattr(actor, name).load_state_dict(getattr(source, name).state_dict())
+    if actor.past is not None and source.past is not None:
+        actor.past.load_state_dict(source.past.state_dict())
+    actor.dense[2].load_state_dict(source.dense[2].state_dict())
     previous = {tuple(row): j for j, row in enumerate(saved["catalogue"].tolist())}
     matched = 0
     with torch.no_grad():
+        dim = min(actor.dense[0].in_features, source.dense[0].in_features)
+        actor.dense[0].weight.zero_()
+        actor.dense[0].weight[:, :dim].copy_(source.dense[0].weight[:, :dim])
+        actor.dense[0].bias.copy_(source.dense[0].bias)
         for j, cmd in enumerate(commands):
             index = previous.get(tuple(cmd))
             if index is not None:
@@ -315,6 +373,7 @@ def train(
     opener_path: Path | None = None,
     initial_learner: Path | None = None,
     return_seconds: float = 0.0,
+    history: bool = False,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -330,6 +389,7 @@ def train(
         forecast_weight > 0,
         opener is not None,
         return_seconds,
+        history,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -339,7 +399,7 @@ def train(
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
-    actor = TimingPolicy(cat).to(device)
+    actor = TimingPolicy(cat, history).to(device)
     inherited = (
         initialize_actor(actor, commands, initial_learner)
         if initial_learner is not None
@@ -383,6 +443,7 @@ def train(
         "world_steps": world_steps,
         "rl_steps": rl_steps,
         "measured_return_seconds": return_seconds,
+        "motion_history_lags": list(HISTORY_LAGS) if history else [],
         "hardware": torch.cuda.get_device_name() if device == "cuda" else "CPU",
         "manifest_sha256": hashlib.sha256(
             (data_dir / "manifest.json").read_bytes()
@@ -462,7 +523,8 @@ def train(
             print("teacher", step + 1, flush=True)
     save("bc")
     ref = copy.deepcopy(actor).requires_grad_(False)
-    world = mlp(WIDTH + 11, len(PHYSICAL)).to(device)
+    width = s.shape[1]
+    world = mlp(width + 11, len(PHYSICAL)).to(device)
     wopt = torch.optim.AdamW(world.parameters(), lr=0.0008)
     for _ in range(world_steps):
         i = dynamics_rows[indices(len(dynamics_rows))]
@@ -486,12 +548,12 @@ def train(
             world_mae=(delta - actual).abs().mean().item(),
             persistence_mae=actual.abs().mean().item(),
         )
-    q1, q2 = mlp(WIDTH, len(cat)).to(device), mlp(WIDTH, len(cat)).to(device)
+    q1, q2 = mlp(width, len(cat)).to(device), mlp(width, len(cat)).to(device)
     t1, t2 = (
         copy.deepcopy(q1).requires_grad_(False),
         copy.deepcopy(q2).requires_grad_(False),
     )
-    val = mlp(WIDTH, 1).to(device)
+    val = mlp(width, 1).to(device)
     qopt = torch.optim.AdamW([*q1.parameters(), *q2.parameters()], lr=0.00035)
     vopt = torch.optim.AdamW(val.parameters(), lr=0.00035)
     aopt = torch.optim.AdamW(parameters, lr=0.00009)
@@ -622,6 +684,11 @@ if __name__ == "__main__":
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     parser.add_argument("--forecast-weight", type=float, default=0.0)
     parser.add_argument(
+        "--motion-history",
+        action="store_true",
+        help="Encode two earlier full arena observations from this episode.",
+    )
+    parser.add_argument(
         "--return-seconds",
         type=float,
         default=0.0,
@@ -666,4 +733,5 @@ if __name__ == "__main__":
         args.opener_policy,
         args.initial_learner,
         args.return_seconds,
+        args.motion_history,
     )

@@ -83,6 +83,7 @@ namespace HKRLEnvMod.Action
             _timing?.Observe(obs);
             var state = _net.UsesTiming ? _timing!.Values : _raw;
             var active = _trioNet != null && state[SistersTimingState.TrioFlag] > .5f ? _trioNet : _net;
+            if (active != _trioNet) _trioNet?.Remember(state, obs.Global.TimeInEpisode);
             Input = active.Choose(state, obs.Global.TimeInEpisode);
             if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values);
             _timing?.Commit(Input, obs.Global.TimeInEpisode);
@@ -118,6 +119,7 @@ namespace HKRLEnvMod.Action
         private readonly float[] _history = new float[Physical * 4];
         private readonly float[] _x, _h, _z;
         private readonly float[][] _entityWeights = new float[4][];
+        private readonly SistersMotionHistory? _motionHistory;
         private readonly float[] _scores, _pulseAt = new float[6], _holdAt = new float[3];
         private uint _previous;
         private int _index;
@@ -148,13 +150,14 @@ namespace HKRLEnvMod.Action
         internal NativeSistersNetwork(BinaryReader reader)
         {
             int magic = reader.ReadInt32();
-            UsesTiming = magic == 0x324C5149;
+            bool usesHistory = magic == 0x344C5149;
+            UsesTiming = magic == 0x324C5149 || usesHistory;
             int obsWidth = UsesTiming ? SistersTimingState.Width : 180;
             int hidden1 = UsesTiming ? 256 : 160, hidden2 = UsesTiming ? 192 : 128;
             if ((!UsesTiming && magic != 0x314C5149) || reader.ReadInt32() != obsWidth ||
                 reader.ReadInt32() != hidden1 || reader.ReadInt32() != hidden2)
                 throw new InvalidDataException("Invalid native actor architecture");
-            _x = new float[obsWidth + (UsesTiming ? 72 : 0)];
+            _x = new float[obsWidth + (UsesTiming ? 72 : 0) + (usesHistory ? 64 : 0)];
             _h = new float[hidden1];
             _z = new float[hidden2];
             int n = reader.ReadInt32();
@@ -173,6 +176,8 @@ namespace HKRLEnvMod.Action
                 int[] shape = {36*48, 48, 14*24, 24};
                 for (int i = 0; i < shape.Length; i++) _entityWeights[i] = ReadWeights(reader, shape[i]);
             }
+            if (usesHistory)
+                _motionHistory = new SistersMotionHistory(ReadWeights(reader, (obsWidth + 1) * 32), ReadWeights(reader, 32));
             int[] sizes = {_x.Length*hidden1, hidden1, hidden1*hidden2, hidden2, hidden2*n, n};
             for (int layer = 0; layer < sizes.Length; layer++) _w[layer] = ReadWeights(reader, sizes[layer]);
             if(reader.BaseStream.Position!=reader.BaseStream.Length) throw new InvalidDataException("Trailing actor bytes");
@@ -187,6 +192,8 @@ namespace HKRLEnvMod.Action
                 Array.Copy(raw, _x, SistersTimingState.Width);
                 Pool(raw, 24, 3, 36, _entityWeights[0], _entityWeights[1], 192);
                 Pool(raw, 132, 2, 14, _entityWeights[2], _entityWeights[3], 240);
+                _motionHistory?.Encode(time, _x, 264);
+                Remember(raw, time);
             }
             else PrepareHistory(raw, time);
             Dense(_x,_w[0],_w[1],_h,true);
@@ -197,6 +204,8 @@ namespace HKRLEnvMod.Action
             _index++;
             return _actions[best];
         }
+
+        internal void Remember(float[] raw, float time) => _motionHistory?.Remember(raw, time);
 
         private static float[] ReadWeights(BinaryReader reader, int count)
         {

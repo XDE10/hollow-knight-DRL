@@ -8,6 +8,8 @@ The actor shares one learned encoder across Sisters and another across discs. Ma
 
 ## Learning
 
+With `--motion-history`, two shared neural projections read the arena as last observed at least 0.16 and 0.48 game seconds earlier. Their input includes the measured age. The projection weights are shared between the two times. Missing history contributes zero. A gap above 0.24 game seconds or a new episode clears history. The late-phase actor receives the recent observations from the opener when phases change. These observations use the same entity masks as the current frame.
+
 The optional `--return-seconds` horizon credits an executed input with the discounted rewards that followed it on the same development tape. With a positive horizon the critic averages its existing one-step world-model target and the short real-trajectory target. The latter bootstraps at the last recorded successor and stops before an unobserved interval. Death and arena completion end the return. Subsequent actions came from the development policy, so this target estimates outcomes under those continuations. The training report includes held-out errors for the action and state values against this target. The replay packer's `--original-speed-only` option selects by recorded game speed, retaining wins and losses alike.
 
 The development recorder asks the teacher for an action on the state actually visited. It records that label, the student's choice and the applied input separately. The recorder can hold a sampled teacher/student selection for a short segment to visit states that diverge from a demonstration. A whole episode goes into exactly one data split. The collector records individual damage and arena completion events.
