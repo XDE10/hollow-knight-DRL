@@ -10,7 +10,7 @@ namespace HKRLEnvMod.Action
     internal sealed class SistersNativeDemonstrator : IDisposable
     {
         private readonly string _folder;
-        private readonly SistersTactics _teacher;
+        private readonly SistersTactics? _teacher;
         private readonly Random _random;
         private BinaryWriter? _tape;
         private int _episodes;
@@ -21,7 +21,7 @@ namespace HKRLEnvMod.Action
         private readonly bool _recordPlans;
         private readonly SistersOnlineChoices? _online;
 
-        private SistersNativeDemonstrator(string folder, SistersTactics teacher)
+        private SistersNativeDemonstrator(string folder, SistersTactics? teacher)
         {
             _folder=folder;
             _teacher=teacher;
@@ -45,6 +45,8 @@ namespace HKRLEnvMod.Action
                     throw new InvalidOperationException("Online sampling requires a timing trace and zero teacher control");
                 _online = new SistersOnlineChoices(folder, seed);
             }
+            if (teacher == null && (_online == null || _recordPlans))
+                throw new InvalidOperationException("Teacher-free recording requires an online trial without plan labels");
         }
 
         internal static SistersNativeDemonstrator? FromEnvironment()
@@ -52,8 +54,8 @@ namespace HKRLEnvMod.Action
             string? folder=Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_DIR");
             if (string.IsNullOrWhiteSpace(folder)) return null;
             var teacher=SistersTactics.FromEnvironment();
-            if (teacher==null || !Directory.Exists(folder))
-                throw new InvalidOperationException("Development demonstrations need a teacher and a recording directory");
+            if (!Directory.Exists(folder))
+                throw new InvalidOperationException("Missing development recording directory");
             return new SistersNativeDemonstrator(folder!,teacher);
         }
 
@@ -61,7 +63,7 @@ namespace HKRLEnvMod.Action
         {
             _tape?.Dispose();
             _tape=new BinaryWriter(new FileStream(Path.Combine(_folder,episode+".native"),FileMode.CreateNew,FileAccess.Write,FileShare.Read));
-            _tape.Write(_recordTiming ? 0x32474144 : 0x31474144);
+            _tape.Write(_teacher == null ? 0x33474144 : _recordTiming ? 0x32474144 : 0x31474144);
             _tape.Write(episode);
             _until=-1;
             _online?.Reset(episode);
@@ -69,6 +71,7 @@ namespace HKRLEnvMod.Action
         }
 
         internal bool RecordsTiming => _recordTiming;
+        internal bool RecordsRawFeatures => _teacher != null;
 
         internal PrimitiveInput Label(ObservationSnapshot obs, ulong tick, float[] raw, PrimitiveInput learner, float[]? timing,
             NativeSistersNetwork active)
@@ -76,6 +79,14 @@ namespace HKRLEnvMod.Action
             float now=obs.Global.TimeInEpisode;
             if (_online != null && timing![SistersTimingState.TrioFlag] > .5f)
                 learner = _online.Choose(now, active, learner);
+            var tape=_tape!;
+            if (_teacher == null)
+            {
+                tape.Write(now);
+                Write(tape, learner);
+                foreach (float x in timing!) tape.Write(x);
+                return learner;
+            }
             _teacher.Decide(obs,tick);
             var label=_teacher.Input;
             if (now>=_until)
@@ -85,7 +96,6 @@ namespace HKRLEnvMod.Action
                 _until=now+.8f;
             }
             var executed=_teacherActs?label:learner;
-            var tape=_tape!;
             tape.Write(now);
             foreach (float x in raw) tape.Write(x);
             Write(tape,executed);
@@ -103,7 +113,7 @@ namespace HKRLEnvMod.Action
             writer.Write((float)a.Buttons);
         }
 
-        internal void Flush() { _tape?.Flush(); _online?.Flush(); if (_recordPlans) _teacher.Flush(); }
-        public void Dispose() { _tape?.Dispose(); _online?.Dispose(); _teacher.Dispose(); }
+        internal void Flush() { _tape?.Flush(); _online?.Flush(); if (_recordPlans) _teacher!.Flush(); }
+        public void Dispose() { _tape?.Dispose(); _online?.Dispose(); _teacher?.Dispose(); }
     }
 }

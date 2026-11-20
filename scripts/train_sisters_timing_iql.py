@@ -260,7 +260,13 @@ def build_data(
             raise ValueError(f"Changed tape {game['source']}")
         with np.load(path, allow_pickle=False) as f:
             s = f["timing_state"].astype("f4")
-            t, act, teacher = f["control_time"], f["controls"], f["teacher_controls"]
+            t, act = f["control_time"], f["controls"]
+            labeled = game.get("teacher_labels", True)
+            if labeled != ("teacher_controls" in f) or (
+                not labeled and (not game.get("behavior_policy_sha256") or "plan_costs" in f)
+            ):
+                raise ValueError(f"Inconsistent teacher labels in {game['source']}")
+            teacher = f["teacher_controls"] if labeled else np.full_like(act, -1, dtype="i2")
             if (
                 s.shape != (len(t), WIDTH)
                 or not np.isfinite(s).all()
@@ -295,7 +301,7 @@ def build_data(
         if history:
             s = motion_history(t, s)
         next_state = np.r_[s[1:], s[-1:]]
-        agreement = teacher_history_age(t, act, teacher)
+        agreement = teacher_history_age(t, act, teacher) if labeled else np.full(len(t), -1, "f4")
         selected = s[:, 23] > 0.5 if trio_only else slice(None)
         if opening_only:
             selected = s[:, 23] <= 0.5
@@ -343,10 +349,13 @@ def build_data(
             ]
             r, d, g, age = [np.tile(x, 2) for x in (r, d, g, age)]
         if split == "train":
-            catalogue = np.unique(np.concatenate((a, label)).astype("i8"), axis=0)
+            catalogue = np.unique(np.concatenate((a, label[label[:, 2] >= 0])).astype("i8"), axis=0)
         lookup = {tuple(cmd): i for i, cmd in enumerate(catalogue)}
         yi = np.array([lookup.get(tuple(cmd), -1) for cmd in a], dtype="i8")
         li = np.array([lookup.get(tuple(cmd), -1) for cmd in label], dtype="i8")
+        # -1 is a genuine holdout label outside the training action catalogue.
+        # -2 is an actual interaction collected without any teacher.
+        li[label[:, 2] < 0] = -2
         result[split] = tuple(
             torch.from_numpy(x).to(device) for x in (s, yi, li, ns, r, d, g, age)
         )
@@ -505,10 +514,11 @@ def train(
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
     s, y, expert, ns, r, d, good, age = data["train"][:8]
-    supervised = (age >= agreement_seconds).nonzero().flatten()
+    supervised = ((expert >= 0) & (age >= agreement_seconds)).nonzero().flatten()
     if not len(supervised):
         raise ValueError("No teacher decisions meet the configured fight and agreement criteria")
-    switch = (cat[expert] != previous_commands(s)).any(1)
+    has_unlabeled = bool((expert < 0).any())
+    switch = (cat[expert.clamp_min(0)] != previous_commands(s)).any(1)
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
@@ -561,7 +571,7 @@ def train(
         else None,
         "inherited_action_rows": inherited,
         "supervised_fraction": len(supervised) / len(s),
-        "train_switch_fraction": switch.float().mean().item(),
+        "train_switch_fraction": switch[expert >= 0].float().mean().item(),
         "bc_steps": bc_steps,
         "world_steps": world_steps,
         "rl_steps": rl_steps,
@@ -601,7 +611,10 @@ def train(
         with torch.no_grad():
             hs, _, hl = data["holdout"][:3]
             pred = torch.cat([actor(x)[0].argmax(1) for x in hs.split(1024)])
-            report[name + "_holdout_exact"] = (pred == hl).float().mean().item()
+            labeled = hl != -2
+            report[name + "_holdout_exact"] = (
+                (pred[labeled] == hl[labeled]).float().mean().item() if labeled.any() else None
+            )
             known = hl >= 0
             changes = (cat[hl.clamp_min(0)] != previous_commands(hs)).any(1)
             for group, mask in (("switch", changes), ("hold", ~changes)):
@@ -610,7 +623,10 @@ def train(
                     report[name + "_holdout_" + group + "_known_exact"] = (
                         (pred[selected] == hl[selected]).float().mean().item()
                     )
-            report["holdout_label_coverage"] = known.float().mean().item()
+            report["holdout_label_coverage"] = (
+                known[labeled].float().mean().item() if labeled.any() else None
+            )
+            report["holdout_unlabeled_decisions"] = int((~labeled).sum())
             path = output / (name + ".bin")
             save_native(actor, commands, path)
             if opener is not None:
@@ -734,7 +750,7 @@ def train(
             encoded = actor.encode(x)
             logits, factor = actor.heads(encoded)
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
-            if agreement_seconds > 0 or teacher_win_min_hz > 0:
+            if agreement_seconds > 0 or teacher_win_min_hz > 0 or has_unlabeled:
                 j = supervised[indices(len(supervised))]
                 supervised_logits, factor = actor(s[j])
             else:

@@ -78,7 +78,7 @@ namespace HKRLEnvMod.Action
                 _timing = _net.UsesTiming || _demonstrator?.RecordsTiming == true ? new SistersTimingState() : null;
             }
             _tick = tick;
-            if (!_net.UsesTiming || _demonstrator != null)
+            if (!_net.UsesTiming || _demonstrator?.RecordsRawFeatures == true)
                 SistersPolicyHead.WriteFeatures(obs, _raw, _boss, _disc);
             _timing?.Observe(obs);
             var state = _net.UsesTiming ? _timing!.Values : _raw;

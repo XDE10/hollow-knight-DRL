@@ -10,6 +10,23 @@ import pytest
 import torch
 
 
+def test_student_record_cannot_supply_teacher_labels(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    read = importlib.import_module("collect_sisters_native_labels").read_decisions
+    rows = np.zeros((3, 196), dtype="<f4")
+    rows[:, 0] = [0, .04, .08]
+    rows[:, 1:4] = [[-1, 0, 8], [1, 0, 8], [0, 1, 1]]
+    path = tmp_path / "17.native"
+    path.write_bytes(struct.pack("<IQ", 0x33474144, 17) + rows.tobytes())
+    data, stats = read(path, 17, timing=True, has_teacher=False)
+    assert set(data) == {"control_time", "controls", "timing_state"}
+    np.testing.assert_array_equal(data["controls"], rows[:, 1:4])
+    assert data["timing_state"].shape == (3, 192)
+    assert stats == {"teacher_fraction": 0.0}
+    with pytest.raises(ValueError, match="Wrong training tape"):
+        read(path, 17, timing=True, has_teacher=True)
+
+
 def test_randomized_record_matches_frozen_catalogue_and_executed_keys(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

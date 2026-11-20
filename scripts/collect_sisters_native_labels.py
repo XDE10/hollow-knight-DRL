@@ -44,6 +44,38 @@ def transition_recorder():
     return starts, elapsed, events, record
 
 
+def read_decisions(
+    path: Path, episode: int, timing: bool, has_teacher: bool
+) -> tuple[dict[str, np.ndarray], dict[str, float]]:
+    """Read a native episode using the recording mode of the actual game process."""
+    magic, width = (0x32474144, 259) if timing else (0x31474144, 67)
+    if not has_teacher:
+        if not timing:
+            raise ValueError("Student-only trials need timing observations")
+        magic, width = 0x33474144, 196
+    with path.open("rb") as f:
+        if struct.unpack("<IQ", f.read(12)) != (magic, episode):
+            raise ValueError("Wrong training tape")
+        rows = np.frombuffer(f.read(), "<f4").reshape(-1, width)
+    if not len(rows) or not np.isfinite(rows).all() or (np.diff(rows[:, 0]) <= 0).any():
+        raise ValueError("Invalid decision sequence")
+    data = {"control_time": rows[:, 0]}
+    if not has_teacher:
+        data.update(controls=rows[:, 1:4].astype("i2"), timing_state=rows[:, 4:])
+        return data, {"teacher_fraction": 0.0}
+    applied, labels, student = (rows[:, j : j + 3].astype("i2") for j in (57, 60, 63))
+    teacher = rows[:, 66].astype(bool)
+    if not np.array_equal(applied, np.where(teacher[:, None], labels, student)):
+        raise ValueError("Incorrect executed action trace")
+    data.update(controls=applied, teacher_controls=labels, student_features=rows[:, 1:57])
+    if timing:
+        data["timing_state"] = rows[:, 67:]
+    return data, {
+        "teacher_fraction": float(teacher.mean()),
+        "disagreement": float(np.any(student != labels, 1).mean()),
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output", required=True, type=Path)
@@ -70,9 +102,11 @@ def main() -> None:
         raise RuntimeError("Expected private game copy")
     proc = psutil.Process(listeners[0].pid)
     envs = proc.environ()
+    has_teacher = bool(envs.get("HKRL_TACTICS_POLICY"))
+    sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
     if (
         proc.name().lower() != "hollow_knight.exe"
-        or not envs.get("HKRL_TACTICS_POLICY")
+        or not (has_teacher or sampling)
         or float(envs.get("HKRL_SISTERS_NAIL_MULTIPLIER", "1")) != 1
     ):
         raise RuntimeError("Wrong development game mode")
@@ -101,16 +135,11 @@ def main() -> None:
                     raise RuntimeError("Wrong development speed")
                 if not result["win"] and not result["truncated"] and result["hp"] == 0:
                     events[-1][7] = 1
-                with (tape_dir / f"{eid}.native").open("rb") as f:
-                    timing = envs.get("HKRL_NATIVE_TIMING") == "1"
-                    if struct.unpack("<IQ", f.read(12)) != (
-                        0x32474144 if timing else 0x31474144,
-                        eid,
-                    ):
-                        raise ValueError("Wrong training tape")
-                    rows = np.frombuffer(f.read(), "<f4").reshape(
-                        -1, 259 if timing else 67
-                    )
+                timing = envs.get("HKRL_NATIVE_TIMING") == "1"
+                decisions, control_stats = read_decisions(
+                    tape_dir / f"{eid}.native", eid, timing, has_teacher
+                )
+                clock = decisions["control_time"]
                 receipt = (
                     Path(envs["HKRL_NATIVE_ACTOR_LEDGER"])
                     .read_text(encoding="utf-8-sig")
@@ -119,51 +148,39 @@ def main() -> None:
                 if (
                     receipt[1] != sha
                     or int(receipt[0]) != eid
-                    or int(receipt[2]) != len(rows)
+                    or int(receipt[2]) != len(clock)
                 ):
                     raise ValueError("Actor receipt differs")
-                applied, labels, student = (
-                    rows[:, j : j + 3].astype("i2") for j in (57, 60, 63)
-                )
-                teacher = rows[:, 66].astype(bool)
-                if not np.array_equal(
-                    applied, np.where(teacher[:, None], labels, student)
-                ):
-                    raise ValueError("Incorrect executed action trace")
                 file = f"dev-{i:03d}.npz"
                 plans = {}
                 if envs.get("HKRL_NATIVE_PLAN_TRACE") == "1":
                     from sisters_plan_labels import read_plans
 
-                    plans = read_plans(tape_dir / f"{eid}.plans", eid, rows[:, 0])
+                    plans = read_plans(tape_dir / f"{eid}.plans", eid, clock)
                 online = {}
-                if envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1":
+                if sampling:
                     from sisters_online_choices import late_catalogue, read_choices
 
-                    if not timing or scale != 1 or teacher.any():
+                    if not timing or scale != 1 or control_stats["teacher_fraction"] != 0:
                         raise ValueError("Randomized training requires original-speed student control")
                     online = read_choices(
-                        tape_dir / f"{eid}.choices", eid, rows[:, 0], rows[:, 67:],
-                        applied, late_catalogue(args.checkpoint.read_bytes()),
+                        tape_dir / f"{eid}.choices", eid, clock, decisions["timing_state"],
+                        decisions["controls"], late_catalogue(args.checkpoint.read_bytes()),
                     )
                     result.update(behavior_policy_sha256=sha, randomized_choices=len(online["choice_rows"]))
                 np.savez_compressed(
                     args.output / file,
-                    control_time=rows[:, 0],
-                    student_features=rows[:, 1:57],
-                    controls=applied,
-                    teacher_controls=labels,
+                    **decisions,
                     time=np.array(starts, "f4"),
                     events=np.array(events, "f4"),
                     elapsed_ticks=np.array(elapsed, "i2"),
-                    **({"timing_state": rows[:, 67:]} if timing else {}),
                     **plans,
                     **online,
                 )
                 result.update(
                     seed=args.seed + i,
-                    teacher_fraction=float(teacher.mean()),
-                    disagreement=float(np.any(student != labels, 1).mean()),
+                    teacher_labels=has_teacher,
+                    **control_stats,
                 )
                 (args.output / f"episode-{i:03d}.json").write_text(
                     json.dumps(result, indent=2) + "\n"
@@ -174,6 +191,7 @@ def main() -> None:
                         "file": file,
                         "split": "train",
                         "won": result["win"],
+                        "teacher_labels": has_teacher,
                         **({"behavior_policy_sha256": sha} if online else {}),
                     }
                 )

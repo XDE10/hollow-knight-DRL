@@ -26,6 +26,7 @@ def pack(
                 or game["source"] != f"native-development/{seed}"
                 or meta["win"] != game["won"]
                 or game.get("behavior_policy_sha256") != meta.get("behavior_policy_sha256")
+                or game.get("teacher_labels", True) != meta.get("teacher_labels", True)
             ):
                 raise ValueError("Repeated seed or unmatched development record")
             seen.add(seed)
@@ -71,6 +72,11 @@ def pack(
                     online_keys = CHOICE_KEYS
                     if not all(k in raw for k in online_keys):
                         raise ValueError(f"Incomplete online behavior record in {path}")
+                labeled = game.get("teacher_labels", True)
+                if ("teacher_controls" in raw) != labeled or (
+                    not labeled and (not online_keys or plan_keys)
+                ):
+                    raise ValueError(f"Inconsistent teacher availability in {path}")
                 np.savez_compressed(
                     buf,
                     **{
@@ -79,7 +85,7 @@ def pack(
                             "control_time",
                             "timing_state",
                             "controls",
-                            "teacher_controls",
+                            *(("teacher_controls",) if labeled else ()),
                             "time",
                             "events",
                             "elapsed_ticks",
@@ -97,6 +103,7 @@ def pack(
                     "file": name,
                     "split": "holdout" if (seed % 1000) % 6 == 1 else "train",
                     "won": game["won"],
+                    **({"teacher_labels": False} if not labeled else {}),
                     **({"behavior_policy_sha256": game["behavior_policy_sha256"]} if online_keys else {}),
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }

@@ -84,6 +84,37 @@ def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, m
     assert data["train"][6][5:10].any()
 
 
+def test_teacher_free_transitions_have_real_actions_and_no_imitation_target(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    rows = []
+    for i in range(3):
+        t = np.arange(5, dtype="f4") * .04
+        state = np.zeros((len(t), mod.WIDTH), dtype="f4")
+        keys = np.zeros((len(t), 3), dtype="i2")
+        keys[:, 0] = 1
+        events = np.zeros((len(t), 8), dtype="f4")
+        events[1, 1] = 1
+        path = tmp_path / f"{i}.npz"
+        labeled = i == 0
+        np.savez(path, timing_state=state, control_time=t, controls=keys,
+                 time=t, elapsed_ticks=np.full(len(t), 2), events=events,
+                 **({"teacher_controls": keys} if labeled else {}))
+        rows.append(dict(file=path.name, source=f"native-development/test-{i}",
+                         split="holdout" if i==2 else "train", won=False,
+                         teacher_labels=labeled, behavior_policy_sha256="a"*64,
+                         sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    (tmp_path / "manifest.json").write_text(json.dumps(rows))
+    data, actions, _ = mod.build_data(tmp_path, "cpu", mirror=True)
+    np.testing.assert_array_equal(actions, [[-1, 0, 0], [1, 0, 0]])
+    for split, count in (("train", 10), ("holdout", 5)):
+        _, executed, target, _, reward, _, good, age = data[split][:8]
+        missing = target == -2
+        assert missing.sum() == count and (age[missing] < 0).all()
+        assert (executed[missing] >= 0).all() and good[missing].any()
+        assert reward[missing].min() < 0
+
+
 def test_motion_history_masks_gaps_and_only_reads_past(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

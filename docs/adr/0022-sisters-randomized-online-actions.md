@@ -8,7 +8,7 @@ For each draw the learner measures rewards in complete observation intervals ins
 
 The policy-gradient update uses the logged assignment probability and retains a KL penalty to the parent actor. It fits a low-rank correction to movement logits using the last hidden layer. The correction folds into the existing native action head. Holdout selection estimates the change in return for the greedy policy over the full catalogue and assigns the worst bounded change when the proposed input falls outside the logged pair. Zero correction remains a candidate. These local return estimates guide development. A stronger policy still needs fresh full-game evidence.
 
-Use `HKRL_NATIVE_ONLINE_CHOICES=1` on a timing-development worker with teacher ratio zero. Collect and pack a separate set of episodes from one frozen behavior checksum. The following command trains on the extracted development archive.
+Use `HKRL_NATIVE_ONLINE_CHOICES=1` on a timing-development worker with teacher ratio zero. With `HKRL_TACTICS_POLICY` unset, the game runs only the neural policy and the randomized sampler. Its compact tape stores the real input and timing observation at each decision. The manifest marks these fights with `teacher_labels=false`. Their rewards and transitions can train the world and value networks. Only fights with recorded teacher decisions supply imitation targets or teacher-agreement metrics. Older tapes with a shadow teacher keep their observed labels. Collect and pack a separate set of episodes from one frozen behavior checksum. The following command trains on the extracted development archive.
 
 ```sh
 python scripts/train_sisters_online_choices.py --data online-data --parent parent/world_iql.bin --learner late/learner.pt --output online-candidate
