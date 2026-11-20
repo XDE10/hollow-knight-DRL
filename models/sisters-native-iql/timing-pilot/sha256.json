@@ -1,0 +1,10 @@
+{
+  "bc.bin": "0dd21ac003950869a57d8d49cec8570157dbf8879707b2cf61b2ed2609478a02",
+  "development.zip": "6de7689141464df0dffb82f4a67cc5841bdf35e5819a964c47b7f05b57617256",
+  "evaluation.json": "7ed1020440ac6503cc5f8756e4f9dc2ed1d00329c4f5fc4e386a7a2d91764490",
+  "holdout-key-accuracy.json": "eb691c91c3994744a67ffd52edf3bdad01156ad5325e4efa1e2e3671fd41c66b",
+  "learner.pt": "b4ade7af1a5b95534c03b8139104a7edd080c52f309601297012acba2edcf8dc",
+  "study.json": "042c540ebd2e8421e6e0ac36aff0e2fc9504a3e1eef20c1b3680a91bcabc2c90",
+  "training.json": "428ed7ff40f0fae63e227b0261fe3402b96662da2358c419cca5afe22a2fb3e4",
+  "world_iql.bin": "4b12c4b1d899584851afea72600c90ec66492bc922726d4503b0a3990f18f7a4"
+}
