@@ -70,3 +70,20 @@ def test_teacher_history_keeps_the_first_corrective_label(monkeypatch) -> None:
     age = mod.teacher_history_age(t, applied, label)
     np.testing.assert_allclose(age, [np.inf, np.inf, 0.04, 0.08, 1.76])
     np.testing.assert_array_equal(age >= 1.6, [True, True, False, False, True])
+
+
+def test_future_box_labels_respect_family_position_and_episode_end(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("sisters_future_occupancy")
+    t = np.arange(21, dtype="f4") * 0.04
+    states = np.zeros((21, 192), "f4")
+    states[:, 24] = 1
+    states[3, 24 + 9] = 1
+    states[3, 24 + 1] = 0.25
+    field = mod.future_occupancy(t, states)
+    assert field.shape == (21, 3, 2, 3, 3)
+    assert field[0, 0, 0, 0, 2] == 1
+    assert field[0, 0, 0, 0, 0] < field[0, 0, 0, 0, 1]
+    assert not field[0, :, 1].any()
+    assert not field[0, 1:].any()
+    assert np.isnan(field[-1]).all()

@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from sisters_future_occupancy import TARGET_SHAPE, future_occupancy
 from torch import Tensor, nn
 from torch.nn import functional as F
 from train_sisters_native_iql import REWARD_WEIGHTS, attribute_events, quantile_loss
@@ -58,14 +59,14 @@ class TimingPolicy(nn.Module):
     def pool(slots: Tensor, layer: nn.Linear) -> Tensor:
         return (F.relu(layer(slots)) * slots[:, :, :1]).amax(1)
 
-    def forward(self, state: Tensor) -> tuple[Tensor, Tensor]:
+    def encode(self, state: Tensor) -> Tensor:
         bosses = state[:, FOES:DISCS].reshape(-1, 3, 36)
         discs = state[:, DISCS:CONTROL].reshape(-1, 2, 14)
         bosses = bosses * bosses[:, :, :1]
         discs = discs * discs[:, :, :1]
         boss = self.pool(bosses, self.boss)
         disc = self.pool(discs, self.disc)
-        x = self.dense(
+        return self.dense(
             torch.cat(
                 [
                     state[:, :FOES],
@@ -78,8 +79,13 @@ class TimingPolicy(nn.Module):
                 1,
             )
         )
+
+    def heads(self, x: Tensor) -> tuple[Tensor, Tensor]:
         factors = self.factors(x)
         return self.out(x) + factors @ self.basis.T, factors
+
+    def forward(self, state: Tensor) -> tuple[Tensor, Tensor]:
+        return self.heads(self.encode(state))
 
 
 def save_native(actor: TimingPolicy, catalogue: np.ndarray, path: Path) -> None:
@@ -106,7 +112,7 @@ def teacher_history_age(
 
 
 def build_data(
-    directory: Path, device: str, mirror: bool = True
+    directory: Path, device: str, mirror: bool = True, forecast: bool = False
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -116,6 +122,7 @@ def build_data(
     ):
         raise ValueError("Expected unique development games with explicit splits")
     parts: dict[str, list] = {"train": [], "holdout": []}
+    fields: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
     for game in games:
         path = directory / game["file"]
@@ -143,6 +150,8 @@ def build_data(
         next_state = np.r_[s[1:], s[-1:]]
         reward = ev @ REWARD_WEIGHTS
         agreement = teacher_history_age(t, act, teacher)
+        if forecast:
+            fields[game["split"]].append(future_occupancy(t, s))
         parts[game["split"]].append(
             (s, act, teacher, next_state, reward, d, good, agreement)
         )
@@ -174,6 +183,12 @@ def build_data(
         result[split] = tuple(
             torch.from_numpy(x).to(device) for x in (s, yi, li, ns, r, d, g, age)
         )
+        if forecast:
+            volumes = np.concatenate(fields[split])
+            if split == "train" and mirror:
+                volumes = np.concatenate((volumes, volumes[..., ::-1]))
+            flat = volumes.reshape(len(volumes), -1)
+            result[split] += (torch.from_numpy(flat).to(device),)
     return result, catalogue, stats
 
 
@@ -205,21 +220,30 @@ def train(
     mirror: bool = True,
     switch_weight: float = 1.0,
     agreement_seconds: float = 0.0,
+    forecast_weight: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_float32_matmul_precision("high")
-    data, commands, counts = build_data(data_dir, device, mirror)
+    data, commands, counts = build_data(data_dir, device, mirror, forecast_weight > 0)
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
-    s, y, expert, ns, r, d, good, age = data["train"]
+    s, y, expert, ns, r, d, good, age = data["train"][:8]
     supervised = (age >= agreement_seconds).nonzero().flatten()
     switch = (cat[expert] != previous_commands(s)).any(1)
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
     actor = TimingPolicy(cat).to(device)
+    forecast_head = None
+    if forecast_weight > 0:
+        forecast_head = nn.Sequential(
+            nn.Linear(192, 128),
+            nn.ReLU(),
+            nn.Linear(128, int(np.prod(TARGET_SHAPE))),
+            nn.Sigmoid(),
+        ).to(device)
     counts_act = expert[supervised].bincount(minlength=len(cat)).float().clamp_min(1)
     rare = (counts_act.max() / counts_act).pow(0.175).clamp_max(4)
     bits = actor.basis[:, 6:]
@@ -234,6 +258,7 @@ def train(
         "mirrored_training": mirror,
         "teacher_switch_weight": switch_weight,
         "teacher_agreement_seconds": agreement_seconds,
+        "future_box_loss_weight": forecast_weight,
         "supervised_fraction": len(supervised) / len(s),
         "train_switch_fraction": switch.float().mean().item(),
         "bc_steps": bc_steps,
@@ -282,15 +307,35 @@ def train(
         actor.train(was_training)
         print(name, report[name + "_holdout_exact"], flush=True)
 
-    opt = torch.optim.AdamW(actor.parameters(), lr=0.00065)
+    def forecast_loss(encoded: Tensor, rows: Tensor) -> Tensor:
+        if forecast_head is None:
+            return encoded.new_zeros(())
+        target = data["train"][8][rows]
+        known = target.isfinite()
+        target = target.nan_to_num()
+        weights = known * (1 + 4 * target)
+        return (
+            (forecast_head(encoded) - target).square() * weights
+        ).sum() / weights.sum().clamp_min(1)
+
+    parameters = list(actor.parameters())
+    if forecast_head is not None:
+        parameters.extend(forecast_head.parameters())
+    opt = torch.optim.AdamW(parameters, lr=0.00065)
     for step in range(bc_steps):
         i = supervised[indices(len(supervised))]
-        logits, factor = actor(s[i])
+        encoded = actor.encode(s[i])
+        logits, factor = actor.heads(encoded)
         w = rare[expert[i]] * corrective_weight[i]
         loss = (
             F.cross_entropy(logits, expert[i], reduction="none") * w
         ).sum() / w.sum()
-        update(opt, loss + 0.30 * factor_loss(factor, expert[i]))
+        update(
+            opt,
+            loss
+            + 0.30 * factor_loss(factor, expert[i])
+            + forecast_weight * forecast_loss(encoded, i),
+        )
         if (step + 1) % 2000 == 0:
             print("teacher", step + 1, flush=True)
     save("bc")
@@ -305,7 +350,7 @@ def train(
             F.smooth_l1_loss(delta, ns[i][:, PHYSICAL] - s[i][:, PHYSICAL], beta=0.025),
         )
     world.eval().requires_grad_(False)
-    hs, hy, _, hn, _, hd, hg, _ = data["holdout"]
+    hs, hy, _, hn, _, hd, hg, _ = data["holdout"][:8]
     vi = ((hy >= 0) & hg & (hd > 0)).nonzero().flatten()[::4]
     with torch.no_grad():
         delta = torch.cat(
@@ -327,7 +372,7 @@ def train(
     val = mlp(WIDTH, 1).to(device)
     qopt = torch.optim.AdamW([*q1.parameters(), *q2.parameters()], lr=0.00035)
     vopt = torch.optim.AdamW(val.parameters(), lr=0.00035)
-    aopt = torch.optim.AdamW(actor.parameters(), lr=0.00009)
+    aopt = torch.optim.AdamW(parameters, lr=0.00009)
     for step in range(rl_steps):
         i = valid[indices(len(valid))]
         x, u, observed = s[i], y[i], ns[i]
@@ -357,7 +402,8 @@ def train(
             aw = (6 * (old - v.detach()).clamp(-1, 1)).exp().clamp_max(12) * rare[u]
             prior = ref(x)[0].softmax(1)
         if step >= min(1000, rl_steps // 4):
-            logits, factor = actor(x)
+            encoded = actor.encode(x)
+            logits, factor = actor.heads(encoded)
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
             if agreement_seconds > 0:
                 j = supervised[indices(len(supervised))]
@@ -374,11 +420,22 @@ def train(
                 loss
                 + 0.7 * F.kl_div(logits.log_softmax(1), prior, reduction="batchmean")
                 + 0.85 * supervision
-                + 0.2 * factor_loss(factor, lab),
+                + 0.2 * factor_loss(factor, lab)
+                + forecast_weight * forecast_loss(encoded, i),
             )
         if (step + 1) % 2000 == 0:
             print("iql", step + 1, flush=True)
     save("world_iql")
+    if forecast_head is not None:
+        with torch.no_grad():
+            estimated = torch.cat(
+                [forecast_head(actor.encode(x)) for x in hs.split(1024)]
+            )
+            target = data["holdout"][8]
+            report["future_box_holdout_mae"] = (
+                (estimated - target).abs().nanmean().item()
+            )
+            report["future_box_zero_baseline_mae"] = target.abs().nanmean().item()
     torch.save(
         {
             "actor": actor.cpu().state_dict(),
@@ -387,6 +444,11 @@ def train(
             "q1": q1.cpu().state_dict(),
             "q2": q2.cpu().state_dict(),
             "value": val.cpu().state_dict(),
+            **(
+                {"future_boxes": forecast_head.cpu().state_dict()}
+                if forecast_head is not None
+                else {}
+            ),
         },
         output / "learner.pt",
     )
@@ -408,6 +470,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-mirror", action="store_true")
     parser.add_argument("--switch-weight", type=float, default=1.0)
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
+    parser.add_argument("--forecast-weight", type=float, default=0.0)
     args = parser.parse_args()
     if min(args.bc_steps, args.world_steps, args.rl_steps, args.batch) < 1:
         parser.error("Positive budgets required")
@@ -418,6 +481,8 @@ if __name__ == "__main__":
         or args.teacher_agreement_seconds < 0
     ):
         parser.error("Teacher agreement duration must be finite and nonnegative")
+    if not np.isfinite(args.forecast_weight) or args.forecast_weight < 0:
+        parser.error("Forecast weight must be finite and nonnegative")
     train(
         args.data,
         args.output,
@@ -429,4 +494,5 @@ if __name__ == "__main__":
         not args.no_mirror,
         args.switch_weight,
         args.teacher_agreement_seconds,
+        args.forecast_weight,
     )

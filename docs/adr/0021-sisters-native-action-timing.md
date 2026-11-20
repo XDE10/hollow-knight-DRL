@@ -18,6 +18,8 @@ An optional supervised sampling filter, `--teacher-agreement-seconds`, addresses
 
 ## Reproduction and evaluation
 
+An optional auxiliary loss trains the policy encoder to anticipate where enemies will be. `--forecast-weight` enables a training head that predicts proximity to observed body and disc collision boxes 0.12, 0.32 and 0.60 game seconds later, at nine locations around the Knight's current horizontal position. Targets are computed separately within each recorded fight. Missing future frames have zero loss weight. These are forecasts under the recorded behavior. The one-step action-conditioned dynamics model still supplies the IQL bootstrap. Only the current observation and earlier executed keys enter the exported actor; the future-box head is saved with the learner for inspection.
+
 Collect development fights using `scripts/collect_sisters_native_labels.py` with the native timing recorder enabled. Pack the resulting manifest paths into a new archive and extract it before training.
 
 ```sh
