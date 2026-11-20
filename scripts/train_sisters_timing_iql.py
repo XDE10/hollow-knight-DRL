@@ -219,6 +219,12 @@ def no_hit_rewards(
     return adjusted
 
 
+def eligible_teacher_fight(won: bool, times: np.ndarray, minimum_hz: float) -> bool:
+    if minimum_hz == 0:
+        return True
+    return bool(won and len(times) > 1 and len(times) - 1 >= minimum_hz * (times[-1] - times[0]))
+
+
 def build_data(
     directory: Path,
     device: str,
@@ -230,6 +236,7 @@ def build_data(
     plans: bool = False,
     opening_only: bool = False,
     no_hit_cost: float = 0.0,
+    teacher_win_min_hz: float = 0.0,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -294,6 +301,10 @@ def build_data(
             selected = s[:, 23] <= 0.5
         if (trio_only or opening_only) and not selected.any():
             continue
+        if teacher_win_min_hz and not eligible_teacher_fight(game["won"], t[selected], teacher_win_min_hz):
+            # Only the teacher/plan labels are excluded. Actual rewards and
+            # actions from lost fights still train the world, value and critic.
+            agreement.fill(-np.inf)
         if forecast:
             fields[game["split"]].append(future_occupancy(t, s[:, :WIDTH])[selected])
         if plans:
@@ -466,6 +477,7 @@ def train(
     plan_weight: float = 0.0,
     late_path: Path | None = None,
     no_hit_cost: float = 0.0,
+    teacher_win_min_hz: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -488,11 +500,14 @@ def train(
         plan_weight > 0,
         late is not None,
         no_hit_cost,
+        teacher_win_min_hz,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
     s, y, expert, ns, r, d, good, age = data["train"][:8]
     supervised = (age >= agreement_seconds).nonzero().flatten()
+    if not len(supervised):
+        raise ValueError("No teacher decisions meet the configured fight and agreement criteria")
     switch = (cat[expert] != previous_commands(s)).any(1)
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
@@ -554,6 +569,7 @@ def train(
         "motion_history_lags": list(HISTORY_LAGS) if history else [],
         "teacher_plan_loss_weight": plan_weight,
         "no_hit_cost": no_hit_cost,
+        "teacher_win_min_hz": teacher_win_min_hz,
         "late_sha256": hashlib.sha256(late).hexdigest() if late is not None else None,
         "teacher_plan_train_rows": len(plan_rows) if plan_weight > 0 else 0,
         "hardware": torch.cuda.get_device_name() if device == "cuda" else "CPU",
@@ -718,7 +734,7 @@ def train(
             encoded = actor.encode(x)
             logits, factor = actor.heads(encoded)
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
-            if agreement_seconds > 0:
+            if agreement_seconds > 0 or teacher_win_min_hz > 0:
                 j = supervised[indices(len(supervised))]
                 supervised_logits, factor = actor(s[j])
             else:
@@ -828,6 +844,12 @@ if __name__ == "__main__":
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     parser.add_argument("--forecast-weight", type=float, default=0.0)
     parser.add_argument(
+        "--teacher-win-min-hz",
+        type=float,
+        default=0.0,
+        help="Fit teacher labels on full victories meeting this decision cadence; retain all real RL transitions.",
+    )
+    parser.add_argument(
         "--no-hit-cost",
         type=float,
         default=0.0,
@@ -883,6 +905,8 @@ if __name__ == "__main__":
         parser.error("Plan weight must be finite and nonnegative")
     if not np.isfinite(args.no_hit_cost) or args.no_hit_cost < 0:
         parser.error("No-hit cost must be finite and nonnegative")
+    if not np.isfinite(args.teacher_win_min_hz) or args.teacher_win_min_hz < 0:
+        parser.error("Teacher decision cadence must be finite and nonnegative")
     train(
         args.data,
         args.output,
@@ -902,4 +926,5 @@ if __name__ == "__main__":
         args.plan_weight,
         args.late_policy,
         args.no_hit_cost,
+        args.teacher_win_min_hz,
     )

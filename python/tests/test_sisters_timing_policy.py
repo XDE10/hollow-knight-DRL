@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import importlib
+import json
 import struct
 from pathlib import Path
 
@@ -53,6 +55,33 @@ def test_no_hit_reward_counts_contacts_even_after_healing(monkeypatch) -> None:
     events[1, 2], events[2, 5], events[3, 3] = 1, 1, 2
     np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 2), [0, -4, 0, -4])
     np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 0), base)
+
+
+def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    records = []
+    for i, (won, dt) in enumerate(((True, .04), (False, .04), (True, .08), (True, .04))):
+        t = np.arange(5, dtype="f4") * dt
+        state = np.zeros((len(t), mod.WIDTH), dtype="f4")
+        state[:, 23] = 1
+        keys = np.zeros((len(t), 3), dtype="i2")
+        events = np.zeros((len(t), 8), dtype="f4")
+        events[1, 1] = int(not won)
+        path = tmp_path / f"test-{i}.npz"
+        np.savez(path, timing_state=state, control_time=t, controls=keys, teacher_controls=keys,
+                 time=t, elapsed_ticks=np.full(len(t), 2), events=events)
+        records.append({"file": path.name, "source": f"native-development/test-{i}",
+                        "won": won, "split": "holdout" if i == 3 else "train",
+                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+    (tmp_path / "manifest.json").write_text(json.dumps(records))
+    data, _, stats = mod.build_data(
+        tmp_path, "cpu", mirror=False, trio_only=True, teacher_win_min_hz=23
+    )
+    assert stats["train"] == {"fights": 3, "decisions": 15}
+    assert (data["train"][7] >= 0).tolist() == [True] * 5 + [False] * 10
+    assert data["train"][4][5:10].min() < 0
+    assert data["train"][6][5:10].any()
 
 
 def test_motion_history_masks_gaps_and_only_reads_past(monkeypatch) -> None:

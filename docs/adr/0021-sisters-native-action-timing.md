@@ -8,6 +8,8 @@ The actor shares one learned encoder across Sisters and another across discs. Ma
 
 ## Learning
 
+`--teacher-win-min-hz` restricts imitation and movement-ranking labels to completed development victories whose measured input cadence meets the requested threshold in the fitted phase. Rate uses the elapsed game time between the first and last native decision. Failed games and slower fights still supply their executed actions, real damage, terminal outcomes and next observations to the world model and offline IQL updates. Zero uses all eligible teacher labels.
+
 The optional `--no-hit-cost` training objective keeps the attack, death and victory rewards. It charges an additional cost for each actual mask lost and once for the first damaging event. A live arena completion with continuously observed full health and zero recorded damage earns twice that cost. Healing cannot restore eligibility for the clean-finish bonus. These terms are computed on the full development fight before selecting a phase. The independent evaluator counts the actual damage events and complete wins.
 
 The opening specialist uses `--late-policy` to keep the deployed second-phase network byte for byte. Its subtask ends on the first observation of a 750-HP Sister. In addition to normal damage, death and attack rewards, it receives 1.25 per net mask gained and 1.5 per full soul meter gained, with signed changes for losses. Reaching the trio awards five plus half a point per remaining mask and up to 1.5 for remaining soul. Deaths before the trio remain terminal losses. The full-game evaluator still requires the Knight to survive to arena completion.
