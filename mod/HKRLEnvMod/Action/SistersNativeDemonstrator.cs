@@ -19,6 +19,7 @@ namespace HKRLEnvMod.Action
         private readonly double? _teacherRatio;
         private readonly bool _recordTiming;
         private readonly bool _recordPlans;
+        private readonly SistersOnlineChoices? _online;
 
         private SistersNativeDemonstrator(string folder, SistersTactics teacher)
         {
@@ -38,6 +39,12 @@ namespace HKRLEnvMod.Action
             int seed;
             if (!int.TryParse(Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_SEED"), out seed)) seed = 4913;
             _random = new Random(seed);
+            if (Environment.GetEnvironmentVariable("HKRL_NATIVE_ONLINE_CHOICES") == "1")
+            {
+                if (_teacherRatio != 0 || !_recordTiming)
+                    throw new InvalidOperationException("Online sampling requires a timing trace and zero teacher control");
+                _online = new SistersOnlineChoices(folder, seed);
+            }
         }
 
         internal static SistersNativeDemonstrator? FromEnvironment()
@@ -57,14 +64,18 @@ namespace HKRLEnvMod.Action
             _tape.Write(_recordTiming ? 0x32474144 : 0x31474144);
             _tape.Write(episode);
             _until=-1;
+            _online?.Reset(episode);
             _episodes++;
         }
 
         internal bool RecordsTiming => _recordTiming;
 
-        internal PrimitiveInput Label(ObservationSnapshot obs, ulong tick, float[] raw, PrimitiveInput learner, float[]? timing)
+        internal PrimitiveInput Label(ObservationSnapshot obs, ulong tick, float[] raw, PrimitiveInput learner, float[]? timing,
+            NativeSistersNetwork active)
         {
             float now=obs.Global.TimeInEpisode;
+            if (_online != null && timing![SistersTimingState.TrioFlag] > .5f)
+                learner = _online.Choose(now, active, learner);
             _teacher.Decide(obs,tick);
             var label=_teacher.Input;
             if (now>=_until)
@@ -92,7 +103,7 @@ namespace HKRLEnvMod.Action
             writer.Write((float)a.Buttons);
         }
 
-        internal void Flush() { _tape?.Flush(); if (_recordPlans) _teacher.Flush(); }
-        public void Dispose() { _tape?.Dispose(); _teacher.Dispose(); }
+        internal void Flush() { _tape?.Flush(); _online?.Flush(); if (_recordPlans) _teacher.Flush(); }
+        public void Dispose() { _tape?.Dispose(); _online?.Dispose(); _teacher.Dispose(); }
     }
 }

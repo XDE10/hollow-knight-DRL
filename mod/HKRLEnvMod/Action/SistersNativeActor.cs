@@ -85,7 +85,7 @@ namespace HKRLEnvMod.Action
             var active = _trioNet != null && state[SistersTimingState.TrioFlag] > .5f ? _trioNet : _net;
             if (active != _trioNet) _trioNet?.Remember(state, obs.Global.TimeInEpisode);
             Input = active.Choose(state, obs.Global.TimeInEpisode);
-            if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values);
+            if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values, active);
             _timing?.Commit(Input, obs.Global.TimeInEpisode);
             if (!_net.UsesTiming) _net.Commit(Input, obs.Global.TimeInEpisode);
             _count++;
@@ -123,6 +123,7 @@ namespace HKRLEnvMod.Action
         private readonly float[] _scores, _pulseAt = new float[6], _holdAt = new float[3];
         private uint _previous;
         private int _index;
+        private int _best;
 
         internal static NativeSistersNetwork Load(byte[] bytes, out NativeSistersNetwork? trio)
         {
@@ -201,8 +202,28 @@ namespace HKRLEnvMod.Action
             Dense(_z,_w[4],_w[5],_scores,false);
             int best=0;
             for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
+            _best = best;
             _index++;
             return _actions[best];
+        }
+
+        internal PrimitiveInput Command(int index) => _actions[index];
+
+        internal bool MovementPair(out int first, out int other, out float gap)
+        {
+            first = _best;
+            other = -1;
+            var greedy = _actions[first];
+            for (int i = 0; i < _actions.Length; i++)
+            {
+                var candidate = _actions[i];
+                if (candidate.MovementX == greedy.MovementX &&
+                    ((candidate.Buttons & 3) != 0) == ((greedy.Buttons & 3) != 0) &&
+                    (candidate.Buttons & 4) == (greedy.Buttons & 4)) continue;
+                if (other < 0 || _scores[i] > _scores[other]) other = i;
+            }
+            gap = other < 0 ? float.PositiveInfinity : _scores[first] - _scores[other];
+            return other >= 0;
         }
 
         internal void Remember(float[] raw, float time) => _motionHistory?.Remember(raw, time);

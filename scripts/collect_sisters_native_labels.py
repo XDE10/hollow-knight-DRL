@@ -136,6 +136,17 @@ def main() -> None:
                     from sisters_plan_labels import read_plans
 
                     plans = read_plans(tape_dir / f"{eid}.plans", eid, rows[:, 0])
+                online = {}
+                if envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1":
+                    from sisters_online_choices import late_catalogue, read_choices
+
+                    if not timing or scale != 1 or teacher.any():
+                        raise ValueError("Randomized training requires original-speed student control")
+                    online = read_choices(
+                        tape_dir / f"{eid}.choices", eid, rows[:, 0], rows[:, 67:],
+                        applied, late_catalogue(args.checkpoint.read_bytes()),
+                    )
+                    result.update(behavior_policy_sha256=sha, randomized_choices=len(online["choice_rows"]))
                 np.savez_compressed(
                     args.output / file,
                     control_time=rows[:, 0],
@@ -147,6 +158,7 @@ def main() -> None:
                     elapsed_ticks=np.array(elapsed, "i2"),
                     **({"timing_state": rows[:, 67:]} if timing else {}),
                     **plans,
+                    **online,
                 )
                 result.update(
                     seed=args.seed + i,
@@ -162,6 +174,7 @@ def main() -> None:
                         "file": file,
                         "split": "train",
                         "won": result["win"],
+                        **({"behavior_policy_sha256": sha} if online else {}),
                     }
                 )
                 (args.output / "manifest.json").write_text(

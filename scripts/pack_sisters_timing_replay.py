@@ -25,6 +25,7 @@ def pack(
                 seed in seen
                 or game["source"] != f"native-development/{seed}"
                 or meta["win"] != game["won"]
+                or game.get("behavior_policy_sha256") != meta.get("behavior_policy_sha256")
             ):
                 raise ValueError("Repeated seed or unmatched development record")
             seen.add(seed)
@@ -63,6 +64,13 @@ def pack(
                     ):
                         raise ValueError(f"Incomplete movement alternatives in {path}")
                 buf = io.BytesIO()
+                online_keys: tuple[str, ...] = ()
+                if game.get("behavior_policy_sha256"):
+                    from sisters_online_choices import CHOICE_KEYS
+
+                    online_keys = CHOICE_KEYS
+                    if not all(k in raw for k in online_keys):
+                        raise ValueError(f"Incomplete online behavior record in {path}")
                 np.savez_compressed(
                     buf,
                     **{
@@ -76,6 +84,7 @@ def pack(
                             "events",
                             "elapsed_ticks",
                             *plan_keys,
+                            *online_keys,
                         )
                     },
                 )
@@ -88,6 +97,7 @@ def pack(
                     "file": name,
                     "split": "holdout" if (seed % 1000) % 6 == 1 else "train",
                     "won": game["won"],
+                    **({"behavior_policy_sha256": game["behavior_policy_sha256"]} if online_keys else {}),
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
