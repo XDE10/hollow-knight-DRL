@@ -78,12 +78,13 @@ namespace HKRLEnvMod.Action
                 _timing = _net.UsesTiming || _demonstrator?.RecordsTiming == true ? new SistersTimingState() : null;
             }
             _tick = tick;
-            SistersPolicyHead.WriteFeatures(obs, _raw, _boss, _disc);
+            if (!_net.UsesTiming || _demonstrator != null)
+                SistersPolicyHead.WriteFeatures(obs, _raw, _boss, _disc);
             _timing?.Observe(obs);
             Input = _net.Choose(_net.UsesTiming ? _timing!.Values : _raw, obs.Global.TimeInEpisode);
             if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values);
             _timing?.Commit(Input, obs.Global.TimeInEpisode);
-            _net.Commit(Input, obs.Global.TimeInEpisode);
+            if (!_net.UsesTiming) _net.Commit(Input, obs.Global.TimeInEpisode);
             _count++;
             if ((Input.Buttons & 8) != 0) _attack++;
             if ((Input.Buttons & 16) != 0) _cast++;

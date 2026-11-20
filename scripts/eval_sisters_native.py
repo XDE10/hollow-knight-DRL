@@ -23,6 +23,14 @@ def main() -> None:
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--checkpoint", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument(
+        "--expected-mod-sha256", help="Verify the staged game mod before this cohort."
+    )
+    p.add_argument(
+        "--restart-after-win",
+        action="store_true",
+        help="Return after saving a win so a supervisor can reopen the clean save.",
+    )
     args = p.parse_args()
     if args.episodes < 1:
         p.error("At least one episode required")
@@ -50,6 +58,20 @@ def main() -> None:
         raise RuntimeError("Wrong model or damage setting")
     ledger = Path(environment["HKRL_NATIVE_ACTOR_LEDGER"])
     digest = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
+    mod_hash = None
+    if args.expected_mod_sha256:
+        game_root = Path(process.exe()).parent
+        mod = (
+            game_root
+            / "hollow_knight_Data"
+            / "Managed"
+            / "Mods"
+            / "HKRLEnvMod"
+            / "HKRLEnvMod.dll"
+        )
+        mod_hash = hashlib.sha256(mod.read_bytes()).hexdigest()
+        if mod_hash != args.expected_mod_sha256.lower():
+            raise RuntimeError("The game mod differs from the staged evaluation build")
     args.output.mkdir(parents=True, exist_ok=False)
     task = load_task_config("configs/experiments/sisters_counter.yaml")
     task.action.action_repeat = 5
@@ -73,6 +95,7 @@ def main() -> None:
                 result.update(
                     seed=args.seed + i,
                     policy_sha256=sha,
+                    mod_sha256=mod_hash,
                     decisions=int(n),
                     attack=int(attack),
                     cast=int(cast),
@@ -88,6 +111,8 @@ def main() -> None:
                     json.dumps(result, indent=2) + "\n"
                 )
                 print(json.dumps(result), flush=True)
+                if result["win"] and args.restart_after_win:
+                    break
                 if result["win"] and i + 1 < args.episodes:
                     time.sleep(8)
         finally:
