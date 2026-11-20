@@ -87,3 +87,27 @@ def test_future_box_labels_respect_family_position_and_episode_end(monkeypatch) 
     assert not field[0, :, 1].any()
     assert not field[0, 1:].any()
     assert np.isnan(field[-1]).all()
+
+
+def test_phase_bundle_preserves_the_opener_and_maps_action_rows(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    old = torch.tensor([[-1, 0, 8], [0, 1, 0], [1, 0, 2]])
+    new = torch.tensor([[0, 1, 0], [1, 1, 128], [-1, 0, 8]])
+    teacher = mod.TimingPolicy(old)
+    student = mod.TimingPolicy(new)
+    learner = tmp_path / "previous.pt"
+    torch.save({"actor": teacher.state_dict(), "catalogue": old}, learner)
+    assert mod.initialize_actor(student, new.numpy(), learner) == 2
+    torch.testing.assert_close(student.out.weight[0], teacher.out.weight[1])
+    torch.testing.assert_close(student.out.bias[2], teacher.out.bias[0])
+    torch.testing.assert_close(student.basis, mod.TimingPolicy(new).basis)
+    paths = [tmp_path / "opener.bin", tmp_path / "trio.bin"]
+    for net, cat, path in zip((teacher, student), (old, new), paths, strict=True):
+        mod.save_native(net, cat.numpy(), path)
+    a, b = (p.read_bytes() for p in paths)
+    pair = mod.phase_checkpoint(a, b)
+    assert struct.unpack_from("<3i", pair) == (0x334C5149, len(a), len(b))
+    assert pair[12 : 12 + len(a)] == a and pair[12 + len(a) :] == b

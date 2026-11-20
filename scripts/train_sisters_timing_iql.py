@@ -112,7 +112,11 @@ def teacher_history_age(
 
 
 def build_data(
-    directory: Path, device: str, mirror: bool = True, forecast: bool = False
+    directory: Path,
+    device: str,
+    mirror: bool = True,
+    forecast: bool = False,
+    trio_only: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -150,10 +154,16 @@ def build_data(
         next_state = np.r_[s[1:], s[-1:]]
         reward = ev @ REWARD_WEIGHTS
         agreement = teacher_history_age(t, act, teacher)
+        selected = s[:, 23] > 0.5 if trio_only else slice(None)
+        if trio_only and not selected.any():
+            continue
         if forecast:
-            fields[game["split"]].append(future_occupancy(t, s))
+            fields[game["split"]].append(future_occupancy(t, s)[selected])
         parts[game["split"]].append(
-            (s, act, teacher, next_state, reward, d, good, agreement)
+            tuple(
+                x[selected]
+                for x in (s, act, teacher, next_state, reward, d, good, agreement)
+            )
         )
     if any(not games for games in parts.values()):
         raise ValueError("Need both fight splits")
@@ -209,6 +219,36 @@ def previous_commands(states: Tensor) -> Tensor:
     return torch.cat((states[:, CONTROL : CONTROL + 2].long(), flags[:, None]), 1)
 
 
+def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
+    for component in (opener, trio):
+        if len(component) < 20 or struct.unpack_from("<4i", component) != (
+            0x324C5149,
+            WIDTH,
+            256,
+            192,
+        ):
+            raise ValueError("Expected a native timing actor for each battle phase")
+    return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
+
+
+def initialize_actor(actor: TimingPolicy, commands: np.ndarray, path: Path) -> int:
+    saved = torch.load(path, map_location="cpu", weights_only=True)
+    source = TimingPolicy(saved["catalogue"])
+    source.load_state_dict(saved["actor"])
+    for name in ("boss", "disc", "dense", "factors"):
+        getattr(actor, name).load_state_dict(getattr(source, name).state_dict())
+    previous = {tuple(row): j for j, row in enumerate(saved["catalogue"].tolist())}
+    matched = 0
+    with torch.no_grad():
+        for j, cmd in enumerate(commands):
+            index = previous.get(tuple(cmd))
+            if index is not None:
+                actor.out.weight[j].copy_(source.out.weight[index])
+                actor.out.bias[j].copy_(source.out.bias[index])
+                matched += 1
+    return matched
+
+
 def train(
     data_dir: Path,
     output: Path,
@@ -221,12 +261,19 @@ def train(
     switch_weight: float = 1.0,
     agreement_seconds: float = 0.0,
     forecast_weight: float = 0.0,
+    opener_path: Path | None = None,
+    initial_learner: Path | None = None,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_float32_matmul_precision("high")
-    data, commands, counts = build_data(data_dir, device, mirror, forecast_weight > 0)
+    opener = opener_path.read_bytes() if opener_path is not None else None
+    if opener is not None:
+        phase_checkpoint(opener, opener)
+    data, commands, counts = build_data(
+        data_dir, device, mirror, forecast_weight > 0, opener is not None
+    )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
     s, y, expert, ns, r, d, good, age = data["train"][:8]
@@ -236,6 +283,11 @@ def train(
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
     actor = TimingPolicy(cat).to(device)
+    inherited = (
+        initialize_actor(actor, commands, initial_learner)
+        if initial_learner is not None
+        else 0
+    )
     forecast_head = None
     if forecast_weight > 0:
         forecast_head = nn.Sequential(
@@ -259,6 +311,15 @@ def train(
         "teacher_switch_weight": switch_weight,
         "teacher_agreement_seconds": agreement_seconds,
         "future_box_loss_weight": forecast_weight,
+        "opener_sha256": hashlib.sha256(opener).hexdigest()
+        if opener is not None
+        else None,
+        "initial_learner_sha256": hashlib.sha256(
+            initial_learner.read_bytes()
+        ).hexdigest()
+        if initial_learner
+        else None,
+        "inherited_action_rows": inherited,
         "supervised_fraction": len(supervised) / len(s),
         "train_switch_fraction": switch.float().mean().item(),
         "bc_steps": bc_steps,
@@ -303,7 +364,10 @@ def train(
                         (pred[selected] == hl[selected]).float().mean().item()
                     )
             report["holdout_label_coverage"] = known.float().mean().item()
-            save_native(actor, commands, output / (name + ".bin"))
+            path = output / (name + ".bin")
+            save_native(actor, commands, path)
+            if opener is not None:
+                path.write_bytes(phase_checkpoint(opener, path.read_bytes()))
         actor.train(was_training)
         print(name, report[name + "_holdout_exact"], flush=True)
 
@@ -444,6 +508,7 @@ def train(
             "q1": q1.cpu().state_dict(),
             "q2": q2.cpu().state_dict(),
             "value": val.cpu().state_dict(),
+            **({"opener_native": opener} if opener is not None else {}),
             **(
                 {"future_boxes": forecast_head.cpu().state_dict()}
                 if forecast_head is not None
@@ -471,6 +536,16 @@ if __name__ == "__main__":
     parser.add_argument("--switch-weight", type=float, default=1.0)
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     parser.add_argument("--forecast-weight", type=float, default=0.0)
+    parser.add_argument(
+        "--opener-policy",
+        type=Path,
+        help="Retain this frozen timing actor for the opener; fit only on trio states.",
+    )
+    parser.add_argument(
+        "--initial-learner",
+        type=Path,
+        help="Initialize the learned actor from a prior timing checkpoint.",
+    )
     args = parser.parse_args()
     if min(args.bc_steps, args.world_steps, args.rl_steps, args.batch) < 1:
         parser.error("Positive budgets required")
@@ -495,4 +570,6 @@ if __name__ == "__main__":
         args.switch_weight,
         args.teacher_agreement_seconds,
         args.forecast_weight,
+        args.opener_policy,
+        args.initial_learner,
     )

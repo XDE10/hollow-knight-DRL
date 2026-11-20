@@ -9,6 +9,7 @@ namespace HKRLEnvMod.Action
     internal sealed class SistersTimingState
     {
         internal const int Hero = 24, Boss = 36, Disc = 14, Width = 192;
+        internal const int TrioFlag = 23;
         private static readonly int[] States = {
             289970528, 291868896, -1523407744, -1376807296, -737267072,
             -1374908928, 1928179328, 907425216, -1403342080, 739257600,
@@ -122,7 +123,7 @@ namespace HKRLEnvMod.Action
                     v[k+13] = Limit((e.VelY - p.VelY) / 20);
                 }
             }
-            v[23] = _trio ? 1 : 0;
+            v[TrioFlag] = _trio ? 1 : 0;
             int c = Hero + 3 * Boss + 2 * Disc;
             v[c] = _prior.MovementX; v[c+1] = _prior.AimY;
             v[c+2] = Age(now, _moveAt); v[c+3] = Age(now, _aimAt);

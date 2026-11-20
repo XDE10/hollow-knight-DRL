@@ -26,6 +26,7 @@ namespace HKRLEnvMod.Action
         private readonly float[] _boss = new float[3];
         private readonly float[] _disc = new float[2];
         private NativeSistersNetwork? _net;
+        private NativeSistersNetwork? _trioNet;
         private SistersTimingState? _timing;
         private ulong _episode, _tick, _commits;
         private int _count, _attack, _cast, _dash, _art;
@@ -70,8 +71,7 @@ namespace HKRLEnvMod.Action
                 var bytes = File.ReadAllBytes(_path);
                 using (var sha = SHA256.Create())
                     _digest = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
-                using (var reader = new BinaryReader(new MemoryStream(bytes)))
-                    _net = new NativeSistersNetwork(reader);
+                _net = NativeSistersNetwork.Load(bytes, out _trioNet);
                 _episode = obs.Global.EpisodeId;
                 _count = _attack = _cast = _dash = _art = 0;
                 _demonstrator?.Reset(_episode);
@@ -81,7 +81,9 @@ namespace HKRLEnvMod.Action
             if (!_net.UsesTiming || _demonstrator != null)
                 SistersPolicyHead.WriteFeatures(obs, _raw, _boss, _disc);
             _timing?.Observe(obs);
-            Input = _net.Choose(_net.UsesTiming ? _timing!.Values : _raw, obs.Global.TimeInEpisode);
+            var state = _net.UsesTiming ? _timing!.Values : _raw;
+            var active = _trioNet != null && state[SistersTimingState.TrioFlag] > .5f ? _trioNet : _net;
+            Input = active.Choose(state, obs.Global.TimeInEpisode);
             if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values);
             _timing?.Commit(Input, obs.Global.TimeInEpisode);
             if (!_net.UsesTiming) _net.Commit(Input, obs.Global.TimeInEpisode);
@@ -119,6 +121,29 @@ namespace HKRLEnvMod.Action
         private readonly float[] _scores, _pulseAt = new float[6], _holdAt = new float[3];
         private uint _previous;
         private int _index;
+
+        internal static NativeSistersNetwork Load(byte[] bytes, out NativeSistersNetwork? trio)
+        {
+            trio = null;
+            using var source = new MemoryStream(bytes, false);
+            using var reader = new BinaryReader(source);
+            int magic = reader.ReadInt32();
+            if (magic != 0x334C5149)
+            {
+                source.Position = 0;
+                return new NativeSistersNetwork(reader);
+            }
+            int firstSize = reader.ReadInt32(), trioSize = reader.ReadInt32();
+            if (firstSize < 20 || trioSize < 20 || (long)firstSize + trioSize != source.Length - source.Position)
+                throw new InvalidDataException("Invalid Sisters phase checkpoint lengths");
+            using var firstReader = new BinaryReader(new MemoryStream(reader.ReadBytes(firstSize), false));
+            using var trioReader = new BinaryReader(new MemoryStream(reader.ReadBytes(trioSize), false));
+            var opener = new NativeSistersNetwork(firstReader);
+            trio = new NativeSistersNetwork(trioReader);
+            if (!opener.UsesTiming || !trio.UsesTiming)
+                throw new InvalidDataException("Both phase policies require the timing observations");
+            return opener;
+        }
 
         internal NativeSistersNetwork(BinaryReader reader)
         {

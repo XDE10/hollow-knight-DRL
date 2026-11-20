@@ -22,6 +22,8 @@ An optional auxiliary loss trains the policy encoder to anticipate where enemies
 
 Collect development fights using `scripts/collect_sisters_native_labels.py` with the native timing recorder enabled. Pack the resulting manifest paths into a new archive and extract it before training.
 
+For phase-specific training, `--opener-policy` accepts a frozen 192-feature actor. The trainer selects transitions from the first observed second-phase Sister onward for both fitting and held-out metrics. `--initial-learner` optionally initializes the student encoder and heads from an earlier checkpoint, matching joint-action rows by their actual movement, aim and button tuple. Both actors are embedded in the exported file. The mod uses the opening actor until it observes a second-phase Sister, then uses the late actor for the rest of that fight. Each network selects every button for its phase. The opening actor's exact binary and its checksum are preserved, so a change to the late policy cannot change the opening policy weights.
+
 ```sh
 python scripts/pack_sisters_timing_replay.py --manifests "$MANIFEST" --output development.zip
 python -m zipfile -e development.zip timing-data
