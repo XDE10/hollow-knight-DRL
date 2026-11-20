@@ -8,7 +8,9 @@
 
 本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
-战斗姐妹的冻结世界模型策略在 100 场原速、原伤实机评估中通关 99 场，7 场无伤，踩刺掉血共 0 格。在配置好的 Windows 项目里双击 [观看世界模型通关.vbs](观看世界模型通关.vbs) 即可观看一场。[模型、Colab 教师权重与逐场记录](models/sisters-world-v2/README.md)。
+《深度强化学习》课程主线使用实体世界模型和 PPO。Actor 直接控制骑士的移动、攻击与施法，critic 学习折扣回报。Colab L4 训练记录、三个检查点的对照设计和实机入口见[课程模型](models/sisters-course-ac/README.md)。
+
+早期工程对照结合了手写战术规划器、移动价值网络和蒸馏 GRU。在 100 场原速、原伤实机评估中，这套混合控制器通关 99 场、7 场无伤。已配置好的 Windows 项目可双击[观看混合控制器演示](观看世界模型通关.vbs)。[原版模型与逐场记录](models/sisters-world-v2/README.md)
 
 战斗姐妹 3 号槽的避刺与反击实测、三组模型对照和复现命令见[训练记录](docs/sisters_survival.md)。
 

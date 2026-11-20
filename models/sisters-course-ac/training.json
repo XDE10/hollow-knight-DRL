@@ -1,0 +1,53 @@
+{
+  "config": {
+    "data": "/content/course-data",
+    "encoder": "/content/course-encoder.pt",
+    "output": "/content/course-result",
+    "device": "cuda",
+    "world_steps": 1500,
+    "warm_steps": 1000,
+    "updates": 150,
+    "horizon": 5,
+    "batch": 192
+  },
+  "hardware": "NVIDIA L4",
+  "episodes": {
+    "train": 68,
+    "holdout": 23
+  },
+  "heldout_model": [
+    {
+      "1": {
+        "mae": 0.2289520502090454,
+        "unchanged_mae": 0.27979475259780884
+      },
+      "5": {
+        "mae": 0.4174576997756958,
+        "unchanged_mae": 0.5889173746109009
+      }
+    },
+    {
+      "1": {
+        "mae": 0.2353137582540512,
+        "unchanged_mae": 0.27979475259780884
+      },
+      "5": {
+        "mae": 0.46156761050224304,
+        "unchanged_mae": 0.5889173746109009
+      }
+    },
+    {
+      "1": {
+        "mae": 0.23167292773723602,
+        "unchanged_mae": 0.27979475259780884
+      },
+      "5": {
+        "mae": 0.4296291768550873,
+        "unchanged_mae": 0.5889173746109009
+      }
+    }
+  ],
+  "imagined_policy_steps": 144000,
+  "heldout_actor_kl": 0.21683700382709503,
+  "manifest_sha256": "75c4c7960bc1ffb4f8944883874d3b9ed72f3c1b33152476c403f73c1d7cca81"
+}
