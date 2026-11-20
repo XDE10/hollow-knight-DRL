@@ -26,7 +26,7 @@ namespace HKRLEnvMod.Env
         private readonly Heartbeat _heartbeat;
         private readonly ObservationCollector _observations;
         private readonly global::HKRLEnvMod.Debug.HumanDemonstration _human = new();
-        private readonly SistersTactics? _tactics = SistersTactics.FromEnvironment();
+        private readonly ISistersLocalActor? _tactics = SistersNativeActor.FromEnvironment();
         private ulong _lastLocalStep;
         private bool _localInputActive;
         private ulong _serverTick;

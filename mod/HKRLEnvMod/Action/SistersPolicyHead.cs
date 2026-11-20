@@ -58,6 +58,12 @@ namespace HKRLEnvMod.Action
         public void Observe(ObservationSnapshot obs)
         {
             if(_trace==null && _weights==null && _world==null)return;
+            WriteFeatures(obs, _features, _bossDistances, _discDistances);
+            ScoreFeatures();
+        }
+
+        internal static void WriteFeatures(ObservationSnapshot obs, float[] _features, float[] _bossDistances, float[] _discDistances)
+        {
             var p=obs.Player;
             Array.Clear(_features,0,Features);
             _features[0]=Clip((p.PosX-30)/10); _features[1]=Clip((p.PosY-7.41f)/8);
@@ -105,6 +111,10 @@ namespace HKRLEnvMod.Action
                     _features[n+6]=Clip(e.HurtboxSizeY/2);
                 }
             }
+        }
+
+        private void ScoreFeatures()
+        {
             _world?.Observe(_features);
             if(_weights==null)return;
             int k=0;

@@ -1,0 +1,26 @@
+{
+  "seed": 419,
+  "device": "cuda",
+  "hardware": "NVIDIA L4",
+  "counts": {
+    "train": {
+      "fights": 88,
+      "native_decisions": 336158
+    },
+    "holdout": {
+      "fights": 27,
+      "native_decisions": 97189
+    }
+  },
+  "actions": 135,
+  "manifest_sha256": "f396d6704679d31e7643347351f9253465b301a9e81a1496443b4b7dff472d1d",
+  "bc_steps": 5500,
+  "world_steps": 2200,
+  "iql_steps": 4500,
+  "batch": 768,
+  "bc_holdout_exact": 0.788618053483419,
+  "world_next_mae": 0.01627754606306553,
+  "persistence_mae": 0.02275540679693222,
+  "world_iql_holdout_exact": 0.7955015485291546,
+  "actor_delta_l2": 3.36278197083988
+}

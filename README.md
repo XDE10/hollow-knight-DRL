@@ -8,6 +8,8 @@
 
 本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
+最新的课程实验把策略放进游戏物理循环，在 Colab 用原生按键示范、真实游戏奖励与一步世界模型训练离线 actor 和 critic。原速原伤各 10 场，模仿起点场均伤害 208.5、过首只 0 场，世界模型辅助 IQL 场均 578.8、过首只 2 场，两组均未通关。[冻结权重、逐场结果与复现命令](models/sisters-native-iql/README.md)
+
 《深度强化学习》课程主线使用实体世界模型和 PPO。Actor 直接控制骑士的移动、攻击与施法，critic 学习折扣回报。Colab L4 训练记录、三个检查点的对照设计和实机入口见[课程模型](models/sisters-course-ac/README.md)。
 
 早期工程对照结合了手写战术规划器、移动价值网络和蒸馏 GRU。在 100 场原速、原伤实机评估中，这套混合控制器通关 99 场、7 场无伤。已配置好的 Windows 项目可双击[观看混合控制器演示](观看世界模型通关.vbs)。[原版模型与逐场记录](models/sisters-world-v2/README.md)

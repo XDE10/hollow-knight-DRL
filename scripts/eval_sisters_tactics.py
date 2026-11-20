@@ -7,6 +7,7 @@ import hashlib
 import json
 import time
 from collections import Counter
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -35,19 +36,22 @@ def verify_actor(policy_file: Path, episode: int, checkpoint: Path) -> None:
         raise RuntimeError("The game has a different active episode or policy.")
 
 
-def play_episode(
-    env: HKRLEnv, policy_file: Path, checkpoint: Path, seed: int
+def play_game(
+    env: HKRLEnv, seed: int, *, scale: float = 1.0,
+    on_transition: Callable[[float, float, dict], None] | None = None,
 ) -> dict[str, Any]:
     obs, info = env.reset(seed=seed, options={"reset_timeout_s": 90})
     episode = int(info["episode_id"])
     if list(obs["player"][4:7]) != [9, 9, 0]:
-        raise RuntimeError("Expected an original nine-mask start with empty SOUL.")
-    env.set_timescale(1.0)
+        raise RuntimeError(f"Expected an original nine-mask start with empty SOUL, got {list(obs['player'][4:7])}.")
+    env.set_timescale(scale)
     damage = 0.0
     losses: Counter[str] = Counter()
     ticks = 0
     peak = 0
     arena_complete = False
+    minimum_hp = 9
+    speeds: Counter[float] = Counter()
     noop: dict[str, Any] = {
         "movement_x": 1,
         "aim_y": 1,
@@ -65,7 +69,12 @@ def play_episode(
         if len(bosses) == 3 and sorted(int(b[13]) for b in bosses) != [750] * 3:
             raise RuntimeError("Unexpected Sisters second-phase health.")
         previous_health = int(obs["player"][4])
+        previous_time = float(obs["global"][4])
         obs, _, terminated, truncated, info = env.step(noop)
+        if on_transition is not None:
+            on_transition(previous_time, float(obs["global"][4]), info)
+        minimum_hp = min(minimum_hp, previous_health, int(obs["player"][4]))
+        speeds[round(float(obs["global"][5]), 3)] += 1
         if int(info["episode_id"]) != episode:
             raise RuntimeError("The game changed episode during the fight.")
         ticks += int(info["elapsed_ticks"])
@@ -81,7 +90,6 @@ def play_episode(
                 arena_complete = True
         if terminated or truncated:
             break
-    verify_actor(policy_file, episode, checkpoint)
     won = bool(
         arena_complete
         and terminated
@@ -89,6 +97,26 @@ def play_episode(
         and previous_health > 0
         and obs["player"][4] > 0
     )
+    return {
+        "episode_id": episode,
+        "win": won,
+        "first_cleared": peak >= 3,
+        "damage": damage,
+        "damage_taken": dict(losses),
+        "physics_ticks": ticks,
+        "hp": previous_health if won else int(obs["player"][4]),
+        "minimum_hp": minimum_hp,
+        "truncated": bool(truncated),
+        "speed_counts": dict(speeds),
+    }
+
+
+def play_episode(
+    env: HKRLEnv, policy_file: Path, checkpoint: Path, seed: int
+) -> dict[str, Any]:
+    result = play_game(env, seed)
+    episode = result["episode_id"]
+    verify_actor(policy_file, episode, checkpoint)
     usage = {}
     if (checkpoint / "world.weights").is_file():
         identity, decisions, changed = map(
@@ -101,14 +129,7 @@ def play_episode(
             )
         usage = {"planner_decisions": decisions, "world_changed_plan": changed}
     return {
-        "episode_id": episode,
-        "win": won,
-        "first_cleared": peak >= 3,
-        "damage": damage,
-        "damage_taken": dict(losses),
-        "physics_ticks": ticks,
-        "hp": previous_health if won else int(obs["player"][4]),
-        "truncated": bool(truncated),
+        **result,
         **usage,
     }
 

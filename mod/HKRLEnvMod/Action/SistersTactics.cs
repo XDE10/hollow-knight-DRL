@@ -7,7 +7,7 @@ using HKRLEnvMod.Observation;
 namespace HKRLEnvMod.Action
 {
     // Explicitly enabled on dedicated game copies. Only writes ordinary controller inputs.
-    internal sealed class SistersTactics : IDisposable
+    internal sealed class SistersTactics : ISistersLocalActor
     {
         private const int Frames = 20;
         private const float Dt = .05f;
