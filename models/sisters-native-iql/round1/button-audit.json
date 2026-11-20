@@ -1,0 +1,40 @@
+{
+  "train-demonstration": {
+    "decisions": 336158,
+    "teacher_dash": 238,
+    "actual_dash": 238,
+    "teacher_attack": 20494,
+    "actual_attack": 20494,
+    "teacher_cast": 4395,
+    "actual_cast": 4395,
+    "teacher_jump": 7442,
+    "actual_jump": 7442
+  },
+  "holdout-demonstration": {
+    "decisions": 97189,
+    "teacher_dash": 116,
+    "actual_dash": 116,
+    "teacher_attack": 5954,
+    "actual_attack": 5954,
+    "teacher_cast": 1446,
+    "actual_cast": 1446,
+    "teacher_jump": 2283,
+    "actual_jump": 2283,
+    "bc_pred_dash": 1,
+    "bc_correct_dash": 1,
+    "bc_pred_attack": 6163,
+    "bc_correct_attack": 5034,
+    "bc_pred_cast": 1428,
+    "bc_correct_cast": 995,
+    "bc_pred_jump": 1481,
+    "bc_correct_jump": 724,
+    "world_iql_pred_dash": 5,
+    "world_iql_correct_dash": 3,
+    "world_iql_pred_attack": 6442,
+    "world_iql_correct_attack": 5208,
+    "world_iql_pred_cast": 1514,
+    "world_iql_correct_cast": 1052,
+    "world_iql_pred_jump": 1878,
+    "world_iql_correct_jump": 907
+  }
+}

@@ -13,6 +13,21 @@
 
 训练用了 88 场、336158 次原生控制决策，另留出 27 场、97189 次决策。每次决策包含 180 个输入，镜像扩充后训练目录有 135 个不同按键组合。动力学对留出集下一时刻物理特征的平均绝对误差为 0.01628，沿用当前状态为 0.02276。模仿策略与 IQL 的留出按键完全匹配率分别为 78.86% 和 79.55%。[训练记录](round1/training.json)
 
+## 冲刺的示范与纠正
+
+第一轮 336158 次训练按键中，仅有 238 次按住冲刺键。在留出的 97189 次决策中，示范有 116 次冲刺；IQL 预测了 5 次，其中 3 次和示范的时机相同。[第一轮按键统计](round1/button-audit.json)
+
+第二轮在旧开发集基础上补充了 20 场历史开发对局，又实际采集 20 场教师与第一轮学生轮流操作的纠正示范。这些新对局记录了 55740 次决策。教师标了 662 次冲刺，实际执行了 362 次冲刺。行为模仿学习教师给的标签，动力学、Q 和价值学习使用实际执行的动作及其游戏反馈。第二轮训练共用 125 场，另留出 30 场。两份对照先共享 8000 次模仿更新，随后各做 6500 次策略更新，动力学另做 3000 次更新。[第二轮按键统计](round2/button-audit.json)
+
+## 第二轮实机结果
+
+两组冻结策略各从同一批十个种子开局，实战全程由网络独立操作，原速、原始伤害。每一场都打出了伤害，也都出现了冲刺按键。种子对齐后，游戏物理时序仍会浮动。
+
+- 世界模型辅助 IQL 过首只 **7/10**，整场通关 **0/10**。场均伤害 **886.6**，最高 **1587**。本体、飞镖、地刺分别打掉 **49、27、16** 格血。448 个决策带冲刺键。
+- 同等策略更新次数的模仿对照过首只 **4/10**，整场通关 **0/10**。场均伤害 **529.1**，最高 **930**。本体、飞镖、地刺分别打掉 **53、20、21** 格血。499 个决策带冲刺键。
+
+相对第一轮 IQL，过首只从 2 场增至 7 场，十场累计踩刺也从 1 格增至 16 格。飞镖掉血从 37 格降至 27 格。冲刺计数是按住冲刺键的决策数，连续按住多次只可能触发一次冲刺。现有汇总无法把某次踩刺归因给某次冲刺。[全部逐场记录](round2/evaluation.json) · [L4 训练数据与误差](round2/training.json) · [冻结权重指纹](round2/sha256.json)
+
 ## 复现
 
 开发集只包含数值特征、按键、事件和场次清单。解压到新目录，使用安装有 NumPy、PyTorch 的环境，从仓库根目录运行以下命令。训练器在可用时选择 CUDA。
@@ -20,6 +35,13 @@
 ```powershell
 Expand-Archive models/sisters-native-iql/round1/development.zip -DestinationPath runs/native-round1-data
 python scripts/train_sisters_native_iql.py --data runs/native-round1-data --output runs/native-round1-retrained
+```
+
+第二轮纠正实验使用自己的开发集。训练结束后，`matched_bc.bin` 是相同更新次数的模仿对照。
+
+```powershell
+Expand-Archive models/sisters-native-iql/round2/development.zip -DestinationPath runs/native-round2-data
+python scripts/train_sisters_native_iql.py --data runs/native-round2-data --output runs/native-round2-retrained --corrective --bc-steps 8000 --world-steps 3000 --iql-steps 6500
 ```
 
 `bc.bin` 和 `world_iql.bin` 用于游戏内推理，`learner.pt` 包含 actor、双 Q、状态价值网络、动力学网络和动作目录。实机复测需要在装有本仓库 mod 的游戏进程启动前设置 `HKRL_NATIVE_ACTOR` 为所选 bin 的绝对路径，`HKRL_NATIVE_ACTOR_LEDGER` 为一个可写的记录文件，清除 `HKRL_TACTICS_POLICY` 和 `HKRL_NATIVE_DEMO_DIR`，设置骨钉倍率 1。启动已配置战斗姐妹存档的游戏后运行评估，并让端口与游戏配置一致。

@@ -1,0 +1,636 @@
+{
+  "matched_bc": {
+    "summary": {
+      "fights": 10,
+      "wins": 0,
+      "first": 4,
+      "nohit": 0,
+      "mean_damage": 529.1,
+      "max_damage": 930.0,
+      "dealt": 10,
+      "loss": {
+        "SPIKES": 21,
+        "BOSS_BODY": 53,
+        "ENEMY_PROJECTILE": 20
+      },
+      "decisions": 18156,
+      "game_seconds": 736.08,
+      "dash": 499,
+      "cast": 132,
+      "fights_with_dash": 10
+    },
+    "episodes": [
+      {
+        "episode_id": 1,
+        "win": false,
+        "first_cleared": true,
+        "damage": 930.0,
+        "damage_taken": {
+          "SPIKES": 3,
+          "BOSS_BODY": 5,
+          "ENEMY_PROJECTILE": 3
+        },
+        "physics_ticks": 4879,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 752,
+          "0.807": 1
+        },
+        "seed": 9451000,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 2407,
+        "attack": 110,
+        "cast": 20,
+        "dash": 60,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 2,
+        "win": false,
+        "first_cleared": true,
+        "damage": 593.0,
+        "damage_taken": {
+          "BOSS_BODY": 4,
+          "SPIKES": 3,
+          "ENEMY_PROJECTILE": 2
+        },
+        "physics_ticks": 3830,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 575,
+          "0.739": 1,
+          "0.682": 1,
+          "0.206": 1,
+          "0.301": 1,
+          "0.839": 1,
+          "0.714": 1
+        },
+        "seed": 9451001,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1886,
+        "attack": 87,
+        "cast": 19,
+        "dash": 52,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 3,
+        "win": false,
+        "first_cleared": false,
+        "damage": 219.0,
+        "damage_taken": {
+          "BOSS_BODY": 4,
+          "SPIKES": 4,
+          "ENEMY_PROJECTILE": 1
+        },
+        "physics_ticks": 2958,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 465,
+          "0.145": 1,
+          "0.838": 1
+        },
+        "seed": 9451002,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1472,
+        "attack": 51,
+        "cast": 6,
+        "dash": 43,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 4,
+        "win": false,
+        "first_cleared": false,
+        "damage": 474.0,
+        "damage_taken": {
+          "BOSS_BODY": 5,
+          "SPIKES": 2,
+          "ENEMY_PROJECTILE": 3
+        },
+        "physics_ticks": 3996,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 619,
+          "0.914": 1,
+          "0.613": 1,
+          "0.982": 1,
+          "0.447": 1
+        },
+        "seed": 9451003,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1986,
+        "attack": 77,
+        "cast": 9,
+        "dash": 58,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 5,
+        "win": false,
+        "first_cleared": false,
+        "damage": 438.0,
+        "damage_taken": {
+          "SPIKES": 2,
+          "BOSS_BODY": 5,
+          "ENEMY_PROJECTILE": 2
+        },
+        "physics_ticks": 3510,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 540,
+          "0.516": 1,
+          "0.493": 1,
+          "0.191": 1,
+          "0.376": 1
+        },
+        "seed": 9451004,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1755,
+        "attack": 67,
+        "cast": 12,
+        "dash": 51,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 6,
+        "win": false,
+        "first_cleared": false,
+        "damage": 354.0,
+        "damage_taken": {
+          "BOSS_BODY": 6,
+          "ENEMY_PROJECTILE": 2,
+          "SPIKES": 1
+        },
+        "physics_ticks": 2202,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 333,
+          "0.617": 1,
+          "0.887": 1,
+          "0.264": 1
+        },
+        "seed": 9451005,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1091,
+        "attack": 51,
+        "cast": 8,
+        "dash": 40,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 7,
+        "win": false,
+        "first_cleared": false,
+        "damage": 375.0,
+        "damage_taken": {
+          "BOSS_BODY": 7,
+          "ENEMY_PROJECTILE": 1,
+          "SPIKES": 1
+        },
+        "physics_ticks": 3500,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 538,
+          "0.392": 1,
+          "0.764": 1
+        },
+        "seed": 9451006,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1742,
+        "attack": 68,
+        "cast": 8,
+        "dash": 65,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 8,
+        "win": false,
+        "first_cleared": true,
+        "damage": 788.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 3,
+          "BOSS_BODY": 7
+        },
+        "physics_ticks": 4043,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 557,
+          "0.691": 1,
+          "0.312": 1,
+          "0.681": 1
+        },
+        "seed": 9451007,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1970,
+        "attack": 107,
+        "cast": 26,
+        "dash": 29,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 9,
+        "win": false,
+        "first_cleared": true,
+        "damage": 901.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 1,
+          "BOSS_BODY": 6,
+          "SPIKES": 2
+        },
+        "physics_ticks": 5488,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 760,
+          "0.318": 1,
+          "0.981": 1
+        },
+        "seed": 9451008,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 2654,
+        "attack": 147,
+        "cast": 19,
+        "dash": 60,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      },
+      {
+        "episode_id": 10,
+        "win": false,
+        "first_cleared": false,
+        "damage": 219.0,
+        "damage_taken": {
+          "BOSS_BODY": 4,
+          "ENEMY_PROJECTILE": 2,
+          "SPIKES": 3
+        },
+        "physics_ticks": 2398,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 362
+        },
+        "seed": 9451009,
+        "policy_sha256": "a054a8bdc54c537e607b6deb2ad6df89c185fb82e9412156baa12c82e27839b1",
+        "decisions": 1193,
+        "attack": 43,
+        "cast": 5,
+        "dash": 41,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-matched_bc-5556"
+      }
+    ],
+    "restarts": []
+  },
+  "world_iql": {
+    "summary": {
+      "fights": 10,
+      "wins": 0,
+      "first": 7,
+      "nohit": 0,
+      "mean_damage": 886.6,
+      "max_damage": 1587.0,
+      "dealt": 10,
+      "loss": {
+        "BOSS_BODY": 49,
+        "SPIKES": 16,
+        "ENEMY_PROJECTILE": 27
+      },
+      "decisions": 19297,
+      "game_seconds": 782.04,
+      "dash": 448,
+      "cast": 485,
+      "fights_with_dash": 10
+    },
+    "episodes": [
+      {
+        "episode_id": 1,
+        "win": false,
+        "first_cleared": true,
+        "damage": 823.0,
+        "damage_taken": {
+          "BOSS_BODY": 4,
+          "SPIKES": 1,
+          "ENEMY_PROJECTILE": 5
+        },
+        "physics_ticks": 4730,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 676,
+          "0.11": 1,
+          "0.535": 1,
+          "0.439": 1,
+          "0.687": 1,
+          "0.987": 1
+        },
+        "seed": 9451000,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 2326,
+        "attack": 131,
+        "cast": 31,
+        "dash": 25,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 2,
+        "win": false,
+        "first_cleared": true,
+        "damage": 1563.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 3,
+          "BOSS_BODY": 6
+        },
+        "physics_ticks": 4909,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 709,
+          "0.661": 1,
+          "0.787": 1,
+          "0.459": 1
+        },
+        "seed": 9451001,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 2425,
+        "attack": 155,
+        "cast": 97,
+        "dash": 80,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 3,
+        "win": false,
+        "first_cleared": true,
+        "damage": 704.0,
+        "damage_taken": {
+          "SPIKES": 4,
+          "BOSS_BODY": 4,
+          "ENEMY_PROJECTILE": 1
+        },
+        "physics_ticks": 4389,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 656,
+          "0.456": 1,
+          "0.406": 1
+        },
+        "seed": 9451002,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 2173,
+        "attack": 103,
+        "cast": 47,
+        "dash": 36,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 4,
+        "win": false,
+        "first_cleared": false,
+        "damage": 415.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 2,
+          "SPIKES": 3,
+          "BOSS_BODY": 5
+        },
+        "physics_ticks": 2087,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 306,
+          "0.358": 1,
+          "0.531": 1
+        },
+        "seed": 9451003,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 1043,
+        "attack": 42,
+        "cast": 16,
+        "dash": 29,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 5,
+        "win": false,
+        "first_cleared": true,
+        "damage": 1587.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 3,
+          "SPIKES": 2,
+          "BOSS_BODY": 4
+        },
+        "physics_ticks": 4977,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 711,
+          "0.804": 1,
+          "0.882": 1
+        },
+        "seed": 9451004,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 2480,
+        "attack": 138,
+        "cast": 60,
+        "dash": 81,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 6,
+        "win": false,
+        "first_cleared": true,
+        "damage": 488.0,
+        "damage_taken": {
+          "SPIKES": 2,
+          "ENEMY_PROJECTILE": 3,
+          "BOSS_BODY": 4
+        },
+        "physics_ticks": 3680,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 511,
+          "0.776": 1,
+          "0.803": 1
+        },
+        "seed": 9451005,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 1827,
+        "attack": 74,
+        "cast": 18,
+        "dash": 21,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 7,
+        "win": false,
+        "first_cleared": true,
+        "damage": 1198.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 2,
+          "BOSS_BODY": 7
+        },
+        "physics_ticks": 4476,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 570,
+          "0.713": 1,
+          "0.551": 1,
+          "0.601": 1
+        },
+        "seed": 9451006,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 2191,
+        "attack": 131,
+        "cast": 87,
+        "dash": 59,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 8,
+        "win": false,
+        "first_cleared": false,
+        "damage": 494.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 2,
+          "BOSS_BODY": 5,
+          "SPIKES": 2
+        },
+        "physics_ticks": 2823,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 332,
+          "0.134": 1,
+          "0.97": 1
+        },
+        "seed": 9451007,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 1355,
+        "attack": 69,
+        "cast": 32,
+        "dash": 44,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 9,
+        "win": false,
+        "first_cleared": true,
+        "damage": 1375.0,
+        "damage_taken": {
+          "BOSS_BODY": 5,
+          "ENEMY_PROJECTILE": 4
+        },
+        "physics_ticks": 4852,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 657
+        },
+        "seed": 9451008,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 2390,
+        "attack": 141,
+        "cast": 91,
+        "dash": 39,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      },
+      {
+        "episode_id": 10,
+        "win": false,
+        "first_cleared": false,
+        "damage": 219.0,
+        "damage_taken": {
+          "ENEMY_PROJECTILE": 2,
+          "SPIKES": 2,
+          "BOSS_BODY": 5
+        },
+        "physics_ticks": 2179,
+        "hp": 0,
+        "minimum_hp": 0,
+        "truncated": false,
+        "speed_counts": {
+          "1.0": 348,
+          "0.729": 1,
+          "0.834": 1
+        },
+        "seed": 9451009,
+        "policy_sha256": "72e91ce5a67899a3d6c3ceae642fdddfe07150248a4cdb560c12c531f9d6ff08",
+        "decisions": 1087,
+        "attack": 47,
+        "cast": 6,
+        "dash": 34,
+        "nail_art": 0,
+        "no_hit_win": false,
+        "worker_run": "frozen-r1-world_iql-5557"
+      }
+    ],
+    "restarts": []
+  }
+}

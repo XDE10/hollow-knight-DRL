@@ -24,7 +24,14 @@ def test_only_a_live_arena_completion_counts(tmp_path: Path) -> None:
     entities[0, [1, 12, 13]] = [protocol.EntityType.BOSS, 500, 500]
     player = np.zeros(32)
     player[4:6] = 9
-    obs = {"player": player, "entities": entities, "entity_mask": np.ones(1, dtype=bool)}
+    global_state = np.zeros(6)
+    global_state[5] = 1.0
+    obs = {
+        "player": player,
+        "entities": entities,
+        "entity_mask": np.ones(1, dtype=bool),
+        "global": global_state,
+    }
     env = Mock()
     env.task.action.enable_macro_actions = True
     env.reset.return_value = obs, {"episode_id": 12}
@@ -45,6 +52,7 @@ def test_only_a_live_arena_completion_counts(tmp_path: Path) -> None:
     usage.write_text("12 90 4")
     result = module.play_episode(env, policy, tmp_path, 5)
     assert (result["planner_decisions"], result["world_changed_plan"]) == (90, 4)
+    assert result["speed_counts"] == {1.0: 1} and result["minimum_hp"] == 9
     usage.write_text("11 90 4")
     with pytest.raises(RuntimeError, match="usage"):
         module.play_episode(env, policy, tmp_path, 6)

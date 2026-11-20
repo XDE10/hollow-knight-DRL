@@ -8,7 +8,7 @@
 
 本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
-最新的课程实验把策略放进游戏物理循环，在 Colab 用原生按键示范、真实游戏奖励与一步世界模型训练离线 actor 和 critic。原速原伤各 10 场，模仿起点场均伤害 208.5、过首只 0 场，世界模型辅助 IQL 场均 578.8、过首只 2 场，两组均未通关。[冻结权重、逐场结果与复现命令](models/sisters-native-iql/README.md)
+最新的课程实验把策略放进游戏物理循环，在 Colab 用原生按键示范、真实游戏奖励与一步世界模型训练离线 actor 和 critic。加入纠正示范后，两份冻结策略原速原伤各打 10 场。世界模型辅助 IQL 场均伤害 886.6、7 场过首只，同等更新次数的模仿对照场均 529.1、4 场过首只，两组均未整场通关。[冻结权重、逐场结果与复现命令](models/sisters-native-iql/README.md)
 
 《深度强化学习》课程主线使用实体世界模型和 PPO。Actor 直接控制骑士的移动、攻击与施法，critic 学习折扣回报。Colab L4 训练记录、三个检查点的对照设计和实机入口见[课程模型](models/sisters-course-ac/README.md)。
 
