@@ -1,0 +1,1015 @@
+{
+  "kind": "development_screen",
+  "games": 6,
+  "first_cleared": 6,
+  "wins": 1,
+  "no_hit_wins": 0,
+  "damage_mean": 2070.0,
+  "masks_lost": {
+    "ENEMY_PROJECTILE": 20,
+    "BOSS_BODY": 31,
+    "SPIKES": 3
+  },
+  "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+  "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+  "episodes": [
+    {
+      "episode_id": 1,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2024.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 1,
+        "BOSS_BODY": 8
+      },
+      "physics_ticks": 5913,
+      "hp": 0,
+      "minimum_hp": 0,
+      "trio_entry": {
+        "game_time": 56.47999954223633,
+        "physics_ticks": 2823,
+        "hp": 8,
+        "soul": 99
+      },
+      "damage_after_trio_observed": 1544.0,
+      "hit_intervals": [
+        {
+          "interval_start": 10.199999809265137,
+          "interval_end": 10.5,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            25.572509765625,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 69.36000061035156,
+          "interval_end": 69.47999572753906,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            30.771791458129883,
+            7.4081244468688965
+          ]
+        },
+        {
+          "interval_start": 71.1199951171875,
+          "interval_end": 71.27999877929688,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            32.327022552490234,
+            7.408124923706055
+          ]
+        },
+        {
+          "interval_start": 72.41999816894531,
+          "interval_end": 72.55999755859375,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            32.93900680541992,
+            7.911261081695557
+          ]
+        },
+        {
+          "interval_start": 75.23999786376953,
+          "interval_end": 75.37999725341797,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 5,
+          "hp_after_interval": 4,
+          "position_before_interval": [
+            34.12501525878906,
+            8.949957847595215
+          ]
+        },
+        {
+          "interval_start": 85.08000183105469,
+          "interval_end": 85.22000122070312,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 4,
+          "hp_after_interval": 3,
+          "position_before_interval": [
+            31.991374969482422,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 102.54000091552734,
+          "interval_end": 102.68000030517578,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 3,
+          "hp_after_interval": 2,
+          "position_before_interval": [
+            36.446537017822266,
+            8.629239082336426
+          ]
+        },
+        {
+          "interval_start": 107.69999694824219,
+          "interval_end": 107.97999572753906,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 2,
+          "hp_after_interval": 1,
+          "position_before_interval": [
+            33.35099411010742,
+            10.73394775390625
+          ]
+        },
+        {
+          "interval_start": 118.15999603271484,
+          "interval_end": 118.27999877929688,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 1,
+          "hp_after_interval": 0,
+          "position_before_interval": [
+            25.725709915161133,
+            7.408123970031738
+          ]
+        }
+      ],
+      "heal_event_amount": 0.0,
+      "observed_dash_starts": {
+        "dashing": 7,
+        "shadow_dashing": 7
+      },
+      "last_observed_trio": {
+        "game_time": 118.15999603271484,
+        "observed_hp_by_entity": {
+          "10": 275,
+          "11": 143,
+          "12": 288
+        }
+      },
+      "truncated": false,
+      "speed_counts": {
+        "1.0": 798,
+        "0.816": 1
+      },
+      "seed": 9573000,
+      "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+      "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+      "decisions": 2771,
+      "attack": 187,
+      "cast": 125,
+      "dash": 31,
+      "nail_art": 0,
+      "no_hit_win": false
+    },
+    {
+      "episode_id": 2,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2565.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 6,
+        "BOSS_BODY": 5
+      },
+      "physics_ticks": 8508,
+      "hp": 0,
+      "minimum_hp": 0,
+      "trio_entry": {
+        "game_time": 66.41999816894531,
+        "physics_ticks": 3320,
+        "hp": 9,
+        "soul": 69
+      },
+      "damage_after_trio_observed": 2067.0,
+      "hit_intervals": [
+        {
+          "interval_start": 35.779998779296875,
+          "interval_end": 35.939998626708984,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            22.92095375061035,
+            8.266165733337402
+          ]
+        },
+        {
+          "interval_start": 45.71999740600586,
+          "interval_end": 46.55999755859375,
+          "trio_already_observed": false,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            31.667016983032227,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 69.63999938964844,
+          "interval_end": 69.93999481201172,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            28.435943603515625,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 73.23999786376953,
+          "interval_end": 73.36000061035156,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            26.048912048339844,
+            8.350244522094727
+          ]
+        },
+        {
+          "interval_start": 76.91999816894531,
+          "interval_end": 77.04000091552734,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            31.348854064941406,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 85.15999603271484,
+          "interval_end": 85.29999542236328,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            35.00996017456055,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 109.79999542236328,
+          "interval_end": 110.0,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 5,
+          "hp_after_interval": 4,
+          "position_before_interval": [
+            28.659133911132812,
+            7.408124923706055
+          ]
+        },
+        {
+          "interval_start": 117.5999984741211,
+          "interval_end": 117.7199935913086,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 4,
+          "hp_after_interval": 3,
+          "position_before_interval": [
+            34.908023834228516,
+            8.936625480651855
+          ]
+        },
+        {
+          "interval_start": 135.87998962402344,
+          "interval_end": 136.0,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 3,
+          "hp_after_interval": 2,
+          "position_before_interval": [
+            27.15495491027832,
+            8.03620433807373
+          ]
+        },
+        {
+          "interval_start": 166.25999450683594,
+          "interval_end": 166.37998962402344,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 2,
+          "hp_after_interval": 1,
+          "position_before_interval": [
+            27.014972686767578,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 169.89999389648438,
+          "interval_end": 170.17999267578125,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 1,
+          "hp_after_interval": 0,
+          "position_before_interval": [
+            25.4149169921875,
+            7.408122539520264
+          ]
+        }
+      ],
+      "heal_event_amount": 2.0,
+      "observed_dash_starts": {
+        "dashing": 12,
+        "shadow_dashing": 11
+      },
+      "last_observed_trio": {
+        "game_time": 169.89999389648438,
+        "observed_hp_by_entity": {
+          "29": 17,
+          "31": 153
+        }
+      },
+      "truncated": false,
+      "speed_counts": {
+        "1.0": 1126,
+        "0.726": 1,
+        "0.917": 1,
+        "0.345": 1
+      },
+      "seed": 9573001,
+      "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+      "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+      "decisions": 3970,
+      "attack": 249,
+      "cast": 151,
+      "dash": 49,
+      "nail_art": 0,
+      "no_hit_win": false
+    },
+    {
+      "episode_id": 3,
+      "win": false,
+      "first_cleared": true,
+      "damage": 963.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "SPIKES": 2,
+        "BOSS_BODY": 4
+      },
+      "physics_ticks": 4721,
+      "hp": 0,
+      "minimum_hp": 0,
+      "trio_entry": {
+        "game_time": 63.05999755859375,
+        "physics_ticks": 3151,
+        "hp": 6,
+        "soul": 19
+      },
+      "damage_after_trio_observed": 474.0,
+      "hit_intervals": [
+        {
+          "interval_start": 3.2799999713897705,
+          "interval_end": 3.43999981880188,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            23.33220672607422,
+            7.712284564971924
+          ]
+        },
+        {
+          "interval_start": 11.359999656677246,
+          "interval_end": 11.5,
+          "trio_already_observed": false,
+          "source": "SPIKES",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            20.6839599609375,
+            7.351243495941162
+          ]
+        },
+        {
+          "interval_start": 18.979999542236328,
+          "interval_end": 19.19999885559082,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            30.91391372680664,
+            10.600122451782227
+          ]
+        },
+        {
+          "interval_start": 45.459999084472656,
+          "interval_end": 45.63999938964844,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            29.910709381103516,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 66.54000091552734,
+          "interval_end": 67.29999542236328,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            31.810993194580078,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 73.37999725341797,
+          "interval_end": 74.05999755859375,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 5,
+          "hp_after_interval": 4,
+          "position_before_interval": [
+            30.41313934326172,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 77.77999877929688,
+          "interval_end": 78.87999725341797,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 4,
+          "hp_after_interval": 3,
+          "position_before_interval": [
+            27.697696685791016,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 89.0,
+          "interval_end": 89.18000030517578,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 3,
+          "hp_after_interval": 2,
+          "position_before_interval": [
+            39.334869384765625,
+            7.417824745178223
+          ]
+        },
+        {
+          "interval_start": 89.93999481201172,
+          "interval_end": 90.0999984741211,
+          "trio_already_observed": true,
+          "source": "SPIKES",
+          "masks": 1,
+          "hp_before_interval": 2,
+          "hp_after_interval": 1,
+          "position_before_interval": [
+            40.08378982543945,
+            7.9056549072265625
+          ]
+        },
+        {
+          "interval_start": 93.95999908447266,
+          "interval_end": 94.45999908447266,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 1,
+          "hp_after_interval": 0,
+          "position_before_interval": [
+            31.519023895263672,
+            10.145543098449707
+          ]
+        }
+      ],
+      "heal_event_amount": 1.0,
+      "observed_dash_starts": {
+        "dashing": 4,
+        "shadow_dashing": 4
+      },
+      "last_observed_trio": {
+        "game_time": 93.95999908447266,
+        "observed_hp_by_entity": {
+          "59": 672,
+          "60": 477,
+          "61": 627
+        }
+      },
+      "truncated": false,
+      "speed_counts": {
+        "1.0": 472,
+        "0.488": 1
+      },
+      "seed": 9573002,
+      "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+      "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+      "decisions": 1918,
+      "attack": 119,
+      "cast": 160,
+      "dash": 16,
+      "nail_art": 0,
+      "no_hit_win": false
+    },
+    {
+      "episode_id": 4,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2707.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 3,
+        "BOSS_BODY": 3
+      },
+      "physics_ticks": 10234,
+      "hp": 5,
+      "minimum_hp": 5,
+      "trio_entry": {
+        "game_time": 71.65999603271484,
+        "physics_ticks": 3582,
+        "hp": 8,
+        "soul": 37
+      },
+      "damage_after_trio_observed": 2221.0,
+      "hit_intervals": [
+        {
+          "interval_start": 22.239999771118164,
+          "interval_end": 22.3799991607666,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            23.03899383544922,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 27.5,
+          "interval_end": 27.69999885559082,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            28.285388946533203,
+            9.624286651611328
+          ]
+        },
+        {
+          "interval_start": 60.15999984741211,
+          "interval_end": 60.34000015258789,
+          "trio_already_observed": false,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            26.86300277709961,
+            7.722164154052734
+          ]
+        },
+        {
+          "interval_start": 98.63999938964844,
+          "interval_end": 98.79999542236328,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            32.07880783081055,
+            13.668538093566895
+          ]
+        },
+        {
+          "interval_start": 113.68000030517578,
+          "interval_end": 113.79999542236328,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            35.04570388793945,
+            7.408120155334473
+          ]
+        },
+        {
+          "interval_start": 129.02000427246094,
+          "interval_end": 129.13999938964844,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            35.04402542114258,
+            11.984918594360352
+          ]
+        }
+      ],
+      "heal_event_amount": 6.0,
+      "observed_dash_starts": {
+        "dashing": 13,
+        "shadow_dashing": 12
+      },
+      "last_observed_trio": {
+        "game_time": 197.17999267578125,
+        "observed_hp_by_entity": {
+          "76": 10
+        }
+      },
+      "truncated": false,
+      "speed_counts": {
+        "1.0": 1241,
+        "0.257": 1,
+        "0.918": 1,
+        "0.989": 1
+      },
+      "seed": 9573003,
+      "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+      "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+      "decisions": 4683,
+      "attack": 294,
+      "cast": 163,
+      "dash": 56,
+      "nail_art": 0,
+      "no_hit_win": false
+    },
+    {
+      "episode_id": 1,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2514.0,
+      "damage_taken": {
+        "BOSS_BODY": 5,
+        "ENEMY_PROJECTILE": 3,
+        "SPIKES": 1
+      },
+      "physics_ticks": 10368,
+      "hp": 0,
+      "minimum_hp": 0,
+      "trio_entry": {
+        "game_time": 60.619998931884766,
+        "physics_ticks": 3029,
+        "hp": 9,
+        "soul": 77
+      },
+      "damage_after_trio_observed": 2023.0,
+      "hit_intervals": [
+        {
+          "interval_start": 77.47999572753906,
+          "interval_end": 77.97999572753906,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            33.683250427246094,
+            13.673013687133789
+          ]
+        },
+        {
+          "interval_start": 82.13999938964844,
+          "interval_end": 82.43999481201172,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            29.488388061523438,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 84.15999603271484,
+          "interval_end": 84.5,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            22.646270751953125,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 87.65999603271484,
+          "interval_end": 87.9000015258789,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            32.444095611572266,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 108.54000091552734,
+          "interval_end": 109.36000061035156,
+          "trio_already_observed": true,
+          "source": "SPIKES",
+          "masks": 1,
+          "hp_before_interval": 5,
+          "hp_after_interval": 4,
+          "position_before_interval": [
+            24.00121307373047,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 112.89999389648438,
+          "interval_end": 113.1199951171875,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 4,
+          "hp_after_interval": 3,
+          "position_before_interval": [
+            26.252670288085938,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 154.6999969482422,
+          "interval_end": 154.86000061035156,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 3,
+          "hp_after_interval": 2,
+          "position_before_interval": [
+            27.459548950195312,
+            10.893257141113281
+          ]
+        },
+        {
+          "interval_start": 160.63999938964844,
+          "interval_end": 161.47999572753906,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 2,
+          "hp_after_interval": 1,
+          "position_before_interval": [
+            31.772193908691406,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 207.1599884033203,
+          "interval_end": 207.39999389648438,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 1,
+          "hp_after_interval": 0,
+          "position_before_interval": [
+            30.527009963989258,
+            7.408123016357422
+          ]
+        }
+      ],
+      "heal_event_amount": 0.0,
+      "observed_dash_starts": {
+        "dashing": 11,
+        "shadow_dashing": 11
+      },
+      "last_observed_trio": {
+        "game_time": 207.1599884033203,
+        "observed_hp_by_entity": {
+          "11": 214
+        }
+      },
+      "truncated": false,
+      "speed_counts": {
+        "1.0": 967,
+        "0.163": 1
+      },
+      "seed": 9573004,
+      "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+      "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+      "decisions": 4152,
+      "attack": 277,
+      "cast": 156,
+      "dash": 51,
+      "nail_art": 0,
+      "no_hit_win": false
+    },
+    {
+      "episode_id": 2,
+      "win": false,
+      "first_cleared": true,
+      "damage": 1647.0,
+      "damage_taken": {
+        "BOSS_BODY": 6,
+        "ENEMY_PROJECTILE": 3
+      },
+      "physics_ticks": 6946,
+      "hp": 0,
+      "minimum_hp": 0,
+      "trio_entry": {
+        "game_time": 78.97999572753906,
+        "physics_ticks": 3948,
+        "hp": 7,
+        "soul": 88
+      },
+      "damage_after_trio_observed": 1155.0,
+      "hit_intervals": [
+        {
+          "interval_start": 5.579999923706055,
+          "interval_end": 5.940000057220459,
+          "trio_already_observed": false,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 9,
+          "hp_after_interval": 8,
+          "position_before_interval": [
+            32.30200958251953,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 18.479999542236328,
+          "interval_end": 18.65999984741211,
+          "trio_already_observed": false,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 8,
+          "hp_after_interval": 7,
+          "position_before_interval": [
+            33.241127014160156,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 82.0999984741211,
+          "interval_end": 82.33999633789062,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 7,
+          "hp_after_interval": 6,
+          "position_before_interval": [
+            35.590660095214844,
+            8.504829406738281
+          ]
+        },
+        {
+          "interval_start": 92.83999633789062,
+          "interval_end": 93.05999755859375,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 6,
+          "hp_after_interval": 5,
+          "position_before_interval": [
+            32.76213455200195,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 113.36000061035156,
+          "interval_end": 114.25999450683594,
+          "trio_already_observed": true,
+          "source": "ENEMY_PROJECTILE",
+          "masks": 1,
+          "hp_before_interval": 5,
+          "hp_after_interval": 4,
+          "position_before_interval": [
+            24.984554290771484,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 115.81999969482422,
+          "interval_end": 116.47999572753906,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 4,
+          "hp_after_interval": 3,
+          "position_before_interval": [
+            23.969009399414062,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 119.57999420166016,
+          "interval_end": 120.0999984741211,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 3,
+          "hp_after_interval": 2,
+          "position_before_interval": [
+            31.777721405029297,
+            7.408123970031738
+          ]
+        },
+        {
+          "interval_start": 121.36000061035156,
+          "interval_end": 121.63999938964844,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 2,
+          "hp_after_interval": 1,
+          "position_before_interval": [
+            36.48387145996094,
+            7.46487283706665
+          ]
+        },
+        {
+          "interval_start": 138.1199951171875,
+          "interval_end": 138.94000244140625,
+          "trio_already_observed": true,
+          "source": "BOSS_BODY",
+          "masks": 1,
+          "hp_before_interval": 1,
+          "hp_after_interval": 0,
+          "position_before_interval": [
+            26.378620147705078,
+            10.551380157470703
+          ]
+        }
+      ],
+      "heal_event_amount": 0.0,
+      "observed_dash_starts": {
+        "dashing": 5,
+        "shadow_dashing": 5
+      },
+      "last_observed_trio": {
+        "game_time": 138.1199951171875,
+        "observed_hp_by_entity": {
+          "49": 447,
+          "50": 199,
+          "51": 449
+        }
+      },
+      "truncated": false,
+      "speed_counts": {
+        "1.0": 566,
+        "0.763": 1,
+        "0.132": 1
+      },
+      "seed": 9573005,
+      "policy_sha256": "cd0324fba4ad2c7bffa425643510bf3e7931ed2a531bf79d4b6e4e3b847fe1e1",
+      "mod_sha256": "b362475489eefd25122fd110c6512123d9b492016d13be4e5d4d47512831a191",
+      "decisions": 2555,
+      "attack": 189,
+      "cast": 82,
+      "dash": 14,
+      "nail_art": 0,
+      "no_hit_win": false
+    }
+  ]
+}
