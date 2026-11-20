@@ -111,12 +111,43 @@ def teacher_history_age(
     return times - np.r_[-np.inf, last_mismatch[:-1]]
 
 
+def measured_returns(
+    times: np.ndarray,
+    rewards: np.ndarray,
+    discounts: np.ndarray,
+    valid: np.ndarray,
+    seconds: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Accumulate observed rewards on one tape. Stop at death, gaps or the horizon.
+
+    The returned index selects the successor of the last included transition.
+    A gap ends a window before the gap and preserves bootstrapping at its start.
+    """
+    n = len(times)
+    rows = np.arange(n)
+    first_missing = np.minimum.accumulate(np.where(valid, n, rows)[::-1])[::-1]
+    end = np.minimum(
+        np.searchsorted(times.astype("f8"), times.astype("f8") + seconds), first_missing
+    )
+    total = np.zeros(n, dtype="f4")
+    remaining = np.ones(n, dtype="f4")
+    last = rows.copy()
+    for k in range(int(np.max(end - rows, initial=0))):
+        active = (rows + k < end) & (remaining > 0)
+        j = rows[active] + k
+        total[active] += remaining[active] * rewards[j]
+        remaining[active] *= discounts[j]
+        last[active] = j
+    return total, remaining, last
+
+
 def build_data(
     directory: Path,
     device: str,
     mirror: bool = True,
     forecast: bool = False,
     trio_only: bool = False,
+    return_seconds: float = 0.0,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -127,6 +158,7 @@ def build_data(
         raise ValueError("Expected unique development games with explicit splits")
     parts: dict[str, list] = {"train": [], "holdout": []}
     fields: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
+    windows: dict[str, list[tuple]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
     for game in games:
         path = directory / game["file"]
@@ -159,6 +191,13 @@ def build_data(
             continue
         if forecast:
             fields[game["split"]].append(future_occupancy(t, s)[selected])
+        if return_seconds:
+            total, remaining, last = measured_returns(
+                t, reward, d, good, return_seconds
+            )
+            windows[game["split"]].append(
+                (total[selected], remaining[selected], next_state[last[selected]])
+            )
         parts[game["split"]].append(
             tuple(
                 x[selected]
@@ -199,6 +238,18 @@ def build_data(
                 volumes = np.concatenate((volumes, volumes[..., ::-1]))
             flat = volumes.reshape(len(volumes), -1)
             result[split] += (torch.from_numpy(flat).to(device),)
+        if return_seconds:
+            total, remaining, successor = [
+                np.concatenate(values) for values in zip(*windows[split], strict=True)
+            ]
+            if split == "train" and mirror:
+                mirrored = successor.copy()
+                mirrored[:, MIRROR] *= -1
+                successor = np.concatenate((successor, mirrored))
+                total, remaining = np.tile(total, 2), np.tile(remaining, 2)
+            result[split] += tuple(
+                torch.from_numpy(x).to(device) for x in (total, remaining, successor)
+            )
     return result, catalogue, stats
 
 
@@ -263,6 +314,7 @@ def train(
     forecast_weight: float = 0.0,
     opener_path: Path | None = None,
     initial_learner: Path | None = None,
+    return_seconds: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -272,7 +324,12 @@ def train(
     if opener is not None:
         phase_checkpoint(opener, opener)
     data, commands, counts = build_data(
-        data_dir, device, mirror, forecast_weight > 0, opener is not None
+        data_dir,
+        device,
+        mirror,
+        forecast_weight > 0,
+        opener is not None,
+        return_seconds,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -325,6 +382,7 @@ def train(
         "bc_steps": bc_steps,
         "world_steps": world_steps,
         "rl_steps": rl_steps,
+        "measured_return_seconds": return_seconds,
         "hardware": torch.cuda.get_device_name() if device == "cuda" else "CPU",
         "manifest_sha256": hashlib.sha256(
             (data_dir / "manifest.json").read_bytes()
@@ -450,6 +508,12 @@ def train(
             target = r[i] + d[i] * (
                 0.75 * val(observed).flatten() + 0.25 * val(imagined).flatten()
             )
+            if return_seconds:
+                payout, continuation, successor = data["train"][-3:]
+                measured = payout[i] + continuation[i] * val(successor[i]).flatten()
+                # Replay continuations come from a mixture of policies. Retain the
+                # one-step IQL target alongside their measured short-term outcomes.
+                target = 0.5 * (target + measured)
         v = val(x).flatten()
         update(vopt, quantile_loss(old - v, 0.7))
         update(
@@ -490,6 +554,27 @@ def train(
         if (step + 1) % 2000 == 0:
             print("iql", step + 1, flush=True)
     save("world_iql")
+    if return_seconds:
+        with torch.no_grad():
+            payout, continuation, successor = data["holdout"][-3:]
+            rows = (hg & (hy >= 0)).nonzero().flatten()
+            errors = []
+            for j in rows.split(1024):
+                observed = payout[j] + continuation[j] * val(successor[j]).flatten()
+                estimate = (
+                    torch.minimum(q1(hs[j]), q2(hs[j])).gather(1, hy[j, None]).flatten()
+                )
+                errors.append(
+                    torch.stack(
+                        (
+                            (observed - estimate).abs(),
+                            (observed - val(hs[j]).flatten()).abs(),
+                        )
+                    )
+                )
+            report["heldout_return_q_mae"], report["heldout_return_value_mae"] = (
+                torch.cat(errors, dim=1).mean(dim=1).tolist()
+            )
     if forecast_head is not None:
         with torch.no_grad():
             estimated = torch.cat(
@@ -537,6 +622,12 @@ if __name__ == "__main__":
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     parser.add_argument("--forecast-weight", type=float, default=0.0)
     parser.add_argument(
+        "--return-seconds",
+        type=float,
+        default=0.0,
+        help="Mix short real trajectories into the IQL target, measured in game seconds.",
+    )
+    parser.add_argument(
         "--opener-policy",
         type=Path,
         help="Retain this frozen timing actor for the opener; fit only on trio states.",
@@ -558,6 +649,8 @@ if __name__ == "__main__":
         parser.error("Teacher agreement duration must be finite and nonnegative")
     if not np.isfinite(args.forecast_weight) or args.forecast_weight < 0:
         parser.error("Forecast weight must be finite and nonnegative")
+    if not 0 <= args.return_seconds <= 4:
+        parser.error("Measured return horizon must be between zero and four seconds")
     train(
         args.data,
         args.output,
@@ -572,4 +665,5 @@ if __name__ == "__main__":
         args.forecast_weight,
         args.opener_policy,
         args.initial_learner,
+        args.return_seconds,
     )

@@ -12,18 +12,28 @@ from pathlib import Path
 import numpy as np
 
 
-def pack(manifests: list[Path], output: Path) -> None:
+def pack(
+    manifests: list[Path], output: Path, original_speed_only: bool = False
+) -> None:
     games: dict[int, tuple[Path, dict]] = {}
+    seen = set()
     for manifest in manifests:
         for i, game in enumerate(json.loads(manifest.read_bytes())):
             meta = json.loads((manifest.parent / f"episode-{i:03d}.json").read_bytes())
             seed = meta["seed"]
             if (
-                seed in games
+                seed in seen
                 or game["source"] != f"native-development/{seed}"
                 or meta["win"] != game["won"]
             ):
                 raise ValueError("Repeated seed or unmatched development record")
+            seen.add(seed)
+            if original_speed_only:
+                speeds = meta["speed_counts"]
+                if float(max(speeds, key=speeds.get)) != 1 or any(
+                    float(v) > 1.001 for v in speeds
+                ):
+                    continue
             games[seed] = (manifest.parent / game["file"], game)
     entries = []
     if output.exists():
@@ -81,5 +91,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifests", nargs="+", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--original-speed-only", action="store_true")
     args = parser.parse_args()
-    pack(args.manifests, args.output)
+    pack(args.manifests, args.output, args.original_speed_only)

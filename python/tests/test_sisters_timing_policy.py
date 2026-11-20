@@ -8,6 +8,21 @@ import numpy as np
 import torch
 
 
+def test_measured_returns_use_game_seconds_gaps_and_terminal(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    t = np.array([1, 1.05, 1.14, 1.5, 1.55, 1.61])
+    rewards = np.array([0, 4, 100, 2, 6, 10])
+    discounts = np.array([0.5, 0.8, 0.7, 0.25, 0, 1])
+    valid = np.array([True, True, False, True, True, False])
+    value, continuation, last = mod.measured_returns(t, rewards, discounts, valid, 0.20)
+    np.testing.assert_allclose(value, [2, 4, 0, 3.5, 6, 0])
+    np.testing.assert_allclose(continuation, [0.4, 0.8, 1, 0, 0, 1])
+    np.testing.assert_array_equal(last, [1, 1, 2, 4, 4, 5])
+    short, _, _ = mod.measured_returns(t, rewards, discounts, valid, 0.04)
+    np.testing.assert_array_equal(short, [0, 4, 0, 2, 6, 0])
+
+
 def test_masked_inference_and_native_export(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

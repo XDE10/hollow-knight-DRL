@@ -52,6 +52,10 @@ def main() -> None:
     ap.add_argument("--episodes", type=int, default=12)
     ap.add_argument("--checkpoint", required=True, type=Path)
     ap.add_argument(
+        "--yield-file", type=Path,
+        help="Release this game copy after saving a completed fight when the reservation file exists.",
+    )
+    ap.add_argument(
         "--restart-after-win",
         action="store_true",
         help="Finish this worker after a victory so the supervisor can reopen the original save.",
@@ -158,6 +162,8 @@ def main() -> None:
                     json.dumps(manifest, indent=2) + "\n"
                 )
                 print(json.dumps(result), flush=True)
+                if args.yield_file is not None and args.yield_file.exists():
+                    break
                 if result["win"] and args.restart_after_win:
                     break
                 if result["win"]:
