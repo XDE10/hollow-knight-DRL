@@ -39,6 +39,22 @@ def test_opening_target_uses_only_resources_at_first_trio(monkeypatch) -> None:
     assert death.nonzero()[0].tolist() == [4]
 
 
+def test_no_hit_reward_counts_contacts_even_after_healing(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    events = np.zeros((4, 8), dtype="f4")
+    state = np.ones((4, mod.WIDTH), dtype="f4")
+    base = np.zeros(4, dtype="f4")
+    events[-1, 6] = 1
+    np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 2), [0, 0, 0, 4])
+    state[1, 4] = 8 / 9
+    np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 2), base)
+    state[:, 4] = 1
+    events[1, 2], events[2, 5], events[3, 3] = 1, 1, 2
+    np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 2), [0, -4, 0, -4])
+    np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 0), base)
+
+
 def test_motion_history_masks_gaps_and_only_reads_past(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

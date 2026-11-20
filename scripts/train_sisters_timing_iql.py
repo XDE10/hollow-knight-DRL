@@ -205,6 +205,20 @@ def opening_rewards(
     return reward, terminal
 
 
+def no_hit_rewards(
+    reward: np.ndarray, events: np.ndarray, state: np.ndarray, cost: float
+) -> np.ndarray:
+    """Penalize real damage and award an observed full-health, zero-contact finish."""
+    masks = events[:, 1:5].sum(axis=1)
+    adjusted = reward - cost * masks
+    hits = np.flatnonzero(masks > 0)
+    if len(hits):
+        adjusted[hits[0]] -= cost
+    clean = (masks.cumsum() == 0) & np.logical_and.accumulate(state[:, 4] >= 1)
+    adjusted[(events[:, 6] > 0) & (events[:, 7] == 0) & clean] += 2 * cost
+    return adjusted
+
+
 def build_data(
     directory: Path,
     device: str,
@@ -215,6 +229,7 @@ def build_data(
     history: bool = False,
     plans: bool = False,
     opening_only: bool = False,
+    no_hit_cost: float = 0.0,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -263,6 +278,8 @@ def build_data(
             v[:n] for v in (s, t, act, teacher, ev, terminal)
         ]
         reward = ev @ REWARD_WEIGHTS
+        if no_hit_cost:
+            reward = no_hit_rewards(reward, ev, s, no_hit_cost)
         if opening_only:
             reward, terminal = opening_rewards(s, reward, terminal)
         dt = np.r_[np.diff(t), 0.04].astype("f4")
@@ -448,6 +465,7 @@ def train(
     history: bool = False,
     plan_weight: float = 0.0,
     late_path: Path | None = None,
+    no_hit_cost: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -455,7 +473,9 @@ def train(
     torch.set_float32_matmul_precision("high")
     if opener_path is not None and late_path is not None:
         raise ValueError("Select exactly one frozen phase when fitting a specialist")
-    opener = phase_components(opener_path.read_bytes())[0] if opener_path is not None else None
+    opener = (
+        phase_components(opener_path.read_bytes())[0] if opener_path is not None else None
+    )
     late = late_component(late_path.read_bytes()) if late_path is not None else None
     data, commands, counts = build_data(
         data_dir,
@@ -467,6 +487,7 @@ def train(
         history,
         plan_weight > 0,
         late is not None,
+        no_hit_cost,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -532,6 +553,7 @@ def train(
         "measured_return_seconds": return_seconds,
         "motion_history_lags": list(HISTORY_LAGS) if history else [],
         "teacher_plan_loss_weight": plan_weight,
+        "no_hit_cost": no_hit_cost,
         "late_sha256": hashlib.sha256(late).hexdigest() if late is not None else None,
         "teacher_plan_train_rows": len(plan_rows) if plan_weight > 0 else 0,
         "hardware": torch.cuda.get_device_name() if device == "cuda" else "CPU",
@@ -806,6 +828,12 @@ if __name__ == "__main__":
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     parser.add_argument("--forecast-weight", type=float, default=0.0)
     parser.add_argument(
+        "--no-hit-cost",
+        type=float,
+        default=0.0,
+        help="Extra cost per lost mask and first hit, plus twice this amount for a clean clear.",
+    )
+    parser.add_argument(
         "--late-policy",
         type=Path,
         help="Fit the opening subtask and preserve this network's late-phase policy.",
@@ -853,6 +881,8 @@ if __name__ == "__main__":
         parser.error("Measured return horizon must be between zero and four seconds")
     if not np.isfinite(args.plan_weight) or args.plan_weight < 0:
         parser.error("Plan weight must be finite and nonnegative")
+    if not np.isfinite(args.no_hit_cost) or args.no_hit_cost < 0:
+        parser.error("No-hit cost must be finite and nonnegative")
     train(
         args.data,
         args.output,
@@ -871,4 +901,5 @@ if __name__ == "__main__":
         args.motion_history,
         args.plan_weight,
         args.late_policy,
+        args.no_hit_cost,
     )
