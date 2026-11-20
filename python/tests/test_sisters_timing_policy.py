@@ -58,3 +58,15 @@ def test_previous_action_for_corrective_supervision(monkeypatch) -> None:
     state[0, [c + 4 + 2, c + 4 + 8]] = 1
     state[1, c + 13 :] = 1
     assert mod.previous_commands(state).tolist() == [[-1, 1, 260], [0, 0, 0]]
+
+
+def test_teacher_history_keeps_the_first_corrective_label(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    t = np.array([0, 0.04, 0.08, 0.12, 1.8])
+    applied = np.zeros((5, 3))
+    label = applied.copy()
+    label[1, 2] = 8
+    age = mod.teacher_history_age(t, applied, label)
+    np.testing.assert_allclose(age, [np.inf, np.inf, 0.04, 0.08, 1.76])
+    np.testing.assert_array_equal(age >= 1.6, [True, True, False, False, True])

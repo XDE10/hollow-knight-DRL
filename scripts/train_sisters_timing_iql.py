@@ -96,6 +96,15 @@ def save_native(actor: TimingPolicy, catalogue: np.ndarray, path: Path) -> None:
         out.write(array(actor.out.bias + actor.basis @ actor.factors.bias))
 
 
+def teacher_history_age(
+    times: np.ndarray, applied: np.ndarray, labels: np.ndarray
+) -> np.ndarray:
+    """Seconds since the last earlier input where the teacher did not control the game."""
+    different = np.any(applied != labels, axis=1)
+    last_mismatch = np.maximum.accumulate(np.where(different, times, -np.inf))
+    return times - np.r_[-np.inf, last_mismatch[:-1]]
+
+
 def build_data(
     directory: Path, device: str, mirror: bool = True
 ) -> tuple[dict, np.ndarray, dict]:
@@ -133,13 +142,18 @@ def build_data(
         good = (dt <= 0.24) & (np.r_[np.ones(n - 1, bool), False] | terminal)
         next_state = np.r_[s[1:], s[-1:]]
         reward = ev @ REWARD_WEIGHTS
-        parts[game["split"]].append((s, act, teacher, next_state, reward, d, good))
+        agreement = teacher_history_age(t, act, teacher)
+        parts[game["split"]].append(
+            (s, act, teacher, next_state, reward, d, good, agreement)
+        )
     if any(not games for games in parts.values()):
         raise ValueError("Need both fight splits")
     result = {}
     catalogue = None
     for split, items in parts.items():
-        s, a, label, ns, r, d, g = [np.concatenate(x) for x in zip(*items, strict=True)]
+        s, a, label, ns, r, d, g, age = [
+            np.concatenate(x) for x in zip(*items, strict=True)
+        ]
         stats[split] = {"fights": len(items), "decisions": len(s)}
         if split == "train" and mirror:
             ms, mns, ma, ml = s.copy(), ns.copy(), a.copy(), label.copy()
@@ -151,14 +165,14 @@ def build_data(
                 np.concatenate(pair)
                 for pair in ((s, ms), (a, ma), (label, ml), (ns, mns))
             ]
-            r, d, g = [np.tile(x, 2) for x in (r, d, g)]
+            r, d, g, age = [np.tile(x, 2) for x in (r, d, g, age)]
         if split == "train":
             catalogue = np.unique(np.concatenate((a, label)).astype("i8"), axis=0)
         lookup = {tuple(cmd): i for i, cmd in enumerate(catalogue)}
         yi = np.array([lookup.get(tuple(cmd), -1) for cmd in a], dtype="i8")
         li = np.array([lookup.get(tuple(cmd), -1) for cmd in label], dtype="i8")
         result[split] = tuple(
-            torch.from_numpy(x).to(device) for x in (s, yi, li, ns, r, d, g)
+            torch.from_numpy(x).to(device) for x in (s, yi, li, ns, r, d, g, age)
         )
     return result, catalogue, stats
 
@@ -190,6 +204,7 @@ def train(
     seed: int,
     mirror: bool = True,
     switch_weight: float = 1.0,
+    agreement_seconds: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -198,16 +213,17 @@ def train(
     data, commands, counts = build_data(data_dir, device, mirror)
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
-    s, y, expert, ns, r, d, good = data["train"]
+    s, y, expert, ns, r, d, good, age = data["train"]
+    supervised = (age >= agreement_seconds).nonzero().flatten()
     switch = (cat[expert] != previous_commands(s)).any(1)
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
     actor = TimingPolicy(cat).to(device)
-    counts_act = expert.bincount(minlength=len(cat)).float().clamp_min(1)
+    counts_act = expert[supervised].bincount(minlength=len(cat)).float().clamp_min(1)
     rare = (counts_act.max() / counts_act).pow(0.175).clamp_max(4)
     bits = actor.basis[:, 6:]
-    bit_pos = bits[expert].mean(0)
+    bit_pos = bits[expert[supervised]].mean(0)
     bit_weight = ((1 - bit_pos) / bit_pos.clamp_min(1e-4)).sqrt().clamp(1, 12)
     action_encoding = torch.cat((cat[:, :2], bits), 1).float()
     report = {
@@ -217,6 +233,8 @@ def train(
         "actions": len(cat),
         "mirrored_training": mirror,
         "teacher_switch_weight": switch_weight,
+        "teacher_agreement_seconds": agreement_seconds,
+        "supervised_fraction": len(supervised) / len(s),
         "train_switch_fraction": switch.float().mean().item(),
         "bc_steps": bc_steps,
         "world_steps": world_steps,
@@ -266,7 +284,7 @@ def train(
 
     opt = torch.optim.AdamW(actor.parameters(), lr=0.00065)
     for step in range(bc_steps):
-        i = indices(len(s))
+        i = supervised[indices(len(supervised))]
         logits, factor = actor(s[i])
         w = rare[expert[i]] * corrective_weight[i]
         loss = (
@@ -287,7 +305,7 @@ def train(
             F.smooth_l1_loss(delta, ns[i][:, PHYSICAL] - s[i][:, PHYSICAL], beta=0.025),
         )
     world.eval().requires_grad_(False)
-    hs, hy, _, hn, _, hd, hg = data["holdout"]
+    hs, hy, _, hn, _, hd, hg, _ = data["holdout"]
     vi = ((hy >= 0) & hg & (hd > 0)).nonzero().flatten()[::4]
     with torch.no_grad():
         delta = torch.cat(
@@ -341,10 +359,15 @@ def train(
         if step >= min(1000, rl_steps // 4):
             logits, factor = actor(x)
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
-            lab = expert[i]
-            w = rare[lab] * corrective_weight[i]
+            if agreement_seconds > 0:
+                j = supervised[indices(len(supervised))]
+                supervised_logits, factor = actor(s[j])
+            else:
+                j, supervised_logits = i, logits
+            lab = expert[j]
+            w = rare[lab] * corrective_weight[j]
             supervision = (
-                F.cross_entropy(logits, lab, reduction="none") * w
+                F.cross_entropy(supervised_logits, lab, reduction="none") * w
             ).sum() / w.sum()
             update(
                 aopt,
@@ -384,11 +407,17 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=521)
     parser.add_argument("--no-mirror", action="store_true")
     parser.add_argument("--switch-weight", type=float, default=1.0)
+    parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     args = parser.parse_args()
     if min(args.bc_steps, args.world_steps, args.rl_steps, args.batch) < 1:
         parser.error("Positive budgets required")
     if not np.isfinite(args.switch_weight) or args.switch_weight < 1:
         parser.error("Switch weight must be finite and at least one")
+    if (
+        not np.isfinite(args.teacher_agreement_seconds)
+        or args.teacher_agreement_seconds < 0
+    ):
+        parser.error("Teacher agreement duration must be finite and nonnegative")
     train(
         args.data,
         args.output,
@@ -399,4 +428,5 @@ if __name__ == "__main__":
         args.seed,
         not args.no_mirror,
         args.switch_weight,
+        args.teacher_agreement_seconds,
     )

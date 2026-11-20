@@ -14,6 +14,8 @@ The actor first learns to reproduce the teacher's input. Offline IQL then fits t
 
 The trainer supports two data choices for experiments. Horizontal mirroring assumes a symmetric teacher. Use `--no-mirror` to retain the original left and right labels when its preferred resting position is asymmetric. Setting `--switch-weight` above one increases the corrective loss on states where the teacher asks to change the last executed input. The report includes accuracy on these states and on states where keys should remain held. Only a live fight tests the consequences of missed or repeated keys.
 
+An optional supervised sampling filter, `--teacher-agreement-seconds`, addresses a property of this stateful teacher. When its recommended attack is overridden, it can still start an internal attack timer. The filter keeps the label on the first disagreement and temporarily excludes later labels after a disagreement. It starts afresh for each fight. All eligible executed transitions remain available for the world model and IQL. The interval is an experiment setting and does not establish exactly when every teacher timer recovers.
+
 ## Reproduction and evaluation
 
 Collect development fights using `scripts/collect_sisters_native_labels.py` with the native timing recorder enabled. Pack the resulting manifest paths into a new archive and extract it before training.
