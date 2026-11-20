@@ -1,0 +1,1917 @@
+{
+  "finished": 100,
+  "expected": 100,
+  "wins": 94,
+  "losses": 6,
+  "failed": true,
+  "passed": false,
+  "first_cleared": 100,
+  "damage_mean": 2657.2,
+  "sources": {
+    "BOSS_BODY": 311.0,
+    "ENEMY_PROJECTILE": 152.0,
+    "SPIKES": 15.0
+  },
+  "no_damage_wins": 0,
+  "within_180_wins": 23,
+  "planner_decisions": 450529,
+  "world_changed_plan": 9068,
+  "recorded_failures": [
+    2,
+    38,
+    57,
+    82,
+    88,
+    92
+  ],
+  "median_clear_seconds": 194.42,
+  "mean_healed_masks": 0.39,
+  "episodes": [
+    {
+      "index": 1,
+      "port": 5556,
+      "seed": 9600000,
+      "episode_id": 1,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2712.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 3.0,
+        "SPIKES": 1.0
+      },
+      "hp": 3.0,
+      "seconds": 198.24,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 90,
+      "planner_decisions": 4806
+    },
+    {
+      "index": 2,
+      "port": 5557,
+      "seed": 9600001,
+      "episode_id": 1,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2165.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 7.0
+      },
+      "hp": 0.0,
+      "seconds": 178.0,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 54,
+      "planner_decisions": 3120
+    },
+    {
+      "index": 3,
+      "port": 5558,
+      "seed": 9600002,
+      "episode_id": 1,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2711.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 3.0,
+      "seconds": 213.96,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 132,
+      "planner_decisions": 5161
+    },
+    {
+      "index": 4,
+      "port": 5556,
+      "seed": 9600003,
+      "episode_id": 3,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2701.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 5.0,
+      "seconds": 195.26,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 145,
+      "planner_decisions": 4793
+    },
+    {
+      "index": 5,
+      "port": 5557,
+      "seed": 9600004,
+      "episode_id": 2,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "BOSS_BODY": 5.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 2.0,
+      "seconds": 211.28,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 80,
+      "planner_decisions": 4257
+    },
+    {
+      "index": 6,
+      "port": 5558,
+      "seed": 9600005,
+      "episode_id": 3,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2707.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 2.0
+      },
+      "hp": 6.0,
+      "seconds": 188.34,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 105,
+      "planner_decisions": 4600
+    },
+    {
+      "index": 7,
+      "port": 5556,
+      "seed": 9600006,
+      "episode_id": 4,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2697.0,
+      "sources": {
+        "BOSS_BODY": 2.0
+      },
+      "hp": 7.0,
+      "seconds": 181.22,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 64,
+      "planner_decisions": 4229
+    },
+    {
+      "index": 8,
+      "port": 5557,
+      "seed": 9600007,
+      "episode_id": 3,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2681.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 4.0
+      },
+      "hp": 4.0,
+      "seconds": 221.72,
+      "healed": 2.0,
+      "truncated": false,
+      "world_changed_plan": 100,
+      "planner_decisions": 4384
+    },
+    {
+      "index": 9,
+      "port": 5558,
+      "seed": 9600008,
+      "episode_id": 5,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2686.0,
+      "sources": {
+        "SPIKES": 1.0,
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 4.0,
+      "seconds": 208.04,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 92,
+      "planner_decisions": 4906
+    },
+    {
+      "index": 10,
+      "port": 5556,
+      "seed": 9600009,
+      "episode_id": 5,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "BOSS_BODY": 4.0
+      },
+      "hp": 7.0,
+      "seconds": 181.94,
+      "healed": 2.0,
+      "truncated": false,
+      "world_changed_plan": 82,
+      "planner_decisions": 4347
+    },
+    {
+      "index": 11,
+      "port": 5557,
+      "seed": 9600010,
+      "episode_id": 4,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2698.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 4.0,
+      "seconds": 199.62,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 90,
+      "planner_decisions": 4884
+    },
+    {
+      "index": 12,
+      "port": 5558,
+      "seed": 9600011,
+      "episode_id": 7,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2711.0,
+      "sources": {
+        "BOSS_BODY": 4.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 4.0,
+      "seconds": 179.26,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 93,
+      "planner_decisions": 4356
+    },
+    {
+      "index": 13,
+      "port": 5556,
+      "seed": 9600012,
+      "episode_id": 7,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2679.0,
+      "sources": {
+        "BOSS_BODY": 5.0
+      },
+      "hp": 5.0,
+      "seconds": 193.58,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 69,
+      "planner_decisions": 4732
+    },
+    {
+      "index": 14,
+      "port": 5557,
+      "seed": 9600013,
+      "episode_id": 5,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2692.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0,
+        "BOSS_BODY": 4.0
+      },
+      "hp": 4.0,
+      "seconds": 198.1,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 109,
+      "planner_decisions": 4847
+    },
+    {
+      "index": 15,
+      "port": 5558,
+      "seed": 9600014,
+      "episode_id": 9,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2708.0,
+      "sources": {
+        "BOSS_BODY": 1.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 7.0,
+      "seconds": 210.1,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 87,
+      "planner_decisions": 5105
+    },
+    {
+      "index": 16,
+      "port": 5556,
+      "seed": 9600015,
+      "episode_id": 9,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2715.0,
+      "sources": {
+        "BOSS_BODY": 2.0
+      },
+      "hp": 7.0,
+      "seconds": 171.88,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 76,
+      "planner_decisions": 4230
+    },
+    {
+      "index": 17,
+      "port": 5557,
+      "seed": 9600016,
+      "episode_id": 7,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2718.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 8.0,
+      "seconds": 152.22,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 82,
+      "planner_decisions": 3749
+    },
+    {
+      "index": 18,
+      "port": 5558,
+      "seed": 9600017,
+      "episode_id": 10,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2708.0,
+      "sources": {
+        "BOSS_BODY": 4.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 4.0,
+      "seconds": 171.86,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 86,
+      "planner_decisions": 4254
+    },
+    {
+      "index": 19,
+      "port": 5556,
+      "seed": 9600018,
+      "episode_id": 10,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2726.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 4.0,
+      "seconds": 179.8,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 93,
+      "planner_decisions": 4429
+    },
+    {
+      "index": 20,
+      "port": 5557,
+      "seed": 9600019,
+      "episode_id": 8,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 4.0,
+        "BOSS_BODY": 1.0
+      },
+      "hp": 4.0,
+      "seconds": 196.82,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 89,
+      "planner_decisions": 4854
+    },
+    {
+      "index": 21,
+      "port": 5558,
+      "seed": 9600020,
+      "episode_id": 11,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2722.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 198.52,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 77,
+      "planner_decisions": 4891
+    },
+    {
+      "index": 22,
+      "port": 5556,
+      "seed": 9600021,
+      "episode_id": 11,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2735.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 161.68,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 73,
+      "planner_decisions": 4019
+    },
+    {
+      "index": 23,
+      "port": 5557,
+      "seed": 9600022,
+      "episode_id": 9,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2705.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 5.0
+      },
+      "hp": 3.0,
+      "seconds": 151.58,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 70,
+      "planner_decisions": 3762
+    },
+    {
+      "index": 24,
+      "port": 5558,
+      "seed": 9600023,
+      "episode_id": 13,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2733.0,
+      "sources": {
+        "BOSS_BODY": 4.0
+      },
+      "hp": 5.0,
+      "seconds": 191.3,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 72,
+      "planner_decisions": 4778
+    },
+    {
+      "index": 25,
+      "port": 5556,
+      "seed": 9600024,
+      "episode_id": 12,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2690.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 5.0,
+      "seconds": 197.6,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 95,
+      "planner_decisions": 4936
+    },
+    {
+      "index": 26,
+      "port": 5557,
+      "seed": 9600025,
+      "episode_id": 10,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2696.0,
+      "sources": {
+        "BOSS_BODY": 5.0
+      },
+      "hp": 4.0,
+      "seconds": 169.06,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 65,
+      "planner_decisions": 4225
+    },
+    {
+      "index": 27,
+      "port": 5558,
+      "seed": 9600026,
+      "episode_id": 14,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2688.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 8.0,
+      "seconds": 163.4,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 63,
+      "planner_decisions": 4081
+    },
+    {
+      "index": 28,
+      "port": 5556,
+      "seed": 9600027,
+      "episode_id": 13,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2715.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 187.2,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 71,
+      "planner_decisions": 4678
+    },
+    {
+      "index": 29,
+      "port": 5557,
+      "seed": 9600028,
+      "episode_id": 12,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2700.0,
+      "sources": {
+        "BOSS_BODY": 6.0
+      },
+      "hp": 3.0,
+      "seconds": 180.8,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 74,
+      "planner_decisions": 4515
+    },
+    {
+      "index": 30,
+      "port": 5558,
+      "seed": 9600029,
+      "episode_id": 16,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2683.0,
+      "sources": {
+        "BOSS_BODY": 1.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 7.0,
+      "seconds": 170.26,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 84,
+      "planner_decisions": 4244
+    },
+    {
+      "index": 31,
+      "port": 5556,
+      "seed": 9600030,
+      "episode_id": 14,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2697.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 5.0,
+      "seconds": 167.42,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 93,
+      "planner_decisions": 4174
+    },
+    {
+      "index": 32,
+      "port": 5557,
+      "seed": 9600031,
+      "episode_id": 13,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2705.0,
+      "sources": {
+        "BOSS_BODY": 6.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 2.0,
+      "seconds": 195.3,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 103,
+      "planner_decisions": 4867
+    },
+    {
+      "index": 33,
+      "port": 5558,
+      "seed": 9600032,
+      "episode_id": 17,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 1.0
+      },
+      "hp": 7.0,
+      "seconds": 183.1,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 90,
+      "planner_decisions": 4539
+    },
+    {
+      "index": 34,
+      "port": 5556,
+      "seed": 9600033,
+      "episode_id": 15,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2714.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 1.0,
+        "SPIKES": 1.0
+      },
+      "hp": 4.0,
+      "seconds": 183.84,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 90,
+      "planner_decisions": 4561
+    },
+    {
+      "index": 35,
+      "port": 5557,
+      "seed": 9600034,
+      "episode_id": 14,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2723.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 5.0,
+      "seconds": 196.72,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 102,
+      "planner_decisions": 4851
+    },
+    {
+      "index": 36,
+      "port": 5558,
+      "seed": 9600035,
+      "episode_id": 18,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2707.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 5.0
+      },
+      "hp": 3.0,
+      "seconds": 201.38,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 112,
+      "planner_decisions": 4623
+    },
+    {
+      "index": 37,
+      "port": 5556,
+      "seed": 9600036,
+      "episode_id": 17,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2678.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 4.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 2.0,
+      "seconds": 206.76,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 71,
+      "planner_decisions": 4503
+    },
+    {
+      "index": 38,
+      "port": 5557,
+      "seed": 9600037,
+      "episode_id": 16,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2022.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 7.0
+      },
+      "hp": 0.0,
+      "seconds": 146.78,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 72,
+      "planner_decisions": 3121
+    },
+    {
+      "index": 39,
+      "port": 5558,
+      "seed": 9600038,
+      "episode_id": 20,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2707.0,
+      "sources": {
+        "BOSS_BODY": 1.0
+      },
+      "hp": 8.0,
+      "seconds": 185.72,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 82,
+      "planner_decisions": 4417
+    },
+    {
+      "index": 40,
+      "port": 5556,
+      "seed": 9600039,
+      "episode_id": 18,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2717.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 2.0
+      },
+      "hp": 5.0,
+      "seconds": 211.54,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 77,
+      "planner_decisions": 4894
+    },
+    {
+      "index": 41,
+      "port": 5557,
+      "seed": 9600040,
+      "episode_id": 17,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2685.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "SPIKES": 1.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 4.0,
+      "seconds": 205.44,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 97,
+      "planner_decisions": 4647
+    },
+    {
+      "index": 42,
+      "port": 5558,
+      "seed": 9600041,
+      "episode_id": 21,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2683.0,
+      "sources": {
+        "BOSS_BODY": 1.0
+      },
+      "hp": 8.0,
+      "seconds": 227.52,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 100,
+      "planner_decisions": 5279
+    },
+    {
+      "index": 43,
+      "port": 5556,
+      "seed": 9600042,
+      "episode_id": 20,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2715.0,
+      "sources": {
+        "BOSS_BODY": 8.0
+      },
+      "hp": 3.0,
+      "seconds": 200.58,
+      "healed": 2.0,
+      "truncated": false,
+      "world_changed_plan": 91,
+      "planner_decisions": 4645
+    },
+    {
+      "index": 44,
+      "port": 5557,
+      "seed": 9600043,
+      "episode_id": 19,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2701.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 6.0,
+      "seconds": 203.3,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 82,
+      "planner_decisions": 4717
+    },
+    {
+      "index": 45,
+      "port": 5558,
+      "seed": 9600044,
+      "episode_id": 23,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2722.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 4.0,
+      "seconds": 197.8,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 88,
+      "planner_decisions": 4824
+    },
+    {
+      "index": 46,
+      "port": 5556,
+      "seed": 9600045,
+      "episode_id": 22,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2706.0,
+      "sources": {
+        "BOSS_BODY": 1.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 6.0,
+      "seconds": 185.82,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 94,
+      "planner_decisions": 4518
+    },
+    {
+      "index": 47,
+      "port": 5557,
+      "seed": 9600046,
+      "episode_id": 21,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2710.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 169.28,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 102,
+      "planner_decisions": 4115
+    },
+    {
+      "index": 48,
+      "port": 5558,
+      "seed": 9600047,
+      "episode_id": 24,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2701.0,
+      "sources": {
+        "SPIKES": 1.0,
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 185.52,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 101,
+      "planner_decisions": 4540
+    },
+    {
+      "index": 49,
+      "port": 5556,
+      "seed": 9600048,
+      "episode_id": 23,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2706.0,
+      "sources": {
+        "BOSS_BODY": 2.0
+      },
+      "hp": 7.0,
+      "seconds": 172.98,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 87,
+      "planner_decisions": 4226
+    },
+    {
+      "index": 50,
+      "port": 5557,
+      "seed": 9600049,
+      "episode_id": 22,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2715.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 5.0,
+      "seconds": 209.52,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 120,
+      "planner_decisions": 5125
+    },
+    {
+      "index": 51,
+      "port": 5558,
+      "seed": 9600050,
+      "episode_id": 25,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2711.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 168.58,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 84,
+      "planner_decisions": 3943
+    },
+    {
+      "index": 52,
+      "port": 5556,
+      "seed": 9600051,
+      "episode_id": 24,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2719.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 9.0,
+      "seconds": 196.58,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 88,
+      "planner_decisions": 4606
+    },
+    {
+      "index": 53,
+      "port": 5557,
+      "seed": 9600052,
+      "episode_id": 23,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2681.0,
+      "sources": {
+        "BOSS_BODY": 5.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 3.0,
+      "seconds": 189.32,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 66,
+      "planner_decisions": 4438
+    },
+    {
+      "index": 54,
+      "port": 5558,
+      "seed": 9600053,
+      "episode_id": 27,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2724.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 2.0,
+        "SPIKES": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 208.36,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 96,
+      "planner_decisions": 4845
+    },
+    {
+      "index": 55,
+      "port": 5556,
+      "seed": 9600054,
+      "episode_id": 25,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2712.0,
+      "sources": {
+        "BOSS_BODY": 3.0
+      },
+      "hp": 6.0,
+      "seconds": 196.6,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 86,
+      "planner_decisions": 4608
+    },
+    {
+      "index": 56,
+      "port": 5557,
+      "seed": 9600055,
+      "episode_id": 24,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2709.0,
+      "sources": {
+        "BOSS_BODY": 3.0
+      },
+      "hp": 6.0,
+      "seconds": 166.64,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 92,
+      "planner_decisions": 3862
+    },
+    {
+      "index": 57,
+      "port": 5558,
+      "seed": 9600056,
+      "episode_id": 29,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2527.0,
+      "sources": {
+        "BOSS_BODY": 10.0
+      },
+      "hp": 0.0,
+      "seconds": 190.9,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 96,
+      "planner_decisions": 4062
+    },
+    {
+      "index": 58,
+      "port": 5556,
+      "seed": 9600057,
+      "episode_id": 27,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2700.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 3.0,
+      "seconds": 231.92,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 125,
+      "planner_decisions": 5103
+    },
+    {
+      "index": 59,
+      "port": 5557,
+      "seed": 9600058,
+      "episode_id": 25,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2687.0,
+      "sources": {
+        "BOSS_BODY": 3.0
+      },
+      "hp": 6.0,
+      "seconds": 213.12,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 100,
+      "planner_decisions": 4887
+    },
+    {
+      "index": 60,
+      "port": 5558,
+      "seed": 9600059,
+      "episode_id": 30,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2692.0,
+      "sources": {
+        "BOSS_BODY": 4.0
+      },
+      "hp": 5.0,
+      "seconds": 182.38,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 80,
+      "planner_decisions": 4058
+    },
+    {
+      "index": 61,
+      "port": 5556,
+      "seed": 9600060,
+      "episode_id": 29,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 4.0,
+        "BOSS_BODY": 4.0
+      },
+      "hp": 3.0,
+      "seconds": 223.22,
+      "healed": 2.0,
+      "truncated": false,
+      "world_changed_plan": 92,
+      "planner_decisions": 4996
+    },
+    {
+      "index": 62,
+      "port": 5557,
+      "seed": 9600061,
+      "episode_id": 27,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2702.0,
+      "sources": {
+        "BOSS_BODY": 6.0
+      },
+      "hp": 3.0,
+      "seconds": 179.26,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 66,
+      "planner_decisions": 3975
+    },
+    {
+      "index": 63,
+      "port": 5558,
+      "seed": 9600062,
+      "episode_id": 32,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2702.0,
+      "sources": {
+        "BOSS_BODY": 4.0,
+        "SPIKES": 1.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 230.18,
+      "healed": 3.0,
+      "truncated": false,
+      "world_changed_plan": 121,
+      "planner_decisions": 5385
+    },
+    {
+      "index": 64,
+      "port": 5556,
+      "seed": 9600063,
+      "episode_id": 31,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2727.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 4.0,
+      "seconds": 185.76,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 107,
+      "planner_decisions": 4513
+    },
+    {
+      "index": 65,
+      "port": 5557,
+      "seed": 9600064,
+      "episode_id": 29,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2700.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 4.0
+      },
+      "hp": 3.0,
+      "seconds": 193.48,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 123,
+      "planner_decisions": 4466
+    },
+    {
+      "index": 66,
+      "port": 5558,
+      "seed": 9600065,
+      "episode_id": 34,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2713.0,
+      "sources": {
+        "BOSS_BODY": 4.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 4.0,
+      "seconds": 188.14,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 79,
+      "planner_decisions": 4486
+    },
+    {
+      "index": 67,
+      "port": 5556,
+      "seed": 9600066,
+      "episode_id": 33,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2706.0,
+      "sources": {
+        "BOSS_BODY": 2.0
+      },
+      "hp": 7.0,
+      "seconds": 211.96,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 96,
+      "planner_decisions": 5210
+    },
+    {
+      "index": 68,
+      "port": 5557,
+      "seed": 9600067,
+      "episode_id": 31,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2687.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 4.0,
+      "seconds": 191.96,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 93,
+      "planner_decisions": 4553
+    },
+    {
+      "index": 69,
+      "port": 5558,
+      "seed": 9600068,
+      "episode_id": 36,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2680.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 4.0,
+      "seconds": 168.62,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 74,
+      "planner_decisions": 4039
+    },
+    {
+      "index": 70,
+      "port": 5556,
+      "seed": 9600069,
+      "episode_id": 35,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2703.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 7.0,
+      "seconds": 156.16,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 70,
+      "planner_decisions": 3756
+    },
+    {
+      "index": 71,
+      "port": 5557,
+      "seed": 9600070,
+      "episode_id": 33,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2703.0,
+      "sources": {
+        "BOSS_BODY": 4.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 206.3,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 87,
+      "planner_decisions": 4976
+    },
+    {
+      "index": 72,
+      "port": 5558,
+      "seed": 9600071,
+      "episode_id": 38,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "BOSS_BODY": 1.0,
+        "ENEMY_PROJECTILE": 2.0,
+        "SPIKES": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 197.76,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 122,
+      "planner_decisions": 4835
+    },
+    {
+      "index": 73,
+      "port": 5556,
+      "seed": 9600072,
+      "episode_id": 37,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2722.0,
+      "sources": {
+        "BOSS_BODY": 4.0,
+        "ENEMY_PROJECTILE": 4.0
+      },
+      "hp": 1.0,
+      "seconds": 234.5,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 142,
+      "planner_decisions": 5612
+    },
+    {
+      "index": 74,
+      "port": 5557,
+      "seed": 9600073,
+      "episode_id": 35,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2713.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 4.0,
+        "BOSS_BODY": 2.0,
+        "SPIKES": 1.0
+      },
+      "hp": 2.0,
+      "seconds": 227.96,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 125,
+      "planner_decisions": 5538
+    },
+    {
+      "index": 75,
+      "port": 5558,
+      "seed": 9600074,
+      "episode_id": 39,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2685.0,
+      "sources": {
+        "BOSS_BODY": 1.0,
+        "SPIKES": 1.0
+      },
+      "hp": 7.0,
+      "seconds": 217.74,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 98,
+      "planner_decisions": 4837
+    },
+    {
+      "index": 76,
+      "port": 5556,
+      "seed": 9600075,
+      "episode_id": 39,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2707.0,
+      "sources": {
+        "BOSS_BODY": 3.0
+      },
+      "hp": 6.0,
+      "seconds": 176.18,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 75,
+      "planner_decisions": 4018
+    },
+    {
+      "index": 77,
+      "port": 5557,
+      "seed": 9600076,
+      "episode_id": 37,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2692.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 6.0
+      },
+      "hp": 1.0,
+      "seconds": 204.68,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 87,
+      "planner_decisions": 4567
+    },
+    {
+      "index": 78,
+      "port": 5558,
+      "seed": 9600077,
+      "episode_id": 41,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2685.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 212.78,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 157,
+      "planner_decisions": 5091
+    },
+    {
+      "index": 79,
+      "port": 5556,
+      "seed": 9600078,
+      "episode_id": 41,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2691.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 3.0,
+        "BOSS_BODY": 3.0
+      },
+      "hp": 4.0,
+      "seconds": 199.2,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 92,
+      "planner_decisions": 4647
+    },
+    {
+      "index": 80,
+      "port": 5557,
+      "seed": 9600079,
+      "episode_id": 39,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2724.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 1.0,
+        "BOSS_BODY": 2.0
+      },
+      "hp": 6.0,
+      "seconds": 205.06,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 87,
+      "planner_decisions": 4846
+    },
+    {
+      "index": 81,
+      "port": 5558,
+      "seed": 9600080,
+      "episode_id": 43,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2711.0,
+      "sources": {
+        "BOSS_BODY": 1.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 7.0,
+      "seconds": 191.6,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 76,
+      "planner_decisions": 4589
+    },
+    {
+      "index": 82,
+      "port": 5556,
+      "seed": 9600081,
+      "episode_id": 43,
+      "win": false,
+      "first_cleared": true,
+      "damage": 1895.0,
+      "sources": {
+        "BOSS_BODY": 6.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 0.0,
+      "seconds": 153.46,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 74,
+      "planner_decisions": 3539
+    },
+    {
+      "index": 83,
+      "port": 5557,
+      "seed": 9600082,
+      "episode_id": 41,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2716.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 180.18,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 83,
+      "planner_decisions": 4376
+    },
+    {
+      "index": 84,
+      "port": 5558,
+      "seed": 9600083,
+      "episode_id": 45,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2677.0,
+      "sources": {
+        "BOSS_BODY": 6.0
+      },
+      "hp": 3.0,
+      "seconds": 227.58,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 107,
+      "planner_decisions": 5341
+    },
+    {
+      "index": 85,
+      "port": 5556,
+      "seed": 9600084,
+      "episode_id": 44,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2713.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 5.0,
+      "seconds": 200.06,
+      "healed": 2.0,
+      "truncated": false,
+      "world_changed_plan": 105,
+      "planner_decisions": 4726
+    },
+    {
+      "index": 86,
+      "port": 5557,
+      "seed": 9600085,
+      "episode_id": 42,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2702.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 4.0
+      },
+      "hp": 5.0,
+      "seconds": 196.22,
+      "healed": 2.0,
+      "truncated": false,
+      "world_changed_plan": 96,
+      "planner_decisions": 4526
+    },
+    {
+      "index": 87,
+      "port": 5558,
+      "seed": 9600086,
+      "episode_id": 46,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2686.0,
+      "sources": {
+        "BOSS_BODY": 6.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 1.0,
+      "seconds": 222.42,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 116,
+      "planner_decisions": 4819
+    },
+    {
+      "index": 88,
+      "port": 5556,
+      "seed": 9600087,
+      "episode_id": 46,
+      "win": false,
+      "first_cleared": true,
+      "damage": 2507.0,
+      "sources": {
+        "BOSS_BODY": 6.0,
+        "ENEMY_PROJECTILE": 2.0,
+        "SPIKES": 1.0
+      },
+      "hp": 0.0,
+      "seconds": 201.62,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 100,
+      "planner_decisions": 4227
+    },
+    {
+      "index": 89,
+      "port": 5557,
+      "seed": 9600088,
+      "episode_id": 43,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2685.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 4.0,
+        "BOSS_BODY": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 190.88,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 102,
+      "planner_decisions": 4461
+    },
+    {
+      "index": 90,
+      "port": 5558,
+      "seed": 9600089,
+      "episode_id": 48,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2672.0,
+      "sources": {
+        "BOSS_BODY": 2.0
+      },
+      "hp": 7.0,
+      "seconds": 181.08,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 83,
+      "planner_decisions": 4433
+    },
+    {
+      "index": 91,
+      "port": 5556,
+      "seed": 9600090,
+      "episode_id": 48,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2713.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 5.0,
+      "seconds": 178.76,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 85,
+      "planner_decisions": 4367
+    },
+    {
+      "index": 92,
+      "port": 5557,
+      "seed": 9600091,
+      "episode_id": 45,
+      "win": false,
+      "first_cleared": true,
+      "damage": 505.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "SPIKES": 3.0,
+        "ENEMY_PROJECTILE": 3.0
+      },
+      "hp": 0.0,
+      "seconds": 116.34,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 26,
+      "planner_decisions": 1633
+    },
+    {
+      "index": 93,
+      "port": 5558,
+      "seed": 9600092,
+      "episode_id": 50,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2719.0,
+      "sources": {
+        "BOSS_BODY": 2.0
+      },
+      "hp": 7.0,
+      "seconds": 196.02,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 89,
+      "planner_decisions": 4789
+    },
+    {
+      "index": 94,
+      "port": 5556,
+      "seed": 9600093,
+      "episode_id": 49,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2733.0,
+      "sources": {
+        "ENEMY_PROJECTILE": 2.0,
+        "BOSS_BODY": 2.0
+      },
+      "hp": 6.0,
+      "seconds": 191.32,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 73,
+      "planner_decisions": 4684
+    },
+    {
+      "index": 95,
+      "port": 5557,
+      "seed": 9600094,
+      "episode_id": 46,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2704.0,
+      "sources": {
+        "BOSS_BODY": 6.0,
+        "ENEMY_PROJECTILE": 2.0
+      },
+      "hp": 2.0,
+      "seconds": 222.58,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 118,
+      "planner_decisions": 4103
+    },
+    {
+      "index": 96,
+      "port": 5558,
+      "seed": 9600095,
+      "episode_id": 51,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2695.0,
+      "sources": {
+        "BOSS_BODY": 3.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 5.0,
+      "seconds": 156.58,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 65,
+      "planner_decisions": 3904
+    },
+    {
+      "index": 97,
+      "port": 5556,
+      "seed": 9600096,
+      "episode_id": 50,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2721.0,
+      "sources": {
+        "SPIKES": 1.0,
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 199.52,
+      "healed": 1.0,
+      "truncated": false,
+      "world_changed_plan": 115,
+      "planner_decisions": 4957
+    },
+    {
+      "index": 98,
+      "port": 5557,
+      "seed": 9600097,
+      "episode_id": 48,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2698.0,
+      "sources": {
+        "BOSS_BODY": 6.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 2.0,
+      "seconds": 192.1,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 83,
+      "planner_decisions": 4550
+    },
+    {
+      "index": 99,
+      "port": 5558,
+      "seed": 9600098,
+      "episode_id": 52,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2721.0,
+      "sources": {
+        "BOSS_BODY": 1.0
+      },
+      "hp": 8.0,
+      "seconds": 174.34,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 73,
+      "planner_decisions": 4262
+    },
+    {
+      "index": 100,
+      "port": 5556,
+      "seed": 9600099,
+      "episode_id": 52,
+      "win": true,
+      "first_cleared": true,
+      "damage": 2675.0,
+      "sources": {
+        "BOSS_BODY": 2.0,
+        "ENEMY_PROJECTILE": 1.0
+      },
+      "hp": 6.0,
+      "seconds": 169.24,
+      "healed": 0.0,
+      "truncated": false,
+      "world_changed_plan": 77,
+      "planner_decisions": 4127
+    }
+  ]
+}

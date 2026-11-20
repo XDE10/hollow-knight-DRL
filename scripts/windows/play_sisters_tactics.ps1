@@ -4,7 +4,8 @@ param(
     [string]$GameRoot,
     [ValidateRange(1,65535)][int]$Port=5555,
     [ValidateRange(1,4)][int]$SaveSlot=3,
-    [ValidateRange(1,1000)][int]$Episodes=1
+    [ValidateRange(1,1000)][int]$Episodes=1,
+    [switch]$VerifyRuntime
 )
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -16,6 +17,9 @@ $game=(Resolve-Path -LiteralPath (Join-Path $GameRoot 'hollow_knight.exe')).Path
 $runtime=Join-Path $GameRoot 'hollow_knight_Data/Managed/Mods/HKRLEnvMod/HKRLEnvMod.dll'
 $manifest=Get-Content -Raw -LiteralPath (Join-Path $checkpointPath 'frozen.json') | ConvertFrom-Json
 if (!(Test-Path -LiteralPath $runtime)) { throw "HKRLEnvMod is missing from $GameRoot" }
+if ($VerifyRuntime -and (Get-FileHash -LiteralPath $runtime -Algorithm SHA256).Hash -ne $manifest.dll_sha256) {
+    throw "The game copy at $GameRoot needs the HKRLEnvMod build recorded in the checkpoint."
+}
 if ((Get-Process -Name hollow_knight -ErrorAction SilentlyContinue | Where-Object Path -eq $game) -or
     (Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)) {
     throw "The game copy or port $Port is in use. The selected game must start with the checkpoint enabled."

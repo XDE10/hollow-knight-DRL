@@ -1,0 +1,2 @@
+model.txt -text whitespace=cr-at-eol
+*.weights binary
