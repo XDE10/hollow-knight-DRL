@@ -1,0 +1,78 @@
+{
+  "games": 6,
+  "total": {
+    "ENEMY_PROJECTILE": 24,
+    "BOSS_BODY": 16,
+    "SPIKES": 3
+  },
+  "matched_source_id": {
+    "ENEMY_PROJECTILE": 24,
+    "BOSS_BODY": 16,
+    "SPIKES": 3
+  },
+  "boss_states_around_hit": {
+    "Fall -> Land": 3,
+    "Drop -> Fall": 1,
+    "Land -> Land": 9,
+    "Charge -> Charge": 1,
+    "Wind -> Charge": 1,
+    "Fall -> Fall": 1
+  },
+  "simultaneous": {
+    "body_hits_with_disc_visible": 8,
+    "disc_hits_two_or_more_visible_before": 14
+  },
+  "examples": [
+    {
+      "seed": 9640000,
+      "interval": [
+        66.37999725341797,
+        66.5
+      ],
+      "source": "BOSS_BODY",
+      "id": 13,
+      "before": {
+        "entity_id": 13,
+        "type": "BOSS",
+        "position": [
+          30.24135971069336,
+          9.159997940063477
+        ],
+        "velocity": [
+          7.0,
+          -65.0
+        ],
+        "observed_fsm_state_hash": 291868896,
+        "hurtbox_center": [
+          29.78042221069336,
+          7.800622940063477
+        ],
+        "hurtbox_size": [
+          1.140625,
+          5.25
+        ]
+      },
+      "after": {
+        "entity_id": 13,
+        "type": "BOSS",
+        "position": [
+          30.381359100341797,
+          8.989999771118164
+        ],
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "observed_fsm_state_hash": -1523407744,
+        "hurtbox_center": [
+          30.287609100341797,
+          7.279062271118164
+        ],
+        "hurtbox_size": [
+          1.34375,
+          2.390625
+        ]
+      }
+    }
+  ]
+}

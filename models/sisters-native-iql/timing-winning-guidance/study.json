@@ -1,0 +1,44 @@
+{
+  "fights": 105,
+  "parts": 12,
+  "sha256": "15b3d6bd2db1824f6f331fa422630e339e64a6393072b40d42da1d70613ddd97",
+  "bc": 18000,
+  "world": 6000,
+  "rl": 16000,
+  "original_speed_only": true,
+  "plan_expert_fights": 12,
+  "plan_recovery_fights": 9,
+  "initialization": "credit98f",
+  "late_baseline": "opening98i",
+  "fixed_opener": "opening98i",
+  "teacher_win_min_hz": 23,
+  "additional_training_flags": [
+    "--no-mirror",
+    "--switch-weight",
+    "2.5",
+    "--forecast-weight",
+    "4",
+    "--teacher-agreement-seconds",
+    "1.6",
+    "--teacher-win-min-hz",
+    "23",
+    "--return-seconds",
+    ".8",
+    "--plan-weight",
+    ".35",
+    "--initial-learner",
+    "/content/warmstart.pt",
+    "--opener-policy",
+    "/content/opener.bin"
+  ],
+  "assets": {
+    "warmstart.pt": "5bd8488c337d22ce38fca3b7b316bdf12272358038889baf0792a827ccccdbe7",
+    "opener.bin": "d58455d11958fd2f7c02f0a6a6bd9eb94e8e917f489d9377431cacfa1e7c752b"
+  },
+  "scripts": {
+    "train_sisters_timing_iql.py": "13f611cddcca465c823eb7ef26303ce44d61c701ec0701e15a55f7fba9783ec7",
+    "train_sisters_native_iql.py": "8bb4eea6e0ed2c2d81675499082e566f3c507c49ee502e8f0b187278621841f7",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22",
+    "sisters_plan_labels.py": "d5f259f21468bc78d37b59fffb89dd514b0a083c88817582758d9244768be794"
+  }
+}
