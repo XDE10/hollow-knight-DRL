@@ -1,0 +1,42 @@
+{
+  "fights": 105,
+  "parts": 12,
+  "sha256": "15b3d6bd2db1824f6f331fa422630e339e64a6393072b40d42da1d70613ddd97",
+  "bc": 10000,
+  "world": 6000,
+  "rl": 16000,
+  "original_speed_only": true,
+  "initialization": "plans98h",
+  "fixed_opener": "opening98i",
+  "feasibility_diagnostic": "On 5107 real held-out movement switches the parent held the old movement 1397 times. Of 696 such switches persisting one more observed tick, it recovered 489 at that next tick.",
+  "additional_training_flags": [
+    "--no-mirror",
+    "--motion-history",
+    "--switch-weight",
+    "2.5",
+    "--teacher-agreement-seconds",
+    "1.6",
+    "--forecast-weight",
+    "4",
+    "--return-seconds",
+    ".8",
+    "--plan-weight",
+    ".35",
+    "--future-key-weight",
+    ".4",
+    "--initial-learner",
+    "/content/warmstart.pt",
+    "--opener-policy",
+    "/content/opener.bin"
+  ],
+  "scripts": {
+    "train_sisters_timing_iql.py": "20fc93d55c44f62c66c33cea2d1837c2d8d1d34021824f7f58751d02b7c80200",
+    "train_sisters_native_iql.py": "8bb4eea6e0ed2c2d81675499082e566f3c507c49ee502e8f0b187278621841f7",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22",
+    "sisters_plan_labels.py": "d5f259f21468bc78d37b59fffb89dd514b0a083c88817582758d9244768be794"
+  },
+  "assets": {
+    "warmstart.pt": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+    "opener.bin": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3"
+  }
+}
