@@ -32,6 +32,15 @@ arena_auto_reset_count target_success_rate
 
 ## 2. Reward is not capability (PRD §13)
 
+In Sisters evaluations, each `hit_intervals` entry records the mod's source
+category, stable `source_entity_id` (zero when unresolved), and raw
+`hazard_type`. New recordings also preserve the Knight position and the visible
+bosses, hostile projectiles and hazards at both ends of that interval. Positions,
+velocities and collider dimensions use the raw Gym observation coordinates.
+An entity can disappear between samples. Use the damage event to identify the
+source and the endpoint observations to describe the surrounding threats. The
+observed FSM hash has the precision of the float32 observation.
+
 > Training reward ≠ real ability.
 
 Decisions are driven by **shaping-free** metrics, in priority order:

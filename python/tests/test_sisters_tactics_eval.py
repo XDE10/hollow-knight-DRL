@@ -84,14 +84,26 @@ def test_second_phase_damage_and_health_use_observed_intervals() -> None:
         return {"episode_id": 7, "reward_events": events, "elapsed_ticks": 5}
 
     k = protocol.RewardEventKind
-    incoming = SimpleNamespace(
-        kind=k.DAMAGE_TAKEN, aux_int2=protocol.DamageSource.ENEMY_PROJECTILE, amount=1
+    incoming = protocol.RewardEvent(
+        kind=k.DAMAGE_TAKEN, entity_id=11, aux_int=2,
+        aux_int2=protocol.DamageSource.ENEMY_PROJECTILE, amount=1,
     )
     outgoing = SimpleNamespace(kind=k.DAMAGE_DEALT, amount=21)
     heal = SimpleNamespace(kind=k.HEAL, amount=1)
     env = Mock()
     env.task.action.enable_macro_actions = False
-    env.reset.return_value = snapshot(9, 0, False), info()
+    before = snapshot(9, 0, False)
+    # Two live enemy discs, a player spell, and a masked slot. Disc 11
+    # despawns between the two observations of its damaging contact.
+    projectiles = np.zeros((4, 24))
+    projectiles[:, 0] = [10, 11, 12, 13]
+    projectiles[:, 1] = protocol.EntityType.PROJECTILE
+    projectiles[:, 2] = [protocol.Team.ENEMY, protocol.Team.ENEMY,
+                         protocol.Team.PLAYER_CREATED, protocol.Team.ENEMY]
+    projectiles[1, 6:8] = [23, 10]
+    before["entities"] = np.vstack([before["entities"], projectiles])
+    before["entity_mask"] = np.array([1, 1, 1, 1, 0], dtype=bool)
+    env.reset.return_value = before, info()
     env.step.side_effect = [
         (snapshot(8, 1, True), 0, False, False, info(incoming, outgoing)),
         (snapshot(9, 2, True), 0, False, True, info(heal, outgoing)),
@@ -104,3 +116,8 @@ def test_second_phase_damage_and_health_use_observed_intervals() -> None:
     assert game["last_observed_trio"]["observed_hp_by_entity"] == {"1": 750, "2": 750, "3": 750}
     assert game["hit_intervals"][0]["source"] == "ENEMY_PROJECTILE"
     assert not game["hit_intervals"][0]["trio_already_observed"]
+    hit = game["hit_intervals"][0]
+    assert (hit["source_entity_id"], hit["hazard_type"]) == (11, 2)
+    assert [e["entity_id"] for e in hit["entities_before_interval"]] == [1, 10, 11]
+    assert hit["entities_before_interval"][-1]["position"] == [23, 10]
+    assert [e["entity_id"] for e in hit["entities_after_interval"]] == [1, 2, 3]

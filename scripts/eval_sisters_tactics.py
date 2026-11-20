@@ -11,6 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from hkrl import protocol, spaces
 from hkrl.env import HKRLEnv
 from hkrl.transport.factory import make_transport
@@ -34,6 +35,30 @@ def verify_actor(policy_file: Path, episode: int, checkpoint: Path) -> None:
     identity, _, parameters = active.read_text(encoding="utf-8-sig").partition("\n")
     if int(identity) != episode or parameters != (checkpoint / "model.txt").read_text():
         raise RuntimeError("The game has a different active episode or policy.")
+
+
+def contact_entities(visible: np.ndarray) -> list[dict[str, Any]]:
+    """Capture the observed threats at one endpoint of a damage interval."""
+    e = spaces.ENTITY_FEATURE_INDEX
+    result = []
+    for row in visible:
+        kind = int(row[e["entity_type"]])
+        if kind not in (protocol.EntityType.BOSS, protocol.EntityType.HAZARD) and not (
+            kind == protocol.EntityType.PROJECTILE and row[e["team"]] == protocol.Team.ENEMY
+        ):
+            continue
+        item = {
+            "entity_id": int(row[e["entity_id"]]),
+            "type": protocol.EntityType(kind).name,
+            "position": row[e["pos_x"] : e["pos_y"] + 1].tolist(),
+            "velocity": row[e["vel_x"] : e["vel_y"] + 1].tolist(),
+            "observed_fsm_state_hash": int(row[e["fsm_state_hash"]]),
+        }
+        if len(row) > e["hurtbox_size_y"]:
+            item["hurtbox_center"] = row[e["hurtbox_center_x"] : e["hurtbox_center_y"] + 1].tolist()
+            item["hurtbox_size"] = row[e["hurtbox_size_x"] : e["hurtbox_size_y"] + 1].tolist()
+        result.append(item)
+    return result
 
 
 def play_game(
@@ -128,10 +153,17 @@ def play_game(
                         "interval_end": float(obs["global"][4]),
                         "trio_already_observed": trio_entry is not None,
                         "source": source,
+                        "source_entity_id": event.entity_id,
+                        "hazard_type": event.aux_int,
                         "masks": int(event.amount),
                         "hp_before_interval": previous_health,
                         "hp_after_interval": int(obs["player"][4]),
                         "position_before_interval": position,
+                        "position_after_interval": obs["player"][:2].tolist(),
+                        "entities_before_interval": contact_entities(visible),
+                        "entities_after_interval": contact_entities(
+                            obs["entities"][obs["entity_mask"].astype(bool)]
+                        ),
                     }
                 )
             elif event.kind == protocol.RewardEventKind.HEAL:
