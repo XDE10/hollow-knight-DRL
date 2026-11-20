@@ -388,16 +388,21 @@ def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
 
 
-def late_component(checkpoint: bytes) -> bytes:
+def phase_components(checkpoint: bytes) -> tuple[bytes, bytes]:
+    """Read either a shared actor or both actors from a deployed checkpoint."""
     if len(checkpoint) >= 12 and struct.unpack_from("<i", checkpoint)[0] == 0x334C5149:
         _, first, late = struct.unpack_from("<3i", checkpoint)
         if min(first, late) < 20 or 12 + first + late != len(checkpoint):
             raise ValueError("Invalid phase checkpoint lengths")
         opener, trio = checkpoint[12 : 12 + first], checkpoint[12 + first :]
         phase_checkpoint(opener, trio)
-        return trio
+        return opener, trio
     phase_checkpoint(checkpoint, checkpoint)
-    return checkpoint
+    return checkpoint, checkpoint
+
+
+def late_component(checkpoint: bytes) -> bytes:
+    return phase_components(checkpoint)[1]
 
 
 def initialize_actor(actor: TimingPolicy, commands: np.ndarray, path: Path) -> int:
@@ -448,12 +453,10 @@ def train(
     torch.set_num_threads(2)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_float32_matmul_precision("high")
-    opener = opener_path.read_bytes() if opener_path is not None else None
-    if opener is not None and late_path is not None:
+    if opener_path is not None and late_path is not None:
         raise ValueError("Select exactly one frozen phase when fitting a specialist")
+    opener = phase_components(opener_path.read_bytes())[0] if opener_path is not None else None
     late = late_component(late_path.read_bytes()) if late_path is not None else None
-    if opener is not None:
-        phase_checkpoint(opener, opener)
     data, commands, counts = build_data(
         data_dir,
         device,

@@ -168,3 +168,7 @@ def test_phase_bundle_preserves_the_opener_and_maps_action_rows(
     assert struct.unpack_from("<3i", pair) == (0x334C5149, len(a), len(b))
     assert pair[12 : 12 + len(a)] == a and pair[12 + len(a) :] == b
     assert mod.late_component(pair) == b and mod.late_component(b) == b
+    assert mod.phase_components(pair) == (a, b)
+    assert mod.phase_components(a) == (a, a)
+    with pytest.raises(ValueError):
+        mod.phase_components(pair[:-1])

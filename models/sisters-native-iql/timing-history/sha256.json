@@ -1,0 +1,10 @@
+{
+  "bc.bin": "1ff459b72540433e13362f11c41a0d6da696d3abee106ef1f06dfb1a8fea0a17",
+  "development.zip": "7f1b0b80d4a0e4c390d7b2bbd3e68ea6269d140287554c1913a36fa1603f206e",
+  "evaluation.json": "1ba62eb02b6b373dacdb88042ea2802aa43cfafb6d87c4365ba89c473257ca27",
+  "learner.pt": "ab1223a2d669004dde04b4ddc97f4d9f13592f49320917d7235bc66536babb40",
+  "native-parity.json": "778fa693d5a5e565251ba74a9ac12da005eeaf1f5baa9ae9bffe7ed433dc8576",
+  "study.json": "3cc5b13b97e15570e74ed1d5cbff64890a7a724197d7860b4e1eaccbaff25bae",
+  "training.json": "d3c92b6d043c32a458a1c30461e045cf49183057526c2d244a796fb8fdde4f7d",
+  "world_iql.bin": "6d7b1bb6d142dd2a8729059c19cad0cb3e9baf6cb3e6e9c3a2bad0ec7fd870a7"
+}

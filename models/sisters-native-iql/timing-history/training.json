@@ -1,0 +1,47 @@
+{
+  "counts": {
+    "train": {
+      "fights": 64,
+      "decisions": 113872
+    },
+    "holdout": {
+      "fights": 14,
+      "decisions": 25651
+    }
+  },
+  "seed": 521,
+  "batch": 512,
+  "actions": 73,
+  "mirrored_training": false,
+  "teacher_switch_weight": 2.5,
+  "teacher_agreement_seconds": 1.6,
+  "future_box_loss_weight": 4.0,
+  "opener_sha256": "2c8c92112580dde1362fd00df3270f9803640092cef4bd8319496131c4cac509",
+  "initial_learner_sha256": "fe8f1a1c339edefbcb9b0497fdad9963f8d8f0770d270ba1cd4a30a1719fcead",
+  "inherited_action_rows": 65,
+  "supervised_fraction": 0.6572818603344106,
+  "train_switch_fraction": 0.3509993553161621,
+  "bc_steps": 14000,
+  "world_steps": 6000,
+  "rl_steps": 16000,
+  "measured_return_seconds": 0.8,
+  "motion_history_lags": [
+    0.16,
+    0.48
+  ],
+  "hardware": "NVIDIA L4",
+  "manifest_sha256": "e68e281dc9932e97f4cff69fd37a03204618dad04d48c31e67889aac6662c336",
+  "bc_holdout_exact": 0.7065611481666565,
+  "bc_holdout_switch_known_exact": 0.4585489332675934,
+  "bc_holdout_hold_known_exact": 0.842934787273407,
+  "holdout_label_coverage": 0.9996881484985352,
+  "world_mae": 0.028497975319623947,
+  "persistence_mae": 0.0336710549890995,
+  "world_iql_holdout_exact": 0.7121749520301819,
+  "world_iql_holdout_switch_known_exact": 0.4451172351837158,
+  "world_iql_holdout_hold_known_exact": 0.8589975833892822,
+  "heldout_return_q_mae": 0.5998849868774414,
+  "heldout_return_value_mae": 0.5737684965133667,
+  "future_box_holdout_mae": 0.051679518073797226,
+  "future_box_zero_baseline_mae": 0.09543611854314804
+}
