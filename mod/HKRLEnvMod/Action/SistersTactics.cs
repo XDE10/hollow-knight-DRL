@@ -23,6 +23,7 @@ namespace HKRLEnvMod.Action
         private int _openerHp;
         private float _hurtAt;
         private int _previousHp;
+        private bool _returnGuard, _lowReturn;
         private readonly Dictionary<string,float> _param = new();
         private readonly Dictionary<int,(int state,float since)> _states = new();
         private readonly Dictionary<int,int> _discSide = new();
@@ -87,6 +88,7 @@ namespace HKRLEnvMod.Action
             _spacing=Param("spacing",0)>0;
             _recover=Param("recovery",0)>0;
             _timedSkills=Param("timed_skills",0)>0;
+            _returnGuard=Param("return_guard",0)>0;
             _openerHp=500;_lastOpener=-10;
             _hurtAt=-10;_previousHp=-1;
             _head.Reset(_file,id,Param("head_weight",0),Param("world_weight",0));
@@ -110,6 +112,7 @@ namespace HKRLEnvMod.Action
         private void Predict(ObservationSnapshot obs,float now)
         {
             Array.Clear(_count,0,Frames);
+            _lowReturn=false;
             foreach(var e in obs.Entities)
             {
                 bool disc=e.EntityType==HKRL.EntityType.Projectile && e.Team==HKRL.Team.Enemy;
@@ -156,7 +159,11 @@ namespace HKRLEnvMod.Action
                     }
                     for(int i=0;i<Frames;i++){
                         float t=(i+1)*Dt;
-                        Add(i,x+e.VelX*t+acceleration*.5f*t*t,y+e.VelY*t,w,h,true);
+                        float cy=y+e.VelY*t;
+                        float vx=e.VelX+acceleration*t;
+                        float padding=_returnGuard ? SistersReturnDisc.Sweep(e.VelY,vx,acceleration,cy) : 0;
+                        if(padding>0 && t<=.7f)_lowReturn=true;
+                        Add(i,x+e.VelX*t+acceleration*.5f*t*t,cy,w+padding,h,true);
                     }
                     continue;
                 }
@@ -473,10 +480,10 @@ namespace HKRLEnvMod.Action
                 foreach(float jd in Jumps)
                 {
                     if(jd<1 && !canJump)continue;
-                    foreach(float h in Holds)
+                    foreach(float h in (_lowReturn?ReturnHolds:Holds))
                     {
                         if(jd>=1 && h!=Holds[0])continue;
-                        float hold=h<.2f?h:_hold;
+                        float hold=h>.35f?h:(h<.2f?h:_hold);
                         float cost=PathCost(p,now,m,stop,jd,hold,false,out float risk);
                         if(_sequence && m!=0 && stop<.5f)
                         {
@@ -664,6 +671,7 @@ namespace HKRLEnvMod.Action
         private static readonly float[] Stops={.20f,.48f,1};
         private static readonly float[] Jumps={2,0,.15f,.30f,.50f};
         private static readonly float[] Holds={.15f,.30f};
+        private static readonly float[] ReturnHolds={.15f,.30f,.48f};
         public void Record(float time) => _head.Record(time,Input);
         public void Flush() => _head.Flush();
         public void Dispose() => _head.Dispose();

@@ -28,6 +28,14 @@ internal static class Program
 
     private static void Run()
     {
+        float left = SistersReturnDisc.Sweep(-2.2f, -24f, -24f, 9f);
+        float right = SistersReturnDisc.Sweep(-2.2f, 24f, 24f, 9f);
+        if (left <= 0 || left != right
+            || SistersReturnDisc.Sweep(-2.2f, 24f, -24f, 9f) != 0
+            || SistersReturnDisc.Sweep(-1.1f, 24f, 24f, 9f) != 0
+            || SistersReturnDisc.Sweep(-2.2f, 24f, 24f, 15f) != 0)
+            throw new InvalidOperationException("Unexpected Sisters returning-disc clearance.");
+
         HeroActions actions = InputHandler.Instance.inputActions;
         var injector = new InputInjector();
         injector.Apply(
