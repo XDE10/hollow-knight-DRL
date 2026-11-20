@@ -59,3 +59,21 @@ that interval. The trainer masks gaps, phase changes and missing labels, and
 gives additional weight to an upcoming movement change. The action-value
 targets still use the rewards of executed inputs. The exported actor uses only
 observations and past controls available when it chooses the current input.
+
+### Credit for the final arena outcome
+
+The ordinary IQL discount is 0.995 per 0.04 game seconds. Its half-life is
+about 5.5 seconds. In the 105-fight development archive, the 36 training wins
+that reached the trio took a median of 126.7 game seconds from trio entry to
+the terminal event. Short-term damage and the final win have very different
+time scales.
+
+The optional `--terminal-advantage-weight` gives executed inputs additional
+credit for the observed victory or death. A Monte Carlo return uses a 90-second
+half-life. A ridge regression estimates the expected return from current HP,
+SOUL, observed enemy HP and elapsed phase time. Every complete training fight
+has equal weight in this regression. Its own outcome is held out when estimating
+its baseline. The advantage relative to that baseline multiplies the IQL actor
+weight, bounded between exp(−1) and exp(1). Censored fights retain the ordinary
+IQL weight. The learned world model and twin critics still use the actual
+transition rewards. The exported actor chooses primitive controls as before.

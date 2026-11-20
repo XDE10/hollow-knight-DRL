@@ -263,6 +263,7 @@ def build_data(
     no_hit_cost: float = 0.0,
     teacher_win_min_hz: float = 0.0,
     future_keys: bool = False,
+    terminal_advantage: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -276,6 +277,7 @@ def build_data(
     windows: dict[str, list[tuple]] = {"train": [], "holdout": []}
     options: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     movements: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
+    outcomes: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
     mirror_axes = list(MIRROR)
     if history:
@@ -334,6 +336,11 @@ def build_data(
             selected = s[:, 23] <= 0.5
         if (trio_only or opening_only) and not selected.any():
             continue
+        if terminal_advantage:
+            from sisters_episode_returns import outcome_samples
+
+            context, terminal_return = outcome_samples(t, s, ev, bool(game["won"]))
+            outcomes[game["split"]].append((context[selected], terminal_return[selected]))
         if teacher_win_min_hz and not eligible_teacher_fight(game["won"], t[selected], teacher_win_min_hz):
             # Only the teacher/plan labels are excluded. Actual rewards and
             # actions from lost fights still train the world, value and critic.
@@ -361,6 +368,10 @@ def build_data(
         )
     if any(not games for games in parts.values()):
         raise ValueError("Need both fight splits")
+    if terminal_advantage:
+        from sisters_episode_returns import outcome_advantages
+
+        terminal_weights, terminal_stats = outcome_advantages(outcomes)
     result = {}
     catalogue = None
     for split, items in parts.items():
@@ -368,6 +379,8 @@ def build_data(
             np.concatenate(x) for x in zip(*items, strict=True)
         ]
         stats[split] = {"fights": len(items), "decisions": len(s)}
+        if terminal_advantage:
+            stats[split]["whole_fight_outcomes"] = terminal_stats[split]
         if split == "train" and mirror:
             ms, mns, ma, ml = s.copy(), ns.copy(), a.copy(), label.copy()
             ms[:, mirror_axes] *= -1
@@ -408,6 +421,11 @@ def build_data(
                 reflected = np.where(targets >= 0, (2 - targets // 4) * 4 + targets % 4, -1)
                 targets = np.concatenate((targets, reflected))
             result[split] += (torch.from_numpy(targets).to(device),)
+        if terminal_advantage:
+            excess = np.concatenate(terminal_weights[split])
+            if split == "train" and mirror:
+                excess = np.tile(excess, 2)
+            result[split] += (torch.from_numpy(excess).to(device),)
         if return_seconds:
             total, remaining, successor = [
                 np.concatenate(values) for values in zip(*windows[split], strict=True)
@@ -525,6 +543,7 @@ def train(
     no_hit_cost: float = 0.0,
     teacher_win_min_hz: float = 0.0,
     future_key_weight: float = 0.0,
+    terminal_advantage_weight: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -549,6 +568,7 @@ def train(
         no_hit_cost,
         teacher_win_min_hz,
         future_key_weight > 0,
+        terminal_advantage_weight > 0,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -580,6 +600,7 @@ def train(
     forecast_head = None
     movement_head = None
     movement_index = plan_index + int(plan_weight > 0)
+    terminal_index = movement_index + int(future_key_weight > 0)
     if future_key_weight > 0:
         movement_head = nn.Linear(192, len(MOVEMENT_HORIZONS) * 12).to(device)
     if forecast_weight > 0:
@@ -623,6 +644,7 @@ def train(
         "teacher_plan_loss_weight": plan_weight,
         "no_hit_cost": no_hit_cost,
         "future_key_loss_weight": future_key_weight,
+        "terminal_advantage_weight": terminal_advantage_weight,
         "future_key_seconds": list(MOVEMENT_HORIZONS) if movement_head is not None else [],
         "teacher_win_min_hz": teacher_win_min_hz,
         "late_sha256": hashlib.sha256(late).hexdigest() if late is not None else None,
@@ -802,6 +824,9 @@ def train(
                 for a, b in zip(slow.parameters(), fast.parameters(), strict=True):
                     a.lerp_(b, 0.005)
             aw = (6 * (old - v.detach()).clamp(-1, 1)).exp().clamp_max(12) * rare[u]
+            if terminal_advantage_weight > 0:
+                credit = data["train"][terminal_index][i]
+                aw *= (terminal_advantage_weight * credit).clamp(-1, 1).exp()
             prior = ref(x)[0].softmax(1)
         if step >= min(1000, rl_steps // 4):
             encoded = actor.encode(x)
@@ -965,6 +990,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--future-key-weight", type=float, default=0.0,
                         help="Train a shared auxiliary head on upcoming demonstrated movements.")
+    parser.add_argument("--terminal-advantage-weight", type=float, default=0.0,
+                        help="Weight executed actions by the measured whole-fight return above a held-out state baseline.")
     parser.add_argument(
         "--return-seconds",
         type=float,
@@ -999,6 +1026,8 @@ if __name__ == "__main__":
         parser.error("Plan weight must be finite and nonnegative")
     if not np.isfinite(args.future_key_weight) or args.future_key_weight < 0:
         parser.error("Future-key weight must be finite and nonnegative")
+    if not np.isfinite(args.terminal_advantage_weight) or args.terminal_advantage_weight < 0:
+        parser.error("Terminal-advantage weight must be finite and nonnegative")
     if not np.isfinite(args.no_hit_cost) or args.no_hit_cost < 0:
         parser.error("No-hit cost must be finite and nonnegative")
     if not np.isfinite(args.teacher_win_min_hz) or args.teacher_win_min_hz < 0:
@@ -1024,4 +1053,5 @@ if __name__ == "__main__":
         args.no_hit_cost,
         args.teacher_win_min_hz,
         args.future_key_weight,
+        args.terminal_advantage_weight,
     )
