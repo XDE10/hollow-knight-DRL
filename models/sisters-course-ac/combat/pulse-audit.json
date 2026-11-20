@@ -1,0 +1,12 @@
+{
+  "train": {
+    "frames": 102409,
+    "attack_present": 13321,
+    "attack_duty_below_half": 7384
+  },
+  "holdout": {
+    "frames": 34235,
+    "attack_present": 4235,
+    "attack_duty_below_half": 2196
+  }
+}

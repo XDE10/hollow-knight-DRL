@@ -1,0 +1,11 @@
+{"stage": "replay", "hardware": "NVIDIA L4", "episodes": {"train": 68, "holdout": 23}, "transitions": {"train": 102409, "holdout": 34235}}
+{"stage": "world", "seed": 71, "holdout": {"1": {"mae": 0.21275366842746735, "unchanged_mae": 0.23813943564891815}, "5": {"mae": 0.4138041138648987, "unchanged_mae": 0.5196082592010498}}}
+{"stage": "world", "seed": 127, "holdout": {"1": {"mae": 0.2198856770992279, "unchanged_mae": 0.23813943564891815}, "5": {"mae": 0.4691333770751953, "unchanged_mae": 0.5196082592010498}}}
+{"stage": "world", "seed": 257, "holdout": {"1": {"mae": 0.21310856938362122, "unchanged_mae": 0.23813943564891815}, "5": {"mae": 0.4224274456501007, "unchanged_mae": 0.5196082592010498}}}
+{"stage": "imagined_ppo", "update": 1, "actor_loss_first": 0.06468905508518219, "value_loss": 0.13584254682064056, "entropy": 0.9848994612693787}
+{"stage": "imagined_ppo", "update": 26, "actor_loss_first": 0.026115000247955322, "value_loss": 0.15401986241340637, "entropy": 1.0193322896957397}
+{"stage": "imagined_ppo", "update": 51, "actor_loss_first": 0.016029667109251022, "value_loss": 1.0860481262207031, "entropy": 1.2018072605133057}
+{"stage": "imagined_ppo", "update": 76, "actor_loss_first": 0.03950018063187599, "value_loss": 5.0339765548706055, "entropy": 1.536319613456726}
+{"stage": "imagined_ppo", "update": 101, "actor_loss_first": 0.00024316832423210144, "value_loss": 4.775136947631836, "entropy": 1.5078675746917725}
+{"stage": "imagined_ppo", "update": 120, "actor_loss_first": -0.008506331592798233, "value_loss": 5.2341461181640625, "entropy": 1.4437339305877686}
+{"stage": "finished", "heldout_actor_kl": 0.3035126328468323}

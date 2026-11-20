@@ -1,0 +1,7737 @@
+{
+  "before-eval": {
+    "settings": {
+      "checkpoint_sha256": "7fb076173d246968186cd017d809dbe938a9462c794c9f6d4eb4dc759b3cc697",
+      "native_tactics": false,
+      "trained": false,
+      "seed": 9212000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "before_rl.pt",
+      "action_selection": "greedy"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 23.1,
+      "damage_max": 63.0,
+      "fights_dealt_damage": 6,
+      "seconds_mean": 32.7,
+      "masks_lost": {
+        "SPIKES": 27.0,
+        "BOSS_BODY": 40.0,
+        "ENEMY_PROJECTILE": 23.0
+      },
+      "actions": 2018,
+      "nail_commands": 16
+    },
+    "episodes": [
+      {
+        "seed": 9212000,
+        "episode_id": 11,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 36.38,
+        "actions": {
+          "14": 111,
+          "28": 44,
+          "0": 73,
+          "4": 2
+        },
+        "decisions": 230,
+        "scale_counts": {
+          "1.0": 228,
+          "0.9": 1,
+          "0.74": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212001,
+        "episode_id": 12,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.3,
+        "actions": {
+          "14": 108,
+          "28": 32,
+          "0": 55,
+          "4": 3
+        },
+        "decisions": 198,
+        "scale_counts": {
+          "1.0": 195,
+          "0.84": 1,
+          "0.83": 1,
+          "0.92": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212002,
+        "episode_id": 13,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.32,
+        "actions": {
+          "14": 113,
+          "28": 63,
+          "0": 46,
+          "4": 2,
+          "32": 1
+        },
+        "decisions": 225,
+        "scale_counts": {
+          "1.0": 224,
+          "0.11": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212003,
+        "episode_id": 14,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 30.8,
+        "actions": {
+          "14": 105,
+          "28": 53,
+          "0": 46,
+          "4": 2,
+          "15": 1
+        },
+        "decisions": 207,
+        "scale_counts": {
+          "1.0": 205,
+          "0.38": 1,
+          "0.12": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212004,
+        "episode_id": 15,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.52,
+        "actions": {
+          "14": 84,
+          "28": 59,
+          "0": 51,
+          "4": 1
+        },
+        "decisions": 195,
+        "scale_counts": {
+          "1.0": 195
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212005,
+        "episode_id": 16,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.52,
+        "actions": {
+          "14": 136,
+          "0": 44,
+          "28": 37
+        },
+        "decisions": 217,
+        "scale_counts": {
+          "1.0": 214,
+          "0.75": 1,
+          "0.47": 1,
+          "0.85": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212006,
+        "episode_id": 17,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.96,
+        "actions": {
+          "14": 116,
+          "0": 44,
+          "28": 49,
+          "4": 2
+        },
+        "decisions": 211,
+        "scale_counts": {
+          "1.0": 211
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212007,
+        "episode_id": 18,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.46,
+        "actions": {
+          "14": 114,
+          "28": 38,
+          "0": 36
+        },
+        "decisions": 188,
+        "scale_counts": {
+          "1.0": 187,
+          "0.77": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212008,
+        "episode_id": 19,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.78,
+        "actions": {
+          "14": 131,
+          "28": 47,
+          "0": 49,
+          "4": 2,
+          "32": 1
+        },
+        "decisions": 230,
+        "scale_counts": {
+          "1.0": 227,
+          "0.58": 1,
+          "0.37": 1,
+          "0.83": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9212009,
+        "episode_id": 20,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 24.0,
+        "actions": {
+          "14": 60,
+          "0": 24,
+          "28": 33
+        },
+        "decisions": 117,
+        "scale_counts": {
+          "1.0": 115,
+          "0.87": 1,
+          "0.53": 1
+        },
+        "policy_update": 0
+      }
+    ]
+  },
+  "imagined-eval": {
+    "settings": {
+      "checkpoint_sha256": "b8c1d00e0388532497efd80a1c74ffcb6529eae3dcb8833406a2ecae5c0a72ae",
+      "native_tactics": false,
+      "trained": false,
+      "seed": 9211000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "imagined_ppo.pt",
+      "action_selection": "greedy"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 4.2,
+      "damage_max": 21.0,
+      "fights_dealt_damage": 2,
+      "seconds_mean": 29.24,
+      "masks_lost": {
+        "BOSS_BODY": 34.0,
+        "SPIKES": 35.0,
+        "ENEMY_PROJECTILE": 21.0
+      },
+      "actions": 1708,
+      "nail_commands": 9
+    },
+    "episodes": [
+      {
+        "seed": 9211000,
+        "episode_id": 1,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 26.86,
+        "actions": {
+          "14": 43,
+          "0": 78,
+          "28": 23
+        },
+        "decisions": 144,
+        "scale_counts": {
+          "1.0": 143,
+          "0.57": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211001,
+        "episode_id": 2,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 4.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 28.72,
+        "actions": {
+          "14": 73,
+          "0": 69,
+          "28": 17
+        },
+        "decisions": 159,
+        "scale_counts": {
+          "1.0": 158,
+          "0.95": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211002,
+        "episode_id": 3,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.94,
+        "actions": {
+          "14": 97,
+          "0": 43,
+          "28": 20,
+          "32": 2
+        },
+        "decisions": 162,
+        "scale_counts": {
+          "1.0": 161,
+          "0.35": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211003,
+        "episode_id": 4,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 6.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 24.08,
+        "actions": {
+          "14": 51,
+          "0": 58,
+          "28": 7
+        },
+        "decisions": 116,
+        "scale_counts": {
+          "1.0": 114,
+          "0.89": 1,
+          "0.64": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211004,
+        "episode_id": 5,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 28.0,
+        "actions": {
+          "14": 77,
+          "0": 54,
+          "28": 22
+        },
+        "decisions": 153,
+        "scale_counts": {
+          "1.0": 153
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211005,
+        "episode_id": 6,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.96,
+        "actions": {
+          "14": 69,
+          "0": 70,
+          "28": 44,
+          "4": 1
+        },
+        "decisions": 184,
+        "scale_counts": {
+          "1.0": 183,
+          "0.82": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211006,
+        "episode_id": 7,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.32,
+        "actions": {
+          "14": 121,
+          "28": 22,
+          "0": 86,
+          "32": 1
+        },
+        "decisions": 230,
+        "scale_counts": {
+          "1.0": 227,
+          "0.99": 1,
+          "0.63": 1,
+          "0.66": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211007,
+        "episode_id": 8,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.16,
+        "actions": {
+          "14": 76,
+          "0": 72,
+          "28": 45,
+          "32": 2
+        },
+        "decisions": 195,
+        "scale_counts": {
+          "1.0": 192,
+          "0.66": 1,
+          "0.64": 1,
+          "0.46": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211008,
+        "episode_id": 9,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 27.74,
+        "actions": {
+          "14": 104,
+          "0": 47,
+          "28": 31,
+          "4": 1,
+          "32": 1
+        },
+        "decisions": 184,
+        "scale_counts": {
+          "1.0": 182,
+          "0.14": 1,
+          "0.71": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9211009,
+        "episode_id": 10,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 27.58,
+        "actions": {
+          "14": 72,
+          "28": 36,
+          "0": 72,
+          "32": 1
+        },
+        "decisions": 181,
+        "scale_counts": {
+          "1.0": 178,
+          "0.53": 1,
+          "0.65": 1,
+          "0.73": 1
+        },
+        "policy_update": 0
+      }
+    ]
+  },
+  "real-train": {
+    "settings": {
+      "checkpoint_sha256": "b8c1d00e0388532497efd80a1c74ffcb6529eae3dcb8833406a2ecae5c0a72ae",
+      "native_tactics": false,
+      "trained": true,
+      "seed": 9213000,
+      "episodes": 24,
+      "scale": 2.0,
+      "checkpoint": "imagined_ppo.pt",
+      "action_selection": "sampled"
+    },
+    "summary": {
+      "completed": 24,
+      "planned": 24,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 14.88,
+      "damage_max": 63.0,
+      "fights_dealt_damage": 12,
+      "seconds_mean": 32.26,
+      "masks_lost": {
+        "SPIKES": 57.0,
+        "BOSS_BODY": 87.0,
+        "ENEMY_PROJECTILE": 72.0
+      },
+      "actions": 3259,
+      "nail_commands": 247
+    },
+    "episodes": [
+      {
+        "seed": 9213000,
+        "episode_id": 21,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.52,
+        "actions": {
+          "14": 78,
+          "28": 23,
+          "29": 4,
+          "15": 4,
+          "0": 48,
+          "1": 1,
+          "32": 4,
+          "18": 3,
+          "7": 1,
+          "16": 1,
+          "4": 1,
+          "6": 1
+        },
+        "decisions": 169,
+        "scale_counts": {
+          "2.0": 162,
+          "0.98": 1,
+          "4.0": 2,
+          "1.48": 1,
+          "1.1": 1,
+          "1.58": 1,
+          "1.66": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9213001,
+        "episode_id": 22,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.84,
+        "actions": {
+          "32": 1,
+          "14": 69,
+          "0": 64,
+          "28": 26,
+          "30": 3,
+          "29": 4,
+          "35": 1,
+          "15": 8,
+          "6": 1,
+          "18": 2,
+          "33": 2,
+          "1": 3,
+          "19": 1
+        },
+        "decisions": 185,
+        "scale_counts": {
+          "2.0": 178,
+          "4.0": 5,
+          "0.54": 1,
+          "1.86": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9213002,
+        "episode_id": 23,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.0,
+        "actions": {
+          "14": 59,
+          "28": 18,
+          "32": 2,
+          "0": 35,
+          "15": 2,
+          "8": 1,
+          "1": 1,
+          "4": 2,
+          "29": 5,
+          "16": 1,
+          "18": 1,
+          "2": 1
+        },
+        "decisions": 128,
+        "scale_counts": {
+          "2.0": 126,
+          "0.66": 1,
+          "4.0": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9213003,
+        "episode_id": 24,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.92,
+        "actions": {
+          "14": 72,
+          "15": 3,
+          "28": 21,
+          "19": 2,
+          "0": 43,
+          "29": 1,
+          "1": 1,
+          "7": 1,
+          "32": 2,
+          "4": 2,
+          "2": 1,
+          "8": 1,
+          "18": 1,
+          "16": 1,
+          "5": 1,
+          "22": 1
+        },
+        "decisions": 154,
+        "scale_counts": {
+          "2.0": 153,
+          "1.92": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9213004,
+        "episode_id": 25,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.46,
+        "actions": {
+          "28": 32,
+          "0": 51,
+          "14": 35,
+          "1": 1,
+          "35": 1,
+          "29": 2,
+          "5": 1,
+          "21": 1,
+          "32": 1,
+          "2": 1,
+          "15": 1,
+          "31": 1
+        },
+        "decisions": 128,
+        "scale_counts": {
+          "2.0": 122,
+          "1.51": 1,
+          "2.29": 1,
+          "2.32": 1,
+          "1.95": 1,
+          "4.0": 2
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9213005,
+        "episode_id": 26,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 2.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.82,
+        "actions": {
+          "14": 62,
+          "28": 17,
+          "32": 1,
+          "0": 35,
+          "15": 2,
+          "19": 1,
+          "33": 1,
+          "29": 1,
+          "18": 1,
+          "8": 1
+        },
+        "decisions": 122,
+        "scale_counts": {
+          "2.0": 117,
+          "1.02": 1,
+          "1.83": 1,
+          "1.24": 1,
+          "1.39": 1,
+          "1.8": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9213006,
+        "episode_id": 27,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "BOSS_BODY": 5.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 27.6,
+        "actions": {
+          "14": 52,
+          "0": 28,
+          "28": 12,
+          "34": 1,
+          "19": 1,
+          "22": 1,
+          "1": 2,
+          "32": 2,
+          "4": 1,
+          "33": 1
+        },
+        "decisions": 101,
+        "scale_counts": {
+          "2.0": 95,
+          "0.94": 1,
+          "0.32": 1,
+          "1.18": 1,
+          "1.22": 1,
+          "2.15": 1,
+          "4.0": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9213007,
+        "episode_id": 28,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 6.0,
+          "SPIKES": 1.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.96,
+        "actions": {
+          "14": 70,
+          "0": 30,
+          "28": 22,
+          "32": 1,
+          "35": 1,
+          "30": 1,
+          "4": 2,
+          "1": 1,
+          "19": 1,
+          "18": 1
+        },
+        "decisions": 130,
+        "scale_counts": {
+          "2.0": 127,
+          "4.0": 1,
+          "0.59": 1,
+          "1.81": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9213008,
+        "episode_id": 29,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.8,
+        "actions": {
+          "14": 40,
+          "1": 3,
+          "0": 45,
+          "28": 17,
+          "19": 1,
+          "4": 1,
+          "15": 1,
+          "29": 2,
+          "32": 1
+        },
+        "decisions": 111,
+        "scale_counts": {
+          "2.0": 106,
+          "2.47": 1,
+          "1.69": 1,
+          "1.78": 1,
+          "0.47": 1,
+          "4.0": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9213009,
+        "episode_id": 30,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 1.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.44,
+        "actions": {
+          "14": 66,
+          "0": 38,
+          "19": 3,
+          "28": 18,
+          "2": 1,
+          "16": 1,
+          "15": 6,
+          "4": 1,
+          "35": 1,
+          "33": 1,
+          "29": 1,
+          "21": 1
+        },
+        "decisions": 138,
+        "scale_counts": {
+          "2.0": 137,
+          "1.29": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9213010,
+        "episode_id": 31,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 25.02,
+        "actions": {
+          "14": 55,
+          "0": 40,
+          "28": 17,
+          "29": 1,
+          "19": 1,
+          "15": 3,
+          "2": 1
+        },
+        "decisions": 118,
+        "scale_counts": {
+          "2.0": 112,
+          "4.0": 2,
+          "0.71": 1,
+          "1.91": 1,
+          "1.62": 1,
+          "1.33": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9213011,
+        "episode_id": 32,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.82,
+        "actions": {
+          "14": 53,
+          "28": 31,
+          "32": 2,
+          "0": 54,
+          "29": 4,
+          "31": 2,
+          "7": 1,
+          "34": 1,
+          "19": 2
+        },
+        "decisions": 150,
+        "scale_counts": {
+          "2.0": 146,
+          "0.54": 1,
+          "1.87": 1,
+          "4.0": 1,
+          "1.39": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9213012,
+        "episode_id": 33,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 1.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 36.16,
+        "actions": {
+          "0": 40,
+          "14": 72,
+          "19": 2,
+          "18": 1,
+          "32": 1,
+          "2": 2,
+          "28": 31,
+          "30": 1,
+          "15": 6,
+          "5": 2,
+          "29": 3,
+          "21": 2,
+          "17": 1,
+          "1": 3
+        },
+        "decisions": 167,
+        "scale_counts": {
+          "2.0": 163,
+          "1.13": 1,
+          "1.31": 1,
+          "1.53": 1,
+          "4.0": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9213013,
+        "episode_id": 34,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.98,
+        "actions": {
+          "14": 55,
+          "28": 22,
+          "29": 3,
+          "0": 36,
+          "18": 2,
+          "4": 1,
+          "33": 3,
+          "32": 3,
+          "15": 2
+        },
+        "decisions": 127,
+        "scale_counts": {
+          "2.0": 122,
+          "4.0": 3,
+          "1.57": 1,
+          "0.9": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9213014,
+        "episode_id": 35,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 28.7,
+        "actions": {
+          "14": 60,
+          "0": 50,
+          "6": 2,
+          "28": 15,
+          "1": 1,
+          "29": 4,
+          "15": 1,
+          "2": 1,
+          "7": 2
+        },
+        "decisions": 136,
+        "scale_counts": {
+          "2.0": 130,
+          "1.17": 1,
+          "0.82": 1,
+          "1.29": 1,
+          "2.08": 1,
+          "1.48": 1,
+          "1.15": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9213015,
+        "episode_id": 36,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 27.78,
+        "actions": {
+          "14": 59,
+          "33": 2,
+          "28": 26,
+          "0": 36,
+          "1": 1,
+          "29": 1,
+          "32": 1,
+          "4": 1,
+          "19": 1
+        },
+        "decisions": 128,
+        "scale_counts": {
+          "2.0": 124,
+          "4.0": 1,
+          "1.19": 1,
+          "1.34": 1,
+          "1.11": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9213016,
+        "episode_id": 37,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.02,
+        "actions": {
+          "14": 81,
+          "28": 9,
+          "18": 5,
+          "0": 40,
+          "29": 2,
+          "31": 1,
+          "19": 12,
+          "33": 1,
+          "2": 3,
+          "15": 3,
+          "4": 1,
+          "16": 1
+        },
+        "decisions": 159,
+        "scale_counts": {
+          "2.0": 154,
+          "2.38": 1,
+          "4.0": 1,
+          "1.82": 1,
+          "1.54": 1,
+          "1.76": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9213017,
+        "episode_id": 38,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "ENEMY_PROJECTILE": 5.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 26.32,
+        "actions": {
+          "14": 52,
+          "19": 11,
+          "28": 9,
+          "0": 16,
+          "30": 1,
+          "32": 1,
+          "2": 1,
+          "15": 2,
+          "18": 2,
+          "16": 1
+        },
+        "decisions": 96,
+        "scale_counts": {
+          "2.0": 93,
+          "4.0": 2,
+          "0.37": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9213018,
+        "episode_id": 39,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 30.14,
+        "actions": {
+          "14": 72,
+          "19": 7,
+          "0": 17,
+          "33": 2,
+          "18": 3,
+          "28": 11,
+          "5": 1,
+          "29": 2,
+          "1": 4,
+          "35": 1,
+          "15": 1,
+          "7": 1,
+          "34": 1
+        },
+        "decisions": 123,
+        "scale_counts": {
+          "2.0": 117,
+          "1.99": 1,
+          "1.1": 1,
+          "4.0": 2,
+          "1.69": 1,
+          "1.06": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9213019,
+        "episode_id": 40,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.4,
+        "actions": {
+          "14": 65,
+          "19": 18,
+          "15": 9,
+          "16": 1,
+          "28": 11,
+          "0": 33,
+          "32": 1,
+          "4": 1,
+          "29": 3,
+          "37": 1,
+          "30": 2,
+          "5": 1,
+          "33": 3,
+          "2": 1,
+          "34": 2,
+          "1": 1,
+          "18": 1
+        },
+        "decisions": 154,
+        "scale_counts": {
+          "2.0": 150,
+          "1.74": 1,
+          "4.0": 2,
+          "1.36": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9213020,
+        "episode_id": 41,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 26.34,
+        "actions": {
+          "14": 70,
+          "19": 13,
+          "18": 2,
+          "0": 21,
+          "28": 11,
+          "5": 1,
+          "2": 1,
+          "15": 4,
+          "33": 2,
+          "36": 1,
+          "1": 1,
+          "29": 1,
+          "6": 1
+        },
+        "decisions": 129,
+        "scale_counts": {
+          "2.0": 124,
+          "1.8": 1,
+          "1.87": 1,
+          "1.35": 1,
+          "4.0": 1,
+          "1.94": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9213021,
+        "episode_id": 42,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 28.8,
+        "actions": {
+          "14": 85,
+          "19": 17,
+          "0": 14,
+          "28": 11,
+          "29": 3,
+          "33": 1,
+          "34": 1,
+          "4": 1,
+          "18": 1,
+          "21": 1,
+          "15": 1
+        },
+        "decisions": 136,
+        "scale_counts": {
+          "2.0": 129,
+          "1.31": 1,
+          "1.15": 1,
+          "1.93": 1,
+          "4.0": 1,
+          "1.75": 1,
+          "0.65": 1,
+          "0.6": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9213022,
+        "episode_id": 43,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.0,
+        "actions": {
+          "14": 57,
+          "33": 2,
+          "16": 1,
+          "18": 1,
+          "19": 11,
+          "0": 29,
+          "32": 4,
+          "28": 12,
+          "2": 1,
+          "15": 2,
+          "30": 1,
+          "29": 1,
+          "34": 2,
+          "1": 1
+        },
+        "decisions": 125,
+        "scale_counts": {
+          "2.0": 121,
+          "4.0": 3,
+          "1.34": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9213023,
+        "episode_id": 44,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 5.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.28,
+        "actions": {
+          "19": 5,
+          "14": 65,
+          "28": 21,
+          "0": 40,
+          "2": 3,
+          "3": 1,
+          "29": 3,
+          "15": 2,
+          "31": 1,
+          "33": 1,
+          "1": 1,
+          "35": 1,
+          "32": 1
+        },
+        "decisions": 145,
+        "scale_counts": {
+          "2.0": 140,
+          "1.11": 1,
+          "1.36": 1,
+          "0.67": 1,
+          "0.94": 1,
+          "1.26": 1
+        },
+        "policy_update": 5
+      }
+    ],
+    "updates": [
+      {
+        "steps": 636,
+        "actor_loss_first": 0.01756736822426319,
+        "value_loss": 4.085089206695557,
+        "entropy": 0.8063774704933167
+      },
+      {
+        "steps": 481,
+        "actor_loss_first": -0.013696905225515366,
+        "value_loss": 3.2999417781829834,
+        "entropy": 0.8709244728088379
+      },
+      {
+        "steps": 517,
+        "actor_loss_first": 0.06506236642599106,
+        "value_loss": 1.5256351232528687,
+        "entropy": 0.8840560913085938
+      },
+      {
+        "steps": 558,
+        "actor_loss_first": -0.012007758021354675,
+        "value_loss": 2.7412641048431396,
+        "entropy": 0.8238587379455566
+      },
+      {
+        "steps": 532,
+        "actor_loss_first": -0.003954792395234108,
+        "value_loss": 2.0323452949523926,
+        "entropy": 1.0375301837921143
+      },
+      {
+        "steps": 535,
+        "actor_loss_first": 0.10318848490715027,
+        "value_loss": 1.8110758066177368,
+        "entropy": 0.9287113547325134
+      }
+    ]
+  },
+  "real-eval": {
+    "settings": {
+      "checkpoint_sha256": "f2183ec298645dec9427ec3ca7794189e716abd5e8abd1e6fae08291d250edc0",
+      "native_tactics": false,
+      "trained": false,
+      "seed": 9214000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "real_ppo.pt",
+      "action_selection": "greedy"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 12.6,
+      "damage_max": 21.0,
+      "fights_dealt_damage": 6,
+      "seconds_mean": 28.87,
+      "masks_lost": {
+        "BOSS_BODY": 54.0,
+        "SPIKES": 4.0,
+        "ENEMY_PROJECTILE": 32.0
+      },
+      "actions": 1825,
+      "nail_commands": 26
+    },
+    "episodes": [
+      {
+        "seed": 9214000,
+        "episode_id": 45,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 22.78,
+        "actions": {
+          "14": 69,
+          "0": 33,
+          "29": 6,
+          "28": 24,
+          "18": 1,
+          "4": 1
+        },
+        "decisions": 134,
+        "scale_counts": {
+          "1.0": 133,
+          "0.96": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214001,
+        "episode_id": 46,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.24,
+        "actions": {
+          "14": 121,
+          "0": 46,
+          "28": 29,
+          "29": 8,
+          "18": 2,
+          "15": 2,
+          "32": 1
+        },
+        "decisions": 209,
+        "scale_counts": {
+          "1.0": 207,
+          "0.93": 1,
+          "0.37": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214002,
+        "episode_id": 47,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 23.78,
+        "actions": {
+          "14": 123,
+          "0": 26,
+          "28": 10
+        },
+        "decisions": 159,
+        "scale_counts": {
+          "1.0": 159
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214003,
+        "episode_id": 48,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 25.22,
+        "actions": {
+          "14": 113,
+          "0": 21,
+          "28": 22,
+          "32": 1,
+          "18": 1,
+          "19": 1,
+          "29": 1,
+          "15": 1
+        },
+        "decisions": 161,
+        "scale_counts": {
+          "1.0": 160,
+          "0.27": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214004,
+        "episode_id": 49,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 39.58,
+        "actions": {
+          "14": 164,
+          "28": 42,
+          "29": 5,
+          "0": 40,
+          "32": 2,
+          "18": 3,
+          "4": 1
+        },
+        "decisions": 257,
+        "scale_counts": {
+          "1.0": 252,
+          "0.49": 1,
+          "0.89": 1,
+          "0.97": 1,
+          "0.94": 1,
+          "0.85": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214005,
+        "episode_id": 50,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.88,
+        "actions": {
+          "14": 159,
+          "0": 24,
+          "28": 25,
+          "32": 1,
+          "4": 1,
+          "29": 3
+        },
+        "decisions": 213,
+        "scale_counts": {
+          "1.0": 211,
+          "0.96": 1,
+          "0.49": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214006,
+        "episode_id": 51,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 25.56,
+        "actions": {
+          "14": 75,
+          "0": 45,
+          "28": 24,
+          "29": 5,
+          "19": 2,
+          "32": 1,
+          "18": 1
+        },
+        "decisions": 153,
+        "scale_counts": {
+          "1.0": 150,
+          "0.9": 1,
+          "0.98": 1,
+          "0.7": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214007,
+        "episode_id": 52,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 7.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 26.32,
+        "actions": {
+          "14": 105,
+          "0": 37,
+          "28": 23,
+          "29": 3,
+          "32": 1,
+          "18": 1
+        },
+        "decisions": 170,
+        "scale_counts": {
+          "1.0": 169,
+          "0.74": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214008,
+        "episode_id": 53,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.16,
+        "actions": {
+          "14": 134,
+          "0": 24,
+          "32": 1,
+          "28": 21,
+          "4": 1,
+          "29": 2
+        },
+        "decisions": 183,
+        "scale_counts": {
+          "1.0": 180,
+          "0.51": 1,
+          "0.97": 1,
+          "0.87": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9214009,
+        "episode_id": 54,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.18,
+        "actions": {
+          "14": 123,
+          "0": 36,
+          "28": 21,
+          "29": 4,
+          "4": 1,
+          "32": 1
+        },
+        "decisions": 186,
+        "scale_counts": {
+          "1.0": 183,
+          "0.58": 1,
+          "0.63": 1,
+          "0.56": 1
+        },
+        "policy_update": 0
+      }
+    ]
+  },
+  "combat-before-eval": {
+    "settings": {
+      "checkpoint_sha256": "80b81037826658eb5a77a0975ac94ca7c1ec5789b0522de490e90e972ffbf64c",
+      "native_tactics": false,
+      "trained": false,
+      "action_selection": "greedy",
+      "seed": 9222000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "combat/before_rl.pt"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 224.1,
+      "damage_max": 345.0,
+      "fights_dealt_damage": 10,
+      "seconds_mean": 55.38,
+      "masks_lost": {
+        "BOSS_BODY": 41.0,
+        "ENEMY_PROJECTILE": 39.0,
+        "SPIKES": 10.0
+      },
+      "actions": 3475,
+      "nail_commands": 279
+    },
+    "episodes": [
+      {
+        "seed": 9222000,
+        "episode_id": 11,
+        "won": false,
+        "first_cleared": false,
+        "damage": 345.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 6.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 82.68,
+        "actions": {
+          "14": 204,
+          "28": 90,
+          "30": 11,
+          "21": 9,
+          "15": 16,
+          "18": 16,
+          "0": 109,
+          "2": 10,
+          "1": 14,
+          "32": 3,
+          "4": 6,
+          "16": 14,
+          "24": 1,
+          "6": 1,
+          "29": 10,
+          "7": 1,
+          "25": 2,
+          "27": 28,
+          "35": 1,
+          "33": 1,
+          "10": 1
+        },
+        "decisions": 548,
+        "scale_counts": {
+          "1.0": 546,
+          "0.37": 1,
+          "0.78": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222001,
+        "episode_id": 12,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.0,
+        "actions": {
+          "14": 53,
+          "28": 62,
+          "2": 6,
+          "1": 4,
+          "0": 47,
+          "18": 3,
+          "33": 1,
+          "6": 1,
+          "32": 3,
+          "21": 2,
+          "16": 3,
+          "15": 2,
+          "30": 5,
+          "4": 3,
+          "29": 1,
+          "19": 1,
+          "27": 6
+        },
+        "decisions": 203,
+        "scale_counts": {
+          "1.0": 200,
+          "0.76": 1,
+          "0.66": 1,
+          "0.44": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222002,
+        "episode_id": 13,
+        "won": false,
+        "first_cleared": false,
+        "damage": 156.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.94,
+        "actions": {
+          "14": 98,
+          "28": 44,
+          "32": 3,
+          "0": 61,
+          "30": 6,
+          "29": 8,
+          "18": 15,
+          "16": 13,
+          "21": 1,
+          "15": 16,
+          "27": 20,
+          "10": 1,
+          "4": 3,
+          "2": 7,
+          "19": 1,
+          "1": 2
+        },
+        "decisions": 299,
+        "scale_counts": {
+          "1.0": 298,
+          "0.78": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222003,
+        "episode_id": 14,
+        "won": false,
+        "first_cleared": false,
+        "damage": 333.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 1.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 74.7,
+        "actions": {
+          "14": 145,
+          "28": 113,
+          "2": 8,
+          "0": 92,
+          "18": 13,
+          "1": 7,
+          "30": 13,
+          "35": 1,
+          "16": 13,
+          "27": 10,
+          "38": 2,
+          "29": 10,
+          "15": 6,
+          "4": 9,
+          "32": 8,
+          "7": 1,
+          "24": 1,
+          "19": 2,
+          "21": 5
+        },
+        "decisions": 459,
+        "scale_counts": {
+          "1.0": 456,
+          "0.27": 1,
+          "0.31": 1,
+          "0.89": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222004,
+        "episode_id": 15,
+        "won": false,
+        "first_cleared": false,
+        "damage": 210.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 60.8,
+        "actions": {
+          "14": 97,
+          "28": 92,
+          "2": 10,
+          "1": 10,
+          "0": 74,
+          "5": 1,
+          "18": 11,
+          "16": 8,
+          "15": 9,
+          "30": 12,
+          "38": 1,
+          "32": 5,
+          "21": 2,
+          "29": 3,
+          "4": 4,
+          "27": 35,
+          "25": 1
+        },
+        "decisions": 375,
+        "scale_counts": {
+          "1.0": 374,
+          "0.3": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222005,
+        "episode_id": 16,
+        "won": false,
+        "first_cleared": false,
+        "damage": 210.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 5.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 49.18,
+        "actions": {
+          "14": 97,
+          "28": 65,
+          "32": 6,
+          "0": 70,
+          "4": 8,
+          "2": 8,
+          "1": 3,
+          "16": 6,
+          "18": 8,
+          "30": 8,
+          "21": 3,
+          "15": 5,
+          "24": 1,
+          "29": 11,
+          "33": 1,
+          "19": 5,
+          "27": 12
+        },
+        "decisions": 317,
+        "scale_counts": {
+          "1.0": 316,
+          "0.81": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222006,
+        "episode_id": 17,
+        "won": false,
+        "first_cleared": false,
+        "damage": 276.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 66.94,
+        "actions": {
+          "14": 147,
+          "0": 77,
+          "2": 7,
+          "7": 1,
+          "1": 5,
+          "16": 16,
+          "18": 18,
+          "28": 83,
+          "29": 9,
+          "4": 11,
+          "32": 6,
+          "15": 19,
+          "25": 1,
+          "21": 4,
+          "30": 6,
+          "27": 10,
+          "19": 1
+        },
+        "decisions": 421,
+        "scale_counts": {
+          "1.0": 420,
+          "0.56": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222007,
+        "episode_id": 18,
+        "won": false,
+        "first_cleared": false,
+        "damage": 261.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 55.78,
+        "actions": {
+          "14": 116,
+          "28": 73,
+          "2": 11,
+          "1": 4,
+          "0": 70,
+          "5": 1,
+          "18": 11,
+          "16": 6,
+          "15": 12,
+          "30": 10,
+          "21": 6,
+          "10": 2,
+          "4": 7,
+          "32": 4,
+          "29": 6,
+          "27": 8,
+          "25": 1
+        },
+        "decisions": 348,
+        "scale_counts": {
+          "1.0": 348
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222008,
+        "episode_id": 19,
+        "won": false,
+        "first_cleared": false,
+        "damage": 126.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.56,
+        "actions": {
+          "14": 48,
+          "28": 69,
+          "2": 5,
+          "1": 3,
+          "7": 1,
+          "0": 53,
+          "18": 6,
+          "32": 3,
+          "4": 7,
+          "30": 5,
+          "29": 5,
+          "16": 3,
+          "15": 7,
+          "21": 1,
+          "27": 19,
+          "6": 1,
+          "19": 1
+        },
+        "decisions": 237,
+        "scale_counts": {
+          "1.0": 235,
+          "0.95": 1,
+          "0.89": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9222009,
+        "episode_id": 20,
+        "won": false,
+        "first_cleared": false,
+        "damage": 240.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.24,
+        "actions": {
+          "14": 54,
+          "28": 57,
+          "2": 7,
+          "1": 6,
+          "0": 75,
+          "18": 5,
+          "34": 1,
+          "4": 8,
+          "16": 3,
+          "15": 5,
+          "21": 2,
+          "27": 26,
+          "32": 3,
+          "30": 6,
+          "29": 7,
+          "33": 2,
+          "38": 1
+        },
+        "decisions": 268,
+        "scale_counts": {
+          "1.0": 267,
+          "0.25": 1
+        },
+        "policy_update": 0
+      }
+    ]
+  },
+  "combat-imagined-eval": {
+    "settings": {
+      "checkpoint_sha256": "37220c52fe4ef4e4d99edb70d52b636c900ea506f1ba75ed0c39f417f16ea68a",
+      "native_tactics": false,
+      "trained": false,
+      "seed": 9221000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "combat/imagined_ppo.pt",
+      "action_selection": "greedy"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 62.7,
+      "damage_max": 126.0,
+      "fights_dealt_damage": 8,
+      "seconds_mean": 42.41,
+      "masks_lost": {
+        "SPIKES": 41.0,
+        "ENEMY_PROJECTILE": 25.0,
+        "BOSS_BODY": 24.0
+      },
+      "actions": 2474,
+      "nail_commands": 102
+    },
+    "episodes": [
+      {
+        "seed": 9221000,
+        "episode_id": 1,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 5.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 46.5,
+        "actions": {
+          "14": 70,
+          "28": 86,
+          "0": 77,
+          "4": 4,
+          "30": 7,
+          "29": 7,
+          "1": 3,
+          "27": 3,
+          "25": 1,
+          "21": 2,
+          "2": 2,
+          "15": 4,
+          "18": 1,
+          "16": 2
+        },
+        "decisions": 269,
+        "scale_counts": {
+          "1.0": 269
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221001,
+        "episode_id": 2,
+        "won": false,
+        "first_cleared": false,
+        "damage": 114.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 5.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 51.28,
+        "actions": {
+          "14": 116,
+          "0": 66,
+          "2": 5,
+          "28": 103,
+          "30": 5,
+          "21": 2,
+          "1": 3,
+          "29": 9,
+          "4": 3,
+          "18": 4,
+          "16": 2,
+          "27": 9
+        },
+        "decisions": 327,
+        "scale_counts": {
+          "1.0": 326,
+          "0.69": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221002,
+        "episode_id": 3,
+        "won": false,
+        "first_cleared": false,
+        "damage": 126.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 67.9,
+        "actions": {
+          "14": 116,
+          "28": 101,
+          "0": 111,
+          "4": 6,
+          "16": 5,
+          "15": 5,
+          "30": 14,
+          "29": 13,
+          "32": 1,
+          "2": 2,
+          "1": 3,
+          "19": 2,
+          "18": 6,
+          "21": 1,
+          "27": 5,
+          "6": 1
+        },
+        "decisions": 392,
+        "scale_counts": {
+          "1.0": 391,
+          "0.35": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221003,
+        "episode_id": 4,
+        "won": false,
+        "first_cleared": false,
+        "damage": 114.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.76,
+        "actions": {
+          "14": 86,
+          "28": 77,
+          "0": 51,
+          "4": 4,
+          "30": 9,
+          "29": 7,
+          "18": 8,
+          "15": 3,
+          "19": 1,
+          "16": 3,
+          "2": 9,
+          "1": 4,
+          "21": 1,
+          "38": 1,
+          "6": 1
+        },
+        "decisions": 265,
+        "scale_counts": {
+          "1.0": 263,
+          "0.99": 1,
+          "0.71": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221004,
+        "episode_id": 5,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 4.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.64,
+        "actions": {
+          "14": 66,
+          "28": 66,
+          "30": 7,
+          "21": 3,
+          "29": 9,
+          "0": 68,
+          "18": 5,
+          "4": 2,
+          "27": 8,
+          "16": 1,
+          "15": 1,
+          "2": 3,
+          "1": 1
+        },
+        "decisions": 240,
+        "scale_counts": {
+          "1.0": 237,
+          "0.31": 1,
+          "0.24": 1,
+          "0.63": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221005,
+        "episode_id": 6,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.0,
+        "actions": {
+          "14": 48,
+          "0": 50,
+          "2": 1,
+          "28": 47,
+          "30": 8,
+          "18": 4,
+          "29": 8,
+          "4": 3,
+          "34": 1,
+          "16": 1,
+          "15": 1
+        },
+        "decisions": 172,
+        "scale_counts": {
+          "1.0": 169,
+          "0.6": 1,
+          "0.69": 1,
+          "0.23": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221006,
+        "episode_id": 7,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 6.0,
+          "BOSS_BODY": 1.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 36.76,
+        "actions": {
+          "14": 39,
+          "28": 78,
+          "4": 3,
+          "0": 38,
+          "30": 7,
+          "15": 2,
+          "18": 3,
+          "2": 5,
+          "1": 2,
+          "29": 5,
+          "19": 1,
+          "16": 1
+        },
+        "decisions": 184,
+        "scale_counts": {
+          "1.0": 180,
+          "0.72": 1,
+          "0.65": 1,
+          "0.87": 1,
+          "0.77": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221007,
+        "episode_id": 8,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "SPIKES": 7.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.06,
+        "actions": {
+          "14": 30,
+          "28": 95,
+          "0": 87,
+          "30": 7,
+          "32": 1,
+          "29": 8,
+          "4": 7,
+          "21": 1,
+          "19": 2,
+          "2": 3,
+          "15": 1
+        },
+        "decisions": 242,
+        "scale_counts": {
+          "1.0": 240,
+          "0.23": 1,
+          "0.22": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221008,
+        "episode_id": 9,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.52,
+        "actions": {
+          "14": 56,
+          "28": 44,
+          "0": 51,
+          "18": 7,
+          "4": 3,
+          "16": 7,
+          "15": 4,
+          "30": 9,
+          "29": 8,
+          "1": 4,
+          "19": 1,
+          "27": 5,
+          "2": 4
+        },
+        "decisions": 203,
+        "scale_counts": {
+          "1.0": 202,
+          "0.93": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9221009,
+        "episode_id": 10,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 5.0,
+          "SPIKES": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.7,
+        "actions": {
+          "14": 43,
+          "28": 61,
+          "30": 7,
+          "21": 2,
+          "0": 55,
+          "4": 4,
+          "29": 2,
+          "2": 2,
+          "1": 2,
+          "16": 1,
+          "18": 1
+        },
+        "decisions": 180,
+        "scale_counts": {
+          "1.0": 180
+        },
+        "policy_update": 0
+      }
+    ]
+  },
+  "combat-real-train": {
+    "settings": {
+      "checkpoint_sha256": "37220c52fe4ef4e4d99edb70d52b636c900ea506f1ba75ed0c39f417f16ea68a",
+      "native_tactics": false,
+      "trained": true,
+      "action_selection": "sampled",
+      "seed": 9223000,
+      "episodes": 48,
+      "scale": 2.0,
+      "checkpoint": "combat/imagined_ppo.pt"
+    },
+    "summary": {
+      "completed": 48,
+      "planned": 48,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 32.12,
+      "damage_max": 105.0,
+      "fights_dealt_damage": 34,
+      "seconds_mean": 40.74,
+      "masks_lost": {
+        "BOSS_BODY": 128.0,
+        "ENEMY_PROJECTILE": 145.0,
+        "SPIKES": 159.0
+      },
+      "actions": 8522,
+      "nail_commands": 558
+    },
+    "episodes": [
+      {
+        "seed": 9223000,
+        "episode_id": 21,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 6.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.04,
+        "actions": {
+          "14": 45,
+          "28": 37,
+          "0": 32,
+          "18": 5,
+          "16": 5,
+          "29": 7,
+          "33": 1,
+          "1": 9,
+          "19": 3,
+          "30": 5,
+          "2": 6,
+          "36": 1,
+          "4": 1,
+          "32": 2,
+          "35": 1
+        },
+        "decisions": 160,
+        "scale_counts": {
+          "2.0": 154,
+          "0.2": 1,
+          "4.0": 3,
+          "1.56": 1,
+          "1.68": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9223001,
+        "episode_id": 22,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 1.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 39.58,
+        "actions": {
+          "14": 35,
+          "28": 51,
+          "18": 2,
+          "0": 38,
+          "30": 9,
+          "1": 4,
+          "32": 2,
+          "2": 6,
+          "4": 2,
+          "19": 2,
+          "16": 3,
+          "15": 3,
+          "29": 4,
+          "21": 1,
+          "3": 1,
+          "8": 1
+        },
+        "decisions": 164,
+        "scale_counts": {
+          "2.0": 158,
+          "4.0": 3,
+          "2.03": 1,
+          "1.18": 1,
+          "1.86": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9223002,
+        "episode_id": 23,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.44,
+        "actions": {
+          "14": 33,
+          "28": 52,
+          "30": 8,
+          "17": 1,
+          "0": 43,
+          "32": 2,
+          "16": 4,
+          "29": 4,
+          "31": 3,
+          "2": 3,
+          "8": 1,
+          "21": 1,
+          "1": 6,
+          "35": 1,
+          "4": 3,
+          "7": 1,
+          "19": 1,
+          "15": 2,
+          "18": 2
+        },
+        "decisions": 171,
+        "scale_counts": {
+          "2.0": 166,
+          "4.0": 2,
+          "1.43": 1,
+          "0.45": 1,
+          "1.0": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9223003,
+        "episode_id": 24,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 43.02,
+        "actions": {
+          "28": 69,
+          "14": 32,
+          "15": 4,
+          "1": 5,
+          "33": 1,
+          "37": 1,
+          "16": 7,
+          "0": 45,
+          "18": 4,
+          "30": 9,
+          "29": 2,
+          "4": 2,
+          "2": 11,
+          "35": 2,
+          "5": 1,
+          "32": 1,
+          "21": 1,
+          "8": 1,
+          "6": 1
+        },
+        "decisions": 199,
+        "scale_counts": {
+          "2.0": 193,
+          "0.73": 1,
+          "1.23": 1,
+          "4.0": 3,
+          "1.59": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9223004,
+        "episode_id": 25,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.4,
+        "actions": {
+          "14": 41,
+          "2": 4,
+          "1": 3,
+          "18": 8,
+          "15": 4,
+          "21": 2,
+          "28": 44,
+          "4": 3,
+          "0": 35,
+          "30": 14,
+          "16": 4,
+          "32": 3,
+          "6": 1,
+          "29": 4,
+          "5": 1,
+          "27": 1
+        },
+        "decisions": 172,
+        "scale_counts": {
+          "2.0": 169,
+          "1.04": 1,
+          "0.49": 1,
+          "0.47": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9223005,
+        "episode_id": 26,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 6.0,
+          "BOSS_BODY": 2.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 38.14,
+        "actions": {
+          "28": 46,
+          "30": 13,
+          "14": 33,
+          "4": 3,
+          "0": 46,
+          "16": 4,
+          "1": 7,
+          "18": 1,
+          "29": 6,
+          "5": 2,
+          "15": 1,
+          "34": 1,
+          "21": 3,
+          "19": 1,
+          "32": 1,
+          "2": 1
+        },
+        "decisions": 169,
+        "scale_counts": {
+          "2.0": 162,
+          "1.65": 2,
+          "4.0": 2,
+          "1.6": 1,
+          "1.27": 1,
+          "1.12": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9223006,
+        "episode_id": 27,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.7,
+        "actions": {
+          "14": 57,
+          "28": 57,
+          "30": 9,
+          "32": 5,
+          "1": 4,
+          "0": 50,
+          "29": 10,
+          "15": 4,
+          "4": 4,
+          "18": 8,
+          "16": 6,
+          "2": 9,
+          "21": 1,
+          "27": 1,
+          "19": 1,
+          "31": 1,
+          "6": 1
+        },
+        "decisions": 228,
+        "scale_counts": {
+          "2.0": 221,
+          "4.0": 3,
+          "1.57": 1,
+          "2.43": 1,
+          "1.1": 1,
+          "1.81": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9223007,
+        "episode_id": 28,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.98,
+        "actions": {
+          "14": 26,
+          "28": 50,
+          "2": 7,
+          "0": 53,
+          "21": 1,
+          "30": 5,
+          "32": 1,
+          "29": 5,
+          "19": 1,
+          "4": 3,
+          "16": 3,
+          "18": 3,
+          "35": 1,
+          "31": 1,
+          "17": 1
+        },
+        "decisions": 161,
+        "scale_counts": {
+          "2.0": 157,
+          "0.4": 1,
+          "1.72": 1,
+          "4.0": 2
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9223008,
+        "episode_id": 29,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.8,
+        "actions": {
+          "14": 33,
+          "28": 62,
+          "3": 2,
+          "0": 37,
+          "2": 7,
+          "1": 12,
+          "30": 15,
+          "35": 1,
+          "29": 6,
+          "21": 2,
+          "16": 6,
+          "15": 2,
+          "4": 2,
+          "36": 1,
+          "19": 1,
+          "31": 1,
+          "18": 4,
+          "32": 1
+        },
+        "decisions": 195,
+        "scale_counts": {
+          "2.0": 189,
+          "2.05": 1,
+          "0.58": 1,
+          "4.0": 1,
+          "0.65": 1,
+          "1.13": 1,
+          "1.69": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9223009,
+        "episode_id": 30,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 6.0,
+          "BOSS_BODY": 1.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 43.56,
+        "actions": {
+          "14": 49,
+          "28": 49,
+          "30": 12,
+          "21": 2,
+          "0": 51,
+          "15": 7,
+          "16": 7,
+          "4": 3,
+          "1": 2,
+          "18": 10,
+          "29": 2,
+          "5": 1,
+          "32": 1,
+          "19": 1,
+          "2": 1,
+          "27": 1
+        },
+        "decisions": 199,
+        "scale_counts": {
+          "2.0": 197,
+          "1.52": 1,
+          "1.26": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9223010,
+        "episode_id": 31,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "SPIKES": 1.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 36.24,
+        "actions": {
+          "14": 25,
+          "0": 31,
+          "32": 1,
+          "28": 46,
+          "4": 1,
+          "30": 9,
+          "1": 6,
+          "16": 4,
+          "15": 2,
+          "18": 5,
+          "29": 3,
+          "37": 1,
+          "21": 2,
+          "33": 1,
+          "2": 6,
+          "7": 1
+        },
+        "decisions": 144,
+        "scale_counts": {
+          "2.0": 141,
+          "4.0": 1,
+          "1.32": 1,
+          "1.51": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9223011,
+        "episode_id": 32,
+        "won": false,
+        "first_cleared": false,
+        "damage": 93.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 63.84,
+        "actions": {
+          "14": 48,
+          "28": 85,
+          "18": 6,
+          "0": 77,
+          "2": 9,
+          "15": 5,
+          "29": 12,
+          "30": 10,
+          "1": 11,
+          "7": 2,
+          "16": 8,
+          "32": 3,
+          "19": 4,
+          "4": 4,
+          "33": 1,
+          "24": 1,
+          "3": 1,
+          "21": 2,
+          "5": 1,
+          "35": 1
+        },
+        "decisions": 291,
+        "scale_counts": {
+          "2.0": 286,
+          "0.67": 1,
+          "4.0": 2,
+          "1.25": 1,
+          "1.11": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9223012,
+        "episode_id": 33,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 2.0,
+          "BOSS_BODY": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 49.54,
+        "actions": {
+          "14": 32,
+          "28": 66,
+          "0": 66,
+          "2": 7,
+          "15": 7,
+          "19": 5,
+          "32": 2,
+          "30": 12,
+          "4": 6,
+          "1": 4,
+          "16": 8,
+          "29": 4,
+          "33": 1,
+          "18": 3,
+          "36": 1,
+          "21": 2,
+          "31": 1
+        },
+        "decisions": 227,
+        "scale_counts": {
+          "2.0": 224,
+          "1.5": 1,
+          "1.88": 1,
+          "1.3": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9223013,
+        "episode_id": 34,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 5.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 44.56,
+        "actions": {
+          "28": 73,
+          "32": 1,
+          "0": 57,
+          "1": 10,
+          "30": 9,
+          "2": 9,
+          "18": 8,
+          "14": 39,
+          "29": 4,
+          "4": 3,
+          "21": 2,
+          "16": 6,
+          "15": 1
+        },
+        "decisions": 222,
+        "scale_counts": {
+          "2.0": 216,
+          "1.27": 1,
+          "1.1": 1,
+          "1.06": 1,
+          "4.0": 1,
+          "1.88": 1,
+          "0.7": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9223014,
+        "episode_id": 35,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 37.52,
+        "actions": {
+          "14": 30,
+          "28": 43,
+          "1": 5,
+          "15": 7,
+          "18": 4,
+          "29": 4,
+          "19": 2,
+          "0": 51,
+          "16": 4,
+          "30": 6,
+          "2": 5,
+          "32": 1,
+          "4": 2,
+          "33": 1,
+          "5": 3
+        },
+        "decisions": 168,
+        "scale_counts": {
+          "2.0": 161,
+          "0.95": 1,
+          "1.86": 1,
+          "2.11": 1,
+          "0.97": 1,
+          "1.56": 1,
+          "0.96": 1,
+          "1.79": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9223015,
+        "episode_id": 36,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.84,
+        "actions": {
+          "14": 39,
+          "28": 42,
+          "32": 2,
+          "0": 41,
+          "30": 7,
+          "29": 2,
+          "4": 2,
+          "2": 3,
+          "1": 4,
+          "36": 2,
+          "16": 6,
+          "19": 2,
+          "15": 1,
+          "21": 1,
+          "18": 1,
+          "33": 1
+        },
+        "decisions": 156,
+        "scale_counts": {
+          "2.0": 151,
+          "0.58": 1,
+          "1.66": 1,
+          "1.54": 1,
+          "1.33": 1,
+          "0.49": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9223016,
+        "episode_id": 37,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.36,
+        "actions": {
+          "14": 24,
+          "28": 38,
+          "18": 3,
+          "0": 28,
+          "30": 3,
+          "35": 1,
+          "29": 4,
+          "16": 5,
+          "1": 4,
+          "3": 1,
+          "2": 3,
+          "32": 2,
+          "19": 1,
+          "33": 1
+        },
+        "decisions": 118,
+        "scale_counts": {
+          "2.0": 115,
+          "1.73": 1,
+          "1.59": 1,
+          "0.85": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9223017,
+        "episode_id": 38,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 49.52,
+        "actions": {
+          "28": 81,
+          "30": 13,
+          "29": 11,
+          "14": 27,
+          "0": 69,
+          "15": 6,
+          "18": 7,
+          "4": 3,
+          "32": 5,
+          "33": 1,
+          "27": 2,
+          "2": 1,
+          "19": 2,
+          "16": 2,
+          "5": 1,
+          "6": 1,
+          "21": 1
+        },
+        "decisions": 233,
+        "scale_counts": {
+          "2.0": 228,
+          "1.82": 1,
+          "1.58": 1,
+          "4.0": 1,
+          "0.72": 1,
+          "1.86": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9223018,
+        "episode_id": 39,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 2.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.42,
+        "actions": {
+          "14": 26,
+          "28": 50,
+          "30": 13,
+          "16": 3,
+          "4": 2,
+          "0": 44,
+          "2": 6,
+          "33": 2,
+          "15": 1,
+          "19": 1,
+          "29": 4,
+          "18": 2,
+          "36": 1,
+          "3": 1,
+          "32": 2,
+          "1": 2
+        },
+        "decisions": 160,
+        "scale_counts": {
+          "2.0": 158,
+          "1.61": 1,
+          "0.67": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9223019,
+        "episode_id": 40,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 6.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 45.12,
+        "actions": {
+          "28": 61,
+          "14": 34,
+          "0": 61,
+          "30": 6,
+          "21": 1,
+          "1": 5,
+          "18": 3,
+          "2": 4,
+          "29": 10,
+          "16": 4,
+          "4": 2,
+          "32": 1,
+          "19": 1,
+          "15": 1,
+          "5": 1
+        },
+        "decisions": 195,
+        "scale_counts": {
+          "2.0": 191,
+          "1.79": 1,
+          "0.81": 1,
+          "0.28": 1,
+          "0.47": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9223020,
+        "episode_id": 41,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.84,
+        "actions": {
+          "14": 21,
+          "28": 54,
+          "2": 7,
+          "0": 43,
+          "4": 5,
+          "30": 10,
+          "29": 6,
+          "1": 3,
+          "16": 3,
+          "18": 1,
+          "15": 1,
+          "35": 1
+        },
+        "decisions": 155,
+        "scale_counts": {
+          "2.0": 153,
+          "4.0": 2
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9223021,
+        "episode_id": 42,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 44.4,
+        "actions": {
+          "28": 45,
+          "14": 33,
+          "30": 16,
+          "0": 53,
+          "2": 3,
+          "15": 3,
+          "18": 2,
+          "1": 3,
+          "16": 7,
+          "7": 1,
+          "4": 2,
+          "29": 4,
+          "32": 1
+        },
+        "decisions": 173,
+        "scale_counts": {
+          "2.0": 171,
+          "4.0": 1,
+          "0.58": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9223022,
+        "episode_id": 43,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "BOSS_BODY": 7.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.38,
+        "actions": {
+          "0": 74,
+          "14": 36,
+          "29": 3,
+          "30": 10,
+          "28": 68,
+          "35": 1,
+          "2": 3,
+          "1": 9,
+          "16": 6,
+          "21": 1,
+          "18": 2,
+          "4": 3,
+          "33": 2,
+          "32": 5,
+          "19": 2,
+          "22": 2,
+          "15": 1,
+          "27": 1
+        },
+        "decisions": 229,
+        "scale_counts": {
+          "2.0": 225,
+          "4.0": 2,
+          "0.55": 1,
+          "1.8": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9223023,
+        "episode_id": 44,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 4.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 30.46,
+        "actions": {
+          "14": 28,
+          "28": 50,
+          "30": 10,
+          "29": 3,
+          "0": 39,
+          "1": 1,
+          "33": 1,
+          "16": 3,
+          "18": 1,
+          "34": 1,
+          "32": 1,
+          "2": 1,
+          "4": 2
+        },
+        "decisions": 141,
+        "scale_counts": {
+          "2.0": 137,
+          "1.98": 1,
+          "1.89": 1,
+          "4.0": 1,
+          "1.08": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9223024,
+        "episode_id": 45,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.08,
+        "actions": {
+          "14": 14,
+          "0": 45,
+          "30": 6,
+          "28": 48,
+          "2": 5,
+          "29": 2,
+          "18": 2,
+          "4": 2,
+          "32": 1,
+          "15": 1,
+          "16": 3,
+          "1": 1
+        },
+        "decisions": 130,
+        "scale_counts": {
+          "2.0": 125,
+          "4.0": 3,
+          "1.09": 1,
+          "1.12": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9223025,
+        "episode_id": 46,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 5.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 49.88,
+        "actions": {
+          "14": 43,
+          "0": 67,
+          "2": 10,
+          "1": 3,
+          "36": 1,
+          "28": 77,
+          "30": 7,
+          "19": 2,
+          "18": 7,
+          "29": 2,
+          "32": 6,
+          "15": 4,
+          "16": 6,
+          "5": 1,
+          "4": 2
+        },
+        "decisions": 238,
+        "scale_counts": {
+          "2.0": 232,
+          "1.72": 1,
+          "0.64": 1,
+          "4.0": 1,
+          "1.35": 1,
+          "1.53": 1,
+          "1.39": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9223026,
+        "episode_id": 47,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 7.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 39.32,
+        "actions": {
+          "14": 33,
+          "28": 58,
+          "0": 54,
+          "30": 14,
+          "29": 5,
+          "18": 8,
+          "16": 5,
+          "21": 1,
+          "1": 2,
+          "15": 5,
+          "2": 4,
+          "6": 1,
+          "4": 3,
+          "19": 2,
+          "32": 2
+        },
+        "decisions": 197,
+        "scale_counts": {
+          "2.0": 192,
+          "4.0": 1,
+          "1.28": 1,
+          "0.38": 1,
+          "1.77": 1,
+          "1.04": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9223027,
+        "episode_id": 48,
+        "won": false,
+        "first_cleared": false,
+        "damage": 105.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 54.88,
+        "actions": {
+          "14": 41,
+          "32": 2,
+          "30": 14,
+          "15": 4,
+          "19": 2,
+          "0": 71,
+          "4": 4,
+          "28": 69,
+          "29": 5,
+          "16": 4,
+          "18": 10,
+          "2": 5,
+          "1": 6,
+          "33": 1,
+          "6": 1,
+          "35": 1,
+          "27": 1,
+          "36": 1,
+          "21": 1
+        },
+        "decisions": 243,
+        "scale_counts": {
+          "2.0": 238,
+          "0.64": 1,
+          "1.92": 1,
+          "4.0": 1,
+          "1.74": 1,
+          "1.9": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9223028,
+        "episode_id": 49,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 46.7,
+        "actions": {
+          "14": 39,
+          "28": 59,
+          "30": 15,
+          "15": 6,
+          "0": 44,
+          "4": 4,
+          "16": 4,
+          "2": 4,
+          "29": 6,
+          "18": 6,
+          "21": 1,
+          "19": 2,
+          "7": 1,
+          "1": 2,
+          "31": 1,
+          "27": 2,
+          "39": 1,
+          "3": 1
+        },
+        "decisions": 198,
+        "scale_counts": {
+          "2.0": 193,
+          "1.88": 1,
+          "4.0": 3,
+          "1.47": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9223029,
+        "episode_id": 50,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 7.0,
+          "BOSS_BODY": 1.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 38.84,
+        "actions": {
+          "14": 22,
+          "31": 1,
+          "28": 59,
+          "18": 4,
+          "0": 64,
+          "30": 10,
+          "19": 1,
+          "2": 4,
+          "1": 10,
+          "4": 1,
+          "32": 1,
+          "29": 3,
+          "16": 2
+        },
+        "decisions": 182,
+        "scale_counts": {
+          "2.0": 178,
+          "1.9": 1,
+          "1.23": 1,
+          "0.95": 1,
+          "4.0": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9223030,
+        "episode_id": 51,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 23.58,
+        "actions": {
+          "14": 19,
+          "28": 32,
+          "4": 2,
+          "0": 32,
+          "30": 6,
+          "15": 2,
+          "2": 3,
+          "18": 4,
+          "16": 6,
+          "19": 1,
+          "1": 2,
+          "32": 1
+        },
+        "decisions": 110,
+        "scale_counts": {
+          "2.0": 106,
+          "4.0": 2,
+          "0.76": 1,
+          "1.56": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9223031,
+        "episode_id": 52,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.04,
+        "actions": {
+          "14": 23,
+          "28": 39,
+          "30": 10,
+          "16": 3,
+          "18": 3,
+          "0": 41,
+          "4": 1,
+          "1": 2,
+          "29": 6,
+          "15": 1,
+          "19": 2
+        },
+        "decisions": 131,
+        "scale_counts": {
+          "2.0": 126,
+          "2.3": 1,
+          "2.02": 1,
+          "4.0": 2,
+          "1.35": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9223032,
+        "episode_id": 53,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "ENEMY_PROJECTILE": 6.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 58.06,
+        "actions": {
+          "14": 51,
+          "28": 74,
+          "2": 9,
+          "0": 71,
+          "18": 3,
+          "16": 7,
+          "15": 4,
+          "30": 10,
+          "29": 13,
+          "4": 3,
+          "1": 5,
+          "19": 3,
+          "32": 1,
+          "6": 1,
+          "36": 1,
+          "3": 1
+        },
+        "decisions": 257,
+        "scale_counts": {
+          "2.0": 252,
+          "4.0": 3,
+          "1.89": 1,
+          "1.6": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9223033,
+        "episode_id": 54,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.9,
+        "actions": {
+          "28": 50,
+          "14": 29,
+          "0": 47,
+          "29": 5,
+          "2": 3,
+          "4": 4,
+          "30": 9,
+          "16": 1,
+          "32": 2,
+          "18": 1,
+          "21": 1
+        },
+        "decisions": 152,
+        "scale_counts": {
+          "2.0": 146,
+          "1.67": 1,
+          "4.0": 2,
+          "1.9": 1,
+          "1.1": 1,
+          "1.54": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9223034,
+        "episode_id": 55,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 44.58,
+        "actions": {
+          "28": 58,
+          "14": 24,
+          "30": 8,
+          "1": 4,
+          "19": 2,
+          "18": 4,
+          "0": 62,
+          "5": 1,
+          "4": 4,
+          "32": 2,
+          "2": 8,
+          "21": 1,
+          "29": 3,
+          "16": 3,
+          "15": 1,
+          "33": 1
+        },
+        "decisions": 186,
+        "scale_counts": {
+          "2.0": 182,
+          "4.0": 1,
+          "1.14": 1,
+          "2.65": 1,
+          "0.84": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9223035,
+        "episode_id": 56,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "BOSS_BODY": 5.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 38.66,
+        "actions": {
+          "14": 33,
+          "1": 4,
+          "28": 57,
+          "30": 10,
+          "18": 2,
+          "0": 47,
+          "2": 5,
+          "4": 6,
+          "32": 1,
+          "29": 3,
+          "16": 4,
+          "38": 1
+        },
+        "decisions": 173,
+        "scale_counts": {
+          "2.0": 169,
+          "0.48": 1,
+          "4.0": 1,
+          "1.18": 1,
+          "0.69": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9223036,
+        "episode_id": 57,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 6.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.02,
+        "actions": {
+          "28": 66,
+          "30": 8,
+          "14": 22,
+          "0": 67,
+          "2": 1,
+          "29": 11,
+          "16": 2,
+          "21": 3,
+          "15": 1,
+          "18": 3,
+          "4": 3,
+          "19": 1,
+          "32": 1
+        },
+        "decisions": 189,
+        "scale_counts": {
+          "2.0": 184,
+          "1.71": 1,
+          "1.97": 1,
+          "4.0": 1,
+          "1.63": 1,
+          "1.83": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9223037,
+        "episode_id": 58,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.46,
+        "actions": {
+          "14": 33,
+          "1": 2,
+          "0": 69,
+          "30": 9,
+          "28": 62,
+          "16": 5,
+          "15": 1,
+          "29": 4,
+          "19": 2,
+          "4": 3,
+          "18": 1
+        },
+        "decisions": 191,
+        "scale_counts": {
+          "2.0": 186,
+          "1.72": 1,
+          "4.0": 2,
+          "0.72": 1,
+          "1.54": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9223038,
+        "episode_id": 59,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 5.0,
+          "SPIKES": 2.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.0,
+        "actions": {
+          "28": 49,
+          "14": 36,
+          "30": 9,
+          "1": 2,
+          "0": 67,
+          "18": 2,
+          "29": 7,
+          "16": 4,
+          "2": 1,
+          "15": 2,
+          "21": 1,
+          "19": 1,
+          "4": 5
+        },
+        "decisions": 186,
+        "scale_counts": {
+          "2.0": 182,
+          "1.2": 1,
+          "0.73": 1,
+          "1.94": 1,
+          "1.91": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9223039,
+        "episode_id": 60,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 23.26,
+        "actions": {
+          "28": 31,
+          "14": 21,
+          "4": 2,
+          "0": 41,
+          "2": 2,
+          "15": 1,
+          "30": 6,
+          "31": 1,
+          "16": 3,
+          "18": 1
+        },
+        "decisions": 109,
+        "scale_counts": {
+          "2.0": 106,
+          "4.0": 1,
+          "1.34": 1,
+          "2.28": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9223040,
+        "episode_id": 61,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.08,
+        "actions": {
+          "14": 22,
+          "0": 49,
+          "28": 45,
+          "30": 7,
+          "35": 1,
+          "2": 5,
+          "29": 3,
+          "1": 2,
+          "4": 4,
+          "33": 1,
+          "19": 1,
+          "16": 3,
+          "32": 3,
+          "18": 1
+        },
+        "decisions": 147,
+        "scale_counts": {
+          "2.0": 145,
+          "4.0": 2
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9223041,
+        "episode_id": 62,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.46,
+        "actions": {
+          "14": 25,
+          "28": 61,
+          "30": 7,
+          "29": 3,
+          "18": 3,
+          "21": 1,
+          "0": 61,
+          "4": 2,
+          "1": 5,
+          "2": 3,
+          "16": 7,
+          "15": 2,
+          "32": 3
+        },
+        "decisions": 183,
+        "scale_counts": {
+          "2.0": 178,
+          "1.45": 1,
+          "1.43": 1,
+          "4.0": 2,
+          "1.85": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9223042,
+        "episode_id": 63,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 5.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.56,
+        "actions": {
+          "14": 25,
+          "28": 59,
+          "30": 11,
+          "15": 1,
+          "19": 1,
+          "0": 62,
+          "4": 3,
+          "2": 4,
+          "1": 3,
+          "32": 1,
+          "29": 3,
+          "33": 1,
+          "16": 4,
+          "18": 2,
+          "36": 1
+        },
+        "decisions": 181,
+        "scale_counts": {
+          "2.0": 175,
+          "1.9": 2,
+          "4.0": 2,
+          "1.24": 1,
+          "1.79": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9223043,
+        "episode_id": 64,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.36,
+        "actions": {
+          "28": 48,
+          "0": 43,
+          "16": 4,
+          "14": 14,
+          "30": 6,
+          "4": 5,
+          "15": 1,
+          "32": 1,
+          "1": 3,
+          "2": 4,
+          "18": 2,
+          "29": 1,
+          "19": 1
+        },
+        "decisions": 133,
+        "scale_counts": {
+          "2.0": 131,
+          "4.0": 1,
+          "0.42": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9223044,
+        "episode_id": 65,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 7.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 45.1,
+        "actions": {
+          "28": 56,
+          "30": 7,
+          "15": 1,
+          "19": 1,
+          "0": 75,
+          "16": 4,
+          "14": 14,
+          "29": 3,
+          "5": 1,
+          "4": 3,
+          "2": 2,
+          "1": 1,
+          "18": 1
+        },
+        "decisions": 169,
+        "scale_counts": {
+          "2.0": 160,
+          "0.97": 1,
+          "1.57": 1,
+          "0.5": 1,
+          "4.0": 2,
+          "1.0": 1,
+          "1.37": 1,
+          "1.88": 1,
+          "1.85": 1
+        },
+        "policy_update": 11
+      },
+      {
+        "seed": 9223045,
+        "episode_id": 66,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 6.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.12,
+        "actions": {
+          "28": 49,
+          "30": 5,
+          "16": 7,
+          "14": 23,
+          "0": 59,
+          "18": 4,
+          "2": 4,
+          "1": 3,
+          "4": 4,
+          "29": 2,
+          "19": 3,
+          "15": 1
+        },
+        "decisions": 164,
+        "scale_counts": {
+          "2.0": 162,
+          "1.52": 1,
+          "1.55": 1
+        },
+        "policy_update": 11
+      },
+      {
+        "seed": 9223046,
+        "episode_id": 67,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.82,
+        "actions": {
+          "14": 11,
+          "30": 6,
+          "29": 7,
+          "19": 2,
+          "0": 37,
+          "28": 41,
+          "18": 3,
+          "16": 3,
+          "1": 2,
+          "2": 1
+        },
+        "decisions": 113,
+        "scale_counts": {
+          "2.0": 109,
+          "4.0": 3,
+          "1.04": 1
+        },
+        "policy_update": 11
+      },
+      {
+        "seed": 9223047,
+        "episode_id": 68,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 5.0,
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 37.16,
+        "actions": {
+          "14": 13,
+          "28": 43,
+          "4": 3,
+          "0": 48,
+          "30": 3,
+          "29": 3,
+          "1": 6,
+          "19": 1,
+          "16": 4,
+          "32": 2,
+          "2": 3,
+          "3": 1
+        },
+        "decisions": 130,
+        "scale_counts": {
+          "2.0": 127,
+          "4.0": 2,
+          "1.45": 1
+        },
+        "policy_update": 11
+      }
+    ],
+    "updates": [
+      {
+        "steps": 694,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.04136284440755844,
+        "critic_head_change": 0.011767199262976646,
+        "actor_loss_first": 0.024097301065921783,
+        "value_loss": 6.138520240783691,
+        "entropy": 1.029334545135498,
+        "rollout_sha256": "10b83d1ce95af3285dd6a834bc3d3c29c47c7ec43b4cf787b67ffb467cc81880"
+      },
+      {
+        "steps": 730,
+        "behavior_logp_max_error": 2.6226043701171875e-06,
+        "actor_head_change": 0.036774490028619766,
+        "critic_head_change": 0.01125913206487894,
+        "actor_loss_first": -0.03687895089387894,
+        "value_loss": 6.139060020446777,
+        "entropy": 1.0115108489990234,
+        "rollout_sha256": "ab5d92a37e92edd81011710203d7ef4f4fc0c7e27b3d105113224a93b694bc7d"
+      },
+      {
+        "steps": 829,
+        "behavior_logp_max_error": 3.814697265625e-06,
+        "actor_head_change": 0.040863726288080215,
+        "critic_head_change": 0.014790407381951809,
+        "actor_loss_first": -0.011270538903772831,
+        "value_loss": 3.986114978790283,
+        "entropy": 1.0660204887390137,
+        "rollout_sha256": "d5286dc8fcb9af3011a0b33c4913e96520c362aec651dd845688858c9f1955af"
+      },
+      {
+        "steps": 773,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.03290027379989624,
+        "critic_head_change": 0.016106417402625084,
+        "actor_loss_first": 0.04930429905653,
+        "value_loss": 4.881104946136475,
+        "entropy": 1.4261674880981445,
+        "rollout_sha256": "23b32f816358cd31b08938a59b3b571d6dd5e88d8098539e28bb86597cc19c74"
+      },
+      {
+        "steps": 706,
+        "behavior_logp_max_error": 2.86102294921875e-06,
+        "actor_head_change": 0.027758881449699402,
+        "critic_head_change": 0.010583522729575634,
+        "actor_loss_first": -0.0063179247081279755,
+        "value_loss": 4.147633075714111,
+        "entropy": 0.960432231426239,
+        "rollout_sha256": "e2cf12f50bd72cc411af54accbf302aa7d6c3ba1e48e4d9a0d380977c342ce73"
+      },
+      {
+        "steps": 698,
+        "behavior_logp_max_error": 2.86102294921875e-06,
+        "actor_head_change": 0.024797748774290085,
+        "critic_head_change": 0.009952476248145103,
+        "actor_loss_first": -0.026136009022593498,
+        "value_loss": 3.6994383335113525,
+        "entropy": 0.9562177062034607,
+        "rollout_sha256": "7db5f41c235e3aa62a17b29ecf7ecaedfa7a7a0b3485f3d5cf57985cc293a3cd"
+      },
+      {
+        "steps": 808,
+        "behavior_logp_max_error": 3.814697265625e-06,
+        "actor_head_change": 0.030017100274562836,
+        "critic_head_change": 0.011623903177678585,
+        "actor_loss_first": 0.03505410999059677,
+        "value_loss": 3.105830669403076,
+        "entropy": 0.8007925152778625,
+        "rollout_sha256": "dc6d818c2aa533b69e516e270c26b77d3145e9a11a9603ed7c1596c56a5e7d99"
+      },
+      {
+        "steps": 621,
+        "behavior_logp_max_error": 2.86102294921875e-06,
+        "actor_head_change": 0.02774767205119133,
+        "critic_head_change": 0.007003584876656532,
+        "actor_loss_first": 0.007160261273384094,
+        "value_loss": 3.7041525840759277,
+        "entropy": 0.920441210269928,
+        "rollout_sha256": "405eee54c7476d6964d6e0fc1cdcb4fc32ab743e47202d9bc5f8ca72a88e81c2"
+      },
+      {
+        "steps": 768,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.024829724803566933,
+        "critic_head_change": 0.007112530991435051,
+        "actor_loss_first": 0.024413153529167175,
+        "value_loss": 3.384739398956299,
+        "entropy": 0.9020164012908936,
+        "rollout_sha256": "0b1d52c45f2aacec81324e7402ce8a98357c7bc86fb37657c41b7a1d64a58d40"
+      },
+      {
+        "steps": 675,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.01974215731024742,
+        "critic_head_change": 0.006630414165556431,
+        "actor_loss_first": -0.04757393151521683,
+        "value_loss": 2.8324484825134277,
+        "entropy": 0.8802982568740845,
+        "rollout_sha256": "78ab04586c341e3ba52a6fc8ebd69f10718af7ce5864e565b59c2a9cd120c061"
+      },
+      {
+        "steps": 644,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.019496988505125046,
+        "critic_head_change": 0.007022072095423937,
+        "actor_loss_first": -0.06898963451385498,
+        "value_loss": 2.6852173805236816,
+        "entropy": 0.9737420678138733,
+        "rollout_sha256": "b023929d7646c0646bc1ade2b667244158243a7d0b0eab03f2f72ec7c80559bc"
+      },
+      {
+        "steps": 576,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.019965004175901413,
+        "critic_head_change": 0.005967600271105766,
+        "actor_loss_first": 0.12393654137849808,
+        "value_loss": 2.071756601333618,
+        "entropy": 0.9895756840705872,
+        "rollout_sha256": "7260f38d8ca413c0c53b477ffee8df5dbc969fdee4ada6b7c8aab5d05ff41476"
+      }
+    ]
+  },
+  "combat-real-eval": {
+    "settings": {
+      "checkpoint_sha256": "ca0f6edccfa20e247f33a859e38daa2fec59a7d31e174c0e242217127e85c5a5",
+      "native_tactics": false,
+      "trained": false,
+      "action_selection": "greedy",
+      "seed": 9224000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "combat/real_ppo.pt"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 16.8,
+      "damage_max": 42.0,
+      "fights_dealt_damage": 6,
+      "seconds_mean": 37.01,
+      "masks_lost": {
+        "ENEMY_PROJECTILE": 17.0,
+        "SPIKES": 52.0,
+        "BOSS_BODY": 21.0
+      },
+      "actions": 1581,
+      "nail_commands": 53
+    },
+    "episodes": [
+      {
+        "seed": 9224000,
+        "episode_id": 69,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 4.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 27.66,
+        "actions": {
+          "14": 8,
+          "0": 48,
+          "28": 55,
+          "30": 6,
+          "29": 4,
+          "19": 1,
+          "18": 2
+        },
+        "decisions": 124,
+        "scale_counts": {
+          "1.0": 123,
+          "0.85": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224001,
+        "episode_id": 70,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 1.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.98,
+        "actions": {
+          "14": 18,
+          "28": 48,
+          "4": 2,
+          "0": 67,
+          "2": 2,
+          "16": 4,
+          "29": 4,
+          "30": 3,
+          "18": 1,
+          "19": 2,
+          "15": 1
+        },
+        "decisions": 152,
+        "scale_counts": {
+          "1.0": 151,
+          "0.72": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224002,
+        "episode_id": 71,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 6.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.0,
+        "actions": {
+          "14": 14,
+          "16": 2,
+          "15": 2,
+          "19": 2,
+          "4": 4,
+          "0": 94,
+          "30": 6,
+          "28": 71,
+          "18": 1,
+          "29": 2
+        },
+        "decisions": 198,
+        "scale_counts": {
+          "1.0": 197,
+          "0.63": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224003,
+        "episode_id": 72,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 6.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 48.68,
+        "actions": {
+          "14": 26,
+          "28": 89,
+          "4": 5,
+          "0": 99,
+          "30": 5,
+          "29": 3,
+          "19": 1,
+          "21": 1,
+          "18": 2,
+          "16": 1
+        },
+        "decisions": 232,
+        "scale_counts": {
+          "1.0": 230,
+          "0.54": 1,
+          "0.3": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224004,
+        "episode_id": 73,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "SPIKES": 6.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 37.44,
+        "actions": {
+          "14": 24,
+          "28": 53,
+          "0": 64,
+          "4": 3,
+          "30": 5,
+          "29": 1,
+          "19": 1,
+          "2": 1,
+          "16": 1,
+          "18": 1
+        },
+        "decisions": 154,
+        "scale_counts": {
+          "1.0": 154
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224005,
+        "episode_id": 74,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "SPIKES": 8.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.4,
+        "actions": {
+          "14": 24,
+          "28": 48,
+          "4": 3,
+          "0": 52,
+          "30": 3,
+          "19": 1,
+          "16": 4,
+          "15": 3,
+          "18": 6,
+          "29": 4
+        },
+        "decisions": 148,
+        "scale_counts": {
+          "1.0": 146,
+          "0.22": 1,
+          "0.66": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224006,
+        "episode_id": 75,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.58,
+        "actions": {
+          "14": 16,
+          "28": 45,
+          "4": 3,
+          "0": 52,
+          "30": 1,
+          "21": 1,
+          "18": 1,
+          "29": 8,
+          "2": 1,
+          "16": 1,
+          "15": 1
+        },
+        "decisions": 130,
+        "scale_counts": {
+          "1.0": 128,
+          "0.55": 1,
+          "0.29": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224007,
+        "episode_id": 76,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 28.28,
+        "actions": {
+          "14": 11,
+          "30": 3,
+          "29": 3,
+          "19": 1,
+          "0": 65,
+          "28": 52,
+          "4": 1,
+          "2": 3,
+          "18": 1,
+          "1": 1,
+          "16": 3
+        },
+        "decisions": 144,
+        "scale_counts": {
+          "1.0": 143,
+          "0.6": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224008,
+        "episode_id": 77,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.3,
+        "actions": {
+          "14": 17,
+          "30": 5,
+          "29": 6,
+          "19": 2,
+          "0": 70,
+          "28": 55,
+          "16": 1,
+          "15": 1,
+          "18": 1
+        },
+        "decisions": 158,
+        "scale_counts": {
+          "1.0": 158
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9224009,
+        "episode_id": 78,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 1.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.74,
+        "actions": {
+          "14": 16,
+          "28": 44,
+          "4": 2,
+          "0": 68,
+          "30": 3,
+          "29": 3,
+          "19": 1,
+          "15": 1,
+          "16": 2,
+          "2": 1
+        },
+        "decisions": 141,
+        "scale_counts": {
+          "1.0": 140,
+          "0.58": 1
+        },
+        "policy_update": 0
+      }
+    ]
+  },
+  "real-only-train": {
+    "settings": {
+      "checkpoint_sha256": "80b81037826658eb5a77a0975ac94ca7c1ec5789b0522de490e90e972ffbf64c",
+      "native_tactics": false,
+      "trained": true,
+      "action_selection": "sampled",
+      "seed": 9233000,
+      "episodes": 48,
+      "scale": 2.0,
+      "checkpoint": "combat/before_rl.pt"
+    },
+    "summary": {
+      "completed": 48,
+      "planned": 48,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 24.5,
+      "damage_max": 105.0,
+      "fights_dealt_damage": 35,
+      "seconds_mean": 37.99,
+      "masks_lost": {
+        "BOSS_BODY": 153.0,
+        "SPIKES": 153.0,
+        "ENEMY_PROJECTILE": 126.0
+      },
+      "actions": 4765,
+      "nail_commands": 613
+    },
+    "episodes": [
+      {
+        "seed": 9233000,
+        "episode_id": 1,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 54.68,
+        "actions": {
+          "14": 48,
+          "28": 40,
+          "18": 7,
+          "6": 1,
+          "0": 41,
+          "30": 8,
+          "29": 7,
+          "4": 2,
+          "32": 4,
+          "2": 6,
+          "21": 2,
+          "16": 6,
+          "15": 1,
+          "19": 1,
+          "1": 2,
+          "27": 3
+        },
+        "decisions": 179,
+        "scale_counts": {
+          "2.0": 176,
+          "4.0": 1,
+          "1.7": 1,
+          "0.51": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9233001,
+        "episode_id": 2,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.62,
+        "actions": {
+          "14": 31,
+          "0": 29,
+          "2": 5,
+          "1": 1,
+          "29": 6,
+          "4": 3,
+          "16": 4,
+          "28": 26,
+          "30": 6,
+          "32": 3,
+          "15": 2,
+          "18": 1,
+          "7": 1
+        },
+        "decisions": 118,
+        "scale_counts": {
+          "2.0": 113,
+          "1.97": 1,
+          "4.0": 3,
+          "1.77": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9233002,
+        "episode_id": 3,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.34,
+        "actions": {
+          "14": 35,
+          "28": 24,
+          "37": 1,
+          "0": 34,
+          "16": 5,
+          "15": 3,
+          "19": 1,
+          "30": 4,
+          "33": 3,
+          "2": 7,
+          "29": 7,
+          "18": 2,
+          "1": 3,
+          "32": 1
+        },
+        "decisions": 130,
+        "scale_counts": {
+          "2.0": 129,
+          "1.55": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9233003,
+        "episode_id": 4,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.94,
+        "actions": {
+          "14": 35,
+          "28": 21,
+          "30": 6,
+          "31": 1,
+          "0": 35,
+          "2": 5,
+          "1": 2,
+          "18": 5,
+          "4": 2,
+          "34": 1,
+          "16": 4,
+          "15": 5,
+          "5": 1,
+          "29": 2,
+          "3": 1,
+          "32": 1
+        },
+        "decisions": 127,
+        "scale_counts": {
+          "2.0": 121,
+          "1.74": 1,
+          "4.0": 2,
+          "0.55": 1,
+          "1.34": 1,
+          "1.58": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9233004,
+        "episode_id": 5,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 48.52,
+        "actions": {
+          "14": 32,
+          "28": 33,
+          "4": 2,
+          "0": 29,
+          "2": 6,
+          "29": 5,
+          "30": 6,
+          "21": 4,
+          "1": 2,
+          "31": 3,
+          "18": 6,
+          "16": 3,
+          "35": 3,
+          "15": 2,
+          "32": 1,
+          "17": 1,
+          "19": 1
+        },
+        "decisions": 139,
+        "scale_counts": {
+          "2.0": 137,
+          "4.0": 1,
+          "1.96": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9233005,
+        "episode_id": 6,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 2.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 37.7,
+        "actions": {
+          "14": 18,
+          "0": 38,
+          "2": 6,
+          "28": 19,
+          "29": 9,
+          "30": 5,
+          "18": 10,
+          "1": 3,
+          "15": 8,
+          "36": 1,
+          "32": 3,
+          "16": 7,
+          "35": 1,
+          "4": 1,
+          "33": 1,
+          "7": 1
+        },
+        "decisions": 131,
+        "scale_counts": {
+          "2.0": 128,
+          "4.0": 3
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9233006,
+        "episode_id": 7,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 1.0,
+          "BOSS_BODY": 5.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.44,
+        "actions": {
+          "14": 21,
+          "34": 1,
+          "28": 25,
+          "4": 2,
+          "0": 22,
+          "16": 9,
+          "29": 2,
+          "33": 1,
+          "15": 3,
+          "2": 3,
+          "30": 4,
+          "32": 1,
+          "18": 6,
+          "1": 2,
+          "35": 1,
+          "31": 1,
+          "21": 1,
+          "19": 1
+        },
+        "decisions": 106,
+        "scale_counts": {
+          "2.0": 105,
+          "1.15": 1
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9233007,
+        "episode_id": 8,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 32.76,
+        "actions": {
+          "14": 34,
+          "16": 2,
+          "21": 1,
+          "28": 20,
+          "30": 4,
+          "32": 5,
+          "4": 5,
+          "0": 21,
+          "18": 3,
+          "29": 2,
+          "2": 5,
+          "1": 1,
+          "15": 1
+        },
+        "decisions": 104,
+        "scale_counts": {
+          "2.0": 101,
+          "0.7": 1,
+          "4.0": 2
+        },
+        "policy_update": 1
+      },
+      {
+        "seed": 9233008,
+        "episode_id": 9,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.14,
+        "actions": {
+          "14": 29,
+          "28": 32,
+          "30": 6,
+          "29": 8,
+          "5": 1,
+          "0": 37,
+          "4": 3,
+          "32": 4,
+          "16": 1,
+          "15": 1,
+          "18": 2,
+          "17": 1,
+          "2": 6,
+          "21": 1,
+          "34": 1
+        },
+        "decisions": 133,
+        "scale_counts": {
+          "2.0": 129,
+          "1.5": 1,
+          "0.57": 1,
+          "4.0": 2
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9233009,
+        "episode_id": 10,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.64,
+        "actions": {
+          "14": 18,
+          "28": 22,
+          "32": 1,
+          "0": 18,
+          "4": 1,
+          "30": 9,
+          "21": 2,
+          "2": 4,
+          "1": 1,
+          "29": 2,
+          "33": 1,
+          "18": 2,
+          "15": 5,
+          "34": 1,
+          "16": 1
+        },
+        "decisions": 88,
+        "scale_counts": {
+          "2.0": 85,
+          "4.0": 3
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9233010,
+        "episode_id": 11,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.34,
+        "actions": {
+          "14": 26,
+          "28": 19,
+          "0": 29,
+          "2": 6,
+          "16": 4,
+          "15": 1,
+          "30": 7,
+          "35": 1,
+          "1": 2,
+          "7": 1,
+          "29": 2,
+          "18": 3,
+          "4": 2,
+          "32": 1
+        },
+        "decisions": 104,
+        "scale_counts": {
+          "2.0": 97,
+          "0.55": 1,
+          "1.51": 1,
+          "4.0": 3,
+          "1.9": 1,
+          "1.07": 1
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9233011,
+        "episode_id": 12,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.08,
+        "actions": {
+          "14": 23,
+          "28": 21,
+          "30": 9,
+          "35": 1,
+          "0": 30,
+          "16": 6,
+          "18": 5,
+          "29": 10,
+          "1": 6,
+          "15": 2,
+          "4": 2,
+          "2": 6,
+          "7": 1,
+          "33": 2,
+          "32": 2,
+          "21": 1
+        },
+        "decisions": 127,
+        "scale_counts": {
+          "2.0": 124,
+          "0.47": 1,
+          "4.0": 2
+        },
+        "policy_update": 2
+      },
+      {
+        "seed": 9233012,
+        "episode_id": 13,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 5.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 26.02,
+        "actions": {
+          "14": 10,
+          "0": 19,
+          "29": 6,
+          "30": 5,
+          "28": 19,
+          "2": 3,
+          "1": 2,
+          "21": 2,
+          "35": 1,
+          "16": 8,
+          "15": 7,
+          "4": 2,
+          "18": 1
+        },
+        "decisions": 85,
+        "scale_counts": {
+          "2.0": 80,
+          "4.0": 3,
+          "0.74": 1,
+          "1.7": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9233013,
+        "episode_id": 14,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.02,
+        "actions": {
+          "14": 24,
+          "18": 4,
+          "30": 5,
+          "15": 2,
+          "28": 32,
+          "32": 2,
+          "2": 5,
+          "29": 7,
+          "0": 19,
+          "1": 3,
+          "16": 3,
+          "19": 1,
+          "4": 3,
+          "7": 2,
+          "21": 1,
+          "31": 1
+        },
+        "decisions": 114,
+        "scale_counts": {
+          "2.0": 109,
+          "1.98": 1,
+          "0.84": 1,
+          "4.0": 2,
+          "0.55": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9233014,
+        "episode_id": 15,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.72,
+        "actions": {
+          "14": 26,
+          "28": 13,
+          "30": 6,
+          "35": 1,
+          "0": 19,
+          "32": 2,
+          "16": 3,
+          "15": 2,
+          "5": 1,
+          "29": 2,
+          "19": 1,
+          "21": 1,
+          "18": 4,
+          "34": 1,
+          "1": 4,
+          "4": 1,
+          "2": 4
+        },
+        "decisions": 91,
+        "scale_counts": {
+          "2.0": 88,
+          "0.67": 1,
+          "1.79": 1,
+          "1.48": 1
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9233015,
+        "episode_id": 16,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 7.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 36.9,
+        "actions": {
+          "14": 19,
+          "16": 4,
+          "15": 3,
+          "19": 1,
+          "28": 21,
+          "0": 22,
+          "2": 3,
+          "30": 3,
+          "32": 2,
+          "29": 4,
+          "7": 1,
+          "18": 2,
+          "33": 1,
+          "4": 1,
+          "21": 1
+        },
+        "decisions": 88,
+        "scale_counts": {
+          "2.0": 85,
+          "1.53": 1,
+          "4.0": 2
+        },
+        "policy_update": 3
+      },
+      {
+        "seed": 9233016,
+        "episode_id": 17,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.46,
+        "actions": {
+          "14": 15,
+          "28": 9,
+          "30": 4,
+          "29": 4,
+          "18": 3,
+          "0": 20,
+          "21": 3,
+          "15": 4,
+          "2": 4,
+          "4": 1,
+          "16": 4,
+          "32": 1
+        },
+        "decisions": 72,
+        "scale_counts": {
+          "2.0": 69,
+          "0.33": 1,
+          "1.01": 1,
+          "1.73": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9233017,
+        "episode_id": 18,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.58,
+        "actions": {
+          "14": 5,
+          "16": 4,
+          "30": 4,
+          "28": 12,
+          "4": 2,
+          "1": 2,
+          "0": 6,
+          "18": 6,
+          "3": 1,
+          "2": 3,
+          "15": 5,
+          "21": 2,
+          "19": 3,
+          "29": 1,
+          "33": 1,
+          "36": 1
+        },
+        "decisions": 58,
+        "scale_counts": {
+          "2.0": 55,
+          "1.61": 1,
+          "4.0": 1,
+          "1.81": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9233018,
+        "episode_id": 19,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.02,
+        "actions": {
+          "15": 5,
+          "16": 7,
+          "14": 11,
+          "28": 10,
+          "17": 2,
+          "18": 6,
+          "0": 10,
+          "6": 2,
+          "32": 1,
+          "29": 2,
+          "4": 2,
+          "30": 3,
+          "21": 1,
+          "5": 1
+        },
+        "decisions": 63,
+        "scale_counts": {
+          "2.0": 58,
+          "4.0": 3,
+          "0.51": 1,
+          "1.98": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9233019,
+        "episode_id": 20,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 50.02,
+        "actions": {
+          "19": 3,
+          "0": 16,
+          "2": 4,
+          "18": 9,
+          "15": 10,
+          "14": 17,
+          "28": 6,
+          "30": 4,
+          "29": 5,
+          "16": 3,
+          "1": 2,
+          "6": 1,
+          "35": 1,
+          "21": 2
+        },
+        "decisions": 83,
+        "scale_counts": {
+          "2.0": 81,
+          "4.0": 1,
+          "0.56": 1
+        },
+        "policy_update": 4
+      },
+      {
+        "seed": 9233020,
+        "episode_id": 21,
+        "won": false,
+        "first_cleared": false,
+        "damage": 105.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 37.2,
+        "actions": {
+          "1": 2,
+          "15": 5,
+          "0": 16,
+          "16": 8,
+          "21": 2,
+          "14": 16,
+          "18": 5,
+          "28": 13,
+          "2": 5,
+          "27": 1,
+          "30": 6,
+          "25": 1,
+          "20": 1,
+          "37": 1,
+          "4": 1,
+          "19": 2,
+          "29": 3,
+          "33": 1,
+          "17": 1,
+          "5": 1
+        },
+        "decisions": 91,
+        "scale_counts": {
+          "2.0": 87,
+          "0.83": 1,
+          "0.8": 1,
+          "1.35": 1,
+          "1.92": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9233021,
+        "episode_id": 22,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 30.36,
+        "actions": {
+          "14": 14,
+          "18": 2,
+          "29": 4,
+          "28": 14,
+          "0": 8,
+          "30": 4,
+          "2": 7,
+          "15": 1,
+          "16": 2,
+          "17": 1,
+          "32": 2
+        },
+        "decisions": 59,
+        "scale_counts": {
+          "2.0": 55,
+          "4.0": 3,
+          "1.69": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9233022,
+        "episode_id": 23,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.46,
+        "actions": {
+          "14": 30,
+          "16": 11,
+          "15": 5,
+          "18": 6,
+          "0": 18,
+          "28": 16,
+          "30": 5,
+          "29": 6,
+          "21": 2,
+          "4": 2,
+          "34": 1,
+          "2": 1,
+          "7": 1,
+          "32": 2,
+          "36": 1,
+          "3": 1,
+          "19": 1,
+          "17": 1
+        },
+        "decisions": 110,
+        "scale_counts": {
+          "2.0": 106,
+          "4.0": 1,
+          "1.39": 1,
+          "0.29": 1,
+          "1.51": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9233023,
+        "episode_id": 24,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 44.1,
+        "actions": {
+          "18": 13,
+          "14": 26,
+          "16": 7,
+          "21": 4,
+          "19": 4,
+          "4": 5,
+          "15": 10,
+          "29": 4,
+          "28": 16,
+          "32": 2,
+          "0": 17,
+          "30": 4,
+          "37": 1,
+          "2": 3,
+          "33": 1,
+          "36": 1
+        },
+        "decisions": 118,
+        "scale_counts": {
+          "2.0": 116,
+          "0.92": 1,
+          "0.82": 1
+        },
+        "policy_update": 5
+      },
+      {
+        "seed": 9233024,
+        "episode_id": 25,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 5.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.48,
+        "actions": {
+          "28": 28,
+          "31": 1,
+          "0": 28,
+          "16": 9,
+          "15": 3,
+          "18": 2,
+          "14": 20,
+          "21": 1,
+          "9": 1,
+          "29": 3,
+          "30": 3,
+          "33": 2,
+          "4": 2,
+          "2": 4,
+          "6": 1,
+          "36": 1,
+          "1": 2
+        },
+        "decisions": 111,
+        "scale_counts": {
+          "2.0": 106,
+          "1.2": 1,
+          "1.83": 1,
+          "1.38": 1,
+          "1.15": 1,
+          "4.0": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9233025,
+        "episode_id": 26,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 47.02,
+        "actions": {
+          "14": 24,
+          "16": 6,
+          "15": 5,
+          "19": 3,
+          "0": 25,
+          "28": 24,
+          "35": 2,
+          "31": 1,
+          "2": 9,
+          "18": 7,
+          "4": 2,
+          "30": 4,
+          "36": 1,
+          "29": 3,
+          "21": 2,
+          "1": 5,
+          "33": 1,
+          "32": 1
+        },
+        "decisions": 125,
+        "scale_counts": {
+          "2.0": 120,
+          "0.27": 1,
+          "1.91": 1,
+          "4.0": 3
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9233026,
+        "episode_id": 27,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 6.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 53.92,
+        "actions": {
+          "14": 30,
+          "0": 21,
+          "2": 7,
+          "1": 3,
+          "7": 1,
+          "28": 25,
+          "18": 12,
+          "30": 6,
+          "31": 2,
+          "15": 6,
+          "16": 7,
+          "29": 6,
+          "32": 3,
+          "4": 1,
+          "3": 1,
+          "6": 2,
+          "17": 1,
+          "5": 1,
+          "8": 1
+        },
+        "decisions": 136,
+        "scale_counts": {
+          "2.0": 135,
+          "4.0": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9233027,
+        "episode_id": 28,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 6.0,
+          "SPIKES": 2.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.5,
+        "actions": {
+          "14": 18,
+          "28": 11,
+          "30": 3,
+          "1": 1,
+          "29": 2,
+          "32": 1,
+          "0": 20,
+          "2": 4,
+          "16": 6,
+          "35": 1,
+          "15": 7,
+          "18": 3,
+          "17": 2,
+          "4": 1,
+          "22": 1,
+          "21": 1,
+          "19": 1,
+          "5": 1
+        },
+        "decisions": 84,
+        "scale_counts": {
+          "2.0": 79,
+          "2.73": 1,
+          "4.0": 1,
+          "0.46": 1,
+          "0.92": 1,
+          "0.43": 1
+        },
+        "policy_update": 6
+      },
+      {
+        "seed": 9233028,
+        "episode_id": 29,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.16,
+        "actions": {
+          "14": 15,
+          "28": 11,
+          "0": 9,
+          "6": 1,
+          "30": 4,
+          "33": 1,
+          "2": 3,
+          "1": 4,
+          "16": 1,
+          "18": 1
+        },
+        "decisions": 50,
+        "scale_counts": {
+          "2.0": 47,
+          "0.91": 1,
+          "4.0": 1,
+          "1.31": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9233029,
+        "episode_id": 30,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.5,
+        "actions": {
+          "14": 7,
+          "34": 1,
+          "0": 13,
+          "4": 2,
+          "29": 3,
+          "2": 1,
+          "21": 2,
+          "28": 2,
+          "30": 1,
+          "15": 1,
+          "1": 1,
+          "5": 1
+        },
+        "decisions": 35,
+        "scale_counts": {
+          "2.0": 32,
+          "4.0": 1,
+          "1.84": 1,
+          "0.91": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9233030,
+        "episode_id": 31,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.48,
+        "actions": {
+          "14": 27,
+          "16": 4,
+          "15": 5,
+          "18": 6,
+          "0": 28,
+          "2": 6,
+          "6": 1,
+          "28": 25,
+          "1": 3,
+          "32": 5,
+          "4": 3,
+          "30": 6,
+          "29": 7,
+          "31": 2,
+          "19": 1
+        },
+        "decisions": 129,
+        "scale_counts": {
+          "2.0": 123,
+          "1.69": 1,
+          "0.4": 1,
+          "4.0": 2,
+          "1.25": 1,
+          "1.46": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9233031,
+        "episode_id": 32,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "SPIKES": 8.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.24,
+        "actions": {
+          "14": 24,
+          "28": 25,
+          "4": 1,
+          "0": 33,
+          "21": 3,
+          "30": 11,
+          "29": 10,
+          "32": 2,
+          "18": 6,
+          "2": 5,
+          "7": 1,
+          "16": 4,
+          "23": 2,
+          "1": 1,
+          "17": 1,
+          "15": 2,
+          "19": 1
+        },
+        "decisions": 132,
+        "scale_counts": {
+          "2.0": 130,
+          "1.98": 1,
+          "2.2": 1
+        },
+        "policy_update": 7
+      },
+      {
+        "seed": 9233032,
+        "episode_id": 33,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.44,
+        "actions": {
+          "16": 7,
+          "14": 20,
+          "18": 9,
+          "30": 6,
+          "1": 3,
+          "4": 1,
+          "28": 9,
+          "0": 12,
+          "2": 7,
+          "15": 3,
+          "29": 4,
+          "35": 1,
+          "32": 3,
+          "31": 1
+        },
+        "decisions": 86,
+        "scale_counts": {
+          "2.0": 83,
+          "4.0": 1,
+          "0.61": 1,
+          "0.67": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9233033,
+        "episode_id": 34,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 3.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.14,
+        "actions": {
+          "14": 27,
+          "32": 3,
+          "29": 6,
+          "0": 42,
+          "30": 6,
+          "28": 24,
+          "2": 6,
+          "1": 4,
+          "35": 2,
+          "15": 3,
+          "18": 6,
+          "16": 6,
+          "4": 5,
+          "7": 1,
+          "33": 1,
+          "19": 1,
+          "31": 2,
+          "22": 1
+        },
+        "decisions": 146,
+        "scale_counts": {
+          "2.0": 143,
+          "1.93": 1,
+          "1.3": 1,
+          "1.27": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9233034,
+        "episode_id": 35,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "SPIKES": 4.0,
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 44.04,
+        "actions": {
+          "14": 22,
+          "29": 8,
+          "28": 20,
+          "30": 6,
+          "21": 2,
+          "0": 25,
+          "15": 3,
+          "2": 3,
+          "4": 3,
+          "18": 3,
+          "32": 2,
+          "19": 2,
+          "1": 2,
+          "17": 1,
+          "36": 1,
+          "31": 2,
+          "16": 5,
+          "27": 6
+        },
+        "decisions": 116,
+        "scale_counts": {
+          "2.0": 114,
+          "4.0": 1,
+          "1.93": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9233035,
+        "episode_id": 36,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 3.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 40.34,
+        "actions": {
+          "0": 20,
+          "2": 5,
+          "7": 1,
+          "28": 17,
+          "33": 1,
+          "16": 5,
+          "15": 6,
+          "18": 8,
+          "14": 11,
+          "4": 1,
+          "3": 1,
+          "30": 3,
+          "29": 4,
+          "19": 1,
+          "34": 1,
+          "1": 3,
+          "32": 1
+        },
+        "decisions": 89,
+        "scale_counts": {
+          "2.0": 87,
+          "1.68": 1,
+          "1.61": 1
+        },
+        "policy_update": 8
+      },
+      {
+        "seed": 9233036,
+        "episode_id": 37,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "SPIKES": 3.0,
+          "ENEMY_PROJECTILE": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 33.36,
+        "actions": {
+          "14": 5,
+          "34": 1,
+          "0": 8,
+          "28": 8,
+          "4": 1,
+          "16": 7,
+          "15": 3,
+          "18": 4,
+          "36": 1,
+          "31": 1,
+          "2": 1,
+          "21": 1,
+          "17": 1,
+          "19": 1,
+          "30": 2
+        },
+        "decisions": 45,
+        "scale_counts": {
+          "2.0": 41,
+          "0.76": 1,
+          "4.0": 2,
+          "1.42": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9233037,
+        "episode_id": 38,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 45.3,
+        "actions": {
+          "18": 6,
+          "14": 10,
+          "16": 4,
+          "17": 1,
+          "28": 9,
+          "3": 1,
+          "32": 2,
+          "0": 22,
+          "23": 1,
+          "1": 1,
+          "29": 5,
+          "20": 1,
+          "2": 2,
+          "9": 1,
+          "30": 2,
+          "21": 1
+        },
+        "decisions": 69,
+        "scale_counts": {
+          "2.0": 67,
+          "0.43": 1,
+          "0.55": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9233038,
+        "episode_id": 39,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "BOSS_BODY": 5.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.78,
+        "actions": {
+          "14": 16,
+          "16": 4,
+          "15": 5,
+          "19": 3,
+          "0": 22,
+          "28": 16,
+          "21": 3,
+          "30": 8,
+          "2": 4,
+          "6": 3,
+          "4": 3,
+          "5": 1,
+          "29": 3,
+          "17": 1,
+          "18": 1
+        },
+        "decisions": 93,
+        "scale_counts": {
+          "2.0": 92,
+          "1.5": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9233039,
+        "episode_id": 40,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 2.0,
+          "BOSS_BODY": 4.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 29.54,
+        "actions": {
+          "14": 25,
+          "2": 4,
+          "1": 2,
+          "18": 3,
+          "16": 3,
+          "15": 3,
+          "28": 9,
+          "30": 6,
+          "0": 7,
+          "4": 1,
+          "31": 1,
+          "19": 1,
+          "21": 1
+        },
+        "decisions": 66,
+        "scale_counts": {
+          "2.0": 63,
+          "4.0": 1,
+          "1.38": 1,
+          "0.87": 1
+        },
+        "policy_update": 9
+      },
+      {
+        "seed": 9233040,
+        "episode_id": 41,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 23.44,
+        "actions": {
+          "0": 14,
+          "2": 3,
+          "21": 2,
+          "14": 11,
+          "34": 1,
+          "28": 4,
+          "30": 2,
+          "18": 4,
+          "15": 1,
+          "29": 3,
+          "35": 1,
+          "33": 1,
+          "16": 1,
+          "6": 1,
+          "19": 1
+        },
+        "decisions": 50,
+        "scale_counts": {
+          "2.0": 46,
+          "1.36": 1,
+          "0.85": 1,
+          "4.0": 1,
+          "0.68": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9233041,
+        "episode_id": 42,
+        "won": false,
+        "first_cleared": false,
+        "damage": 0.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 4.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 39.32,
+        "actions": {
+          "14": 16,
+          "28": 15,
+          "0": 20,
+          "6": 1,
+          "16": 5,
+          "30": 7,
+          "18": 3,
+          "15": 4,
+          "2": 6,
+          "32": 1,
+          "34": 1,
+          "29": 1,
+          "37": 1,
+          "36": 1,
+          "21": 1,
+          "31": 1
+        },
+        "decisions": 84,
+        "scale_counts": {
+          "2.0": 81,
+          "4.0": 2,
+          "0.83": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9233042,
+        "episode_id": 43,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 34.38,
+        "actions": {
+          "28": 24,
+          "0": 28,
+          "2": 6,
+          "21": 3,
+          "14": 8,
+          "18": 5,
+          "30": 3,
+          "16": 5,
+          "19": 2,
+          "15": 2,
+          "6": 1,
+          "33": 2,
+          "1": 1,
+          "3": 1,
+          "4": 2,
+          "36": 1,
+          "34": 1,
+          "32": 1,
+          "29": 2
+        },
+        "decisions": 98,
+        "scale_counts": {
+          "2.0": 95,
+          "0.44": 1,
+          "1.93": 1,
+          "4.0": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9233043,
+        "episode_id": 44,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 30.22,
+        "actions": {
+          "14": 10,
+          "0": 15,
+          "1": 1,
+          "7": 1,
+          "28": 11,
+          "29": 3,
+          "30": 1,
+          "2": 4,
+          "17": 1,
+          "32": 1,
+          "35": 1,
+          "3": 1,
+          "16": 2,
+          "18": 2,
+          "33": 1
+        },
+        "decisions": 55,
+        "scale_counts": {
+          "2.0": 51,
+          "0.95": 1,
+          "4.0": 1,
+          "0.6": 1,
+          "1.53": 1
+        },
+        "policy_update": 10
+      },
+      {
+        "seed": 9233044,
+        "episode_id": 45,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "SPIKES": 3.0,
+          "BOSS_BODY": 3.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 43.06,
+        "actions": {
+          "31": 1,
+          "28": 25,
+          "0": 21,
+          "14": 23,
+          "15": 2,
+          "4": 3,
+          "30": 5,
+          "18": 6,
+          "1": 4,
+          "33": 1,
+          "21": 2,
+          "32": 2,
+          "34": 1,
+          "2": 2,
+          "6": 2,
+          "19": 1,
+          "16": 2,
+          "29": 1
+        },
+        "decisions": 104,
+        "scale_counts": {
+          "2.0": 99,
+          "1.28": 1,
+          "0.48": 1,
+          "4.0": 2,
+          "1.66": 1
+        },
+        "policy_update": 11
+      },
+      {
+        "seed": 9233045,
+        "episode_id": 46,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 31.82,
+        "actions": {
+          "28": 19,
+          "32": 3,
+          "0": 29,
+          "2": 5,
+          "1": 4,
+          "14": 15,
+          "18": 2,
+          "16": 3,
+          "21": 2,
+          "30": 5,
+          "29": 2,
+          "4": 2,
+          "31": 2,
+          "33": 1,
+          "15": 2
+        },
+        "decisions": 96,
+        "scale_counts": {
+          "2.0": 91,
+          "4.0": 2,
+          "1.03": 1,
+          "1.43": 1,
+          "1.92": 1
+        },
+        "policy_update": 11
+      },
+      {
+        "seed": 9233046,
+        "episode_id": 47,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 4.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 42.44,
+        "actions": {
+          "14": 27,
+          "2": 6,
+          "1": 2,
+          "0": 30,
+          "15": 4,
+          "28": 30,
+          "30": 4,
+          "18": 6,
+          "33": 1,
+          "29": 3,
+          "16": 5,
+          "34": 1,
+          "4": 1,
+          "32": 2,
+          "21": 2,
+          "31": 1,
+          "36": 2,
+          "17": 2
+        },
+        "decisions": 129,
+        "scale_counts": {
+          "2.0": 124,
+          "0.37": 1,
+          "1.36": 1,
+          "4.0": 2,
+          "1.02": 1
+        },
+        "policy_update": 11
+      },
+      {
+        "seed": 9233047,
+        "episode_id": 48,
+        "won": false,
+        "first_cleared": false,
+        "damage": 21.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 1.0,
+          "SPIKES": 5.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 37.78,
+        "actions": {
+          "35": 3,
+          "28": 23,
+          "0": 28,
+          "17": 2,
+          "30": 4,
+          "14": 18,
+          "18": 6,
+          "16": 9,
+          "15": 4,
+          "2": 5,
+          "4": 2,
+          "33": 1,
+          "19": 2,
+          "34": 1,
+          "29": 7,
+          "32": 1,
+          "1": 1,
+          "6": 1,
+          "21": 1
+        },
+        "decisions": 119,
+        "scale_counts": {
+          "2.0": 115,
+          "1.4": 1,
+          "4.0": 2,
+          "1.54": 1
+        },
+        "policy_update": 11
+      }
+    ],
+    "updates": [
+      {
+        "steps": 554,
+        "behavior_logp_max_error": 2.86102294921875e-06,
+        "actor_head_change": 0.04366489127278328,
+        "critic_head_change": 0.011684808880090714,
+        "actor_loss_first": -0.0032138084061443806,
+        "value_loss": 2.497659921646118,
+        "entropy": 0.9019736051559448,
+        "rollout_sha256": "f6c48624c6f47f32a7f8e63c96e1efb6bb29dac1256699f318ed8e703e0ed703"
+      },
+      {
+        "steps": 480,
+        "behavior_logp_max_error": 2.6226043701171875e-06,
+        "actor_head_change": 0.02182953990995884,
+        "critic_head_change": 0.007399976719170809,
+        "actor_loss_first": 0.026875244453549385,
+        "value_loss": 2.224383592605591,
+        "entropy": 1.0986686944961548,
+        "rollout_sha256": "0f5574273a6a8b3e072d29ef6b578928b1b6825ec54c81bc8f986029fab009b1"
+      },
+      {
+        "steps": 452,
+        "behavior_logp_max_error": 2.384185791015625e-06,
+        "actor_head_change": 0.019016601145267487,
+        "critic_head_change": 0.007383986376225948,
+        "actor_loss_first": -0.014066791161894798,
+        "value_loss": 2.2155678272247314,
+        "entropy": 0.9929817318916321,
+        "rollout_sha256": "8c524b8366112b8a8ca8b0748fc9daf538962627c2267314547b151d4f1b6880"
+      },
+      {
+        "steps": 378,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.021332507953047752,
+        "critic_head_change": 0.007286188192665577,
+        "actor_loss_first": -0.0066194962710142136,
+        "value_loss": 2.5733625888824463,
+        "entropy": 1.1047892570495605,
+        "rollout_sha256": "243f2e513a338e7e08debdecfbaf108b49eac22d55189d4a9887c5827a84c071"
+      },
+      {
+        "steps": 276,
+        "behavior_logp_max_error": 2.384185791015625e-06,
+        "actor_head_change": 0.021127335727214813,
+        "critic_head_change": 0.006731147412210703,
+        "actor_loss_first": -0.00039561279118061066,
+        "value_loss": 1.3270373344421387,
+        "entropy": 1.2824633121490479,
+        "rollout_sha256": "224e5d9eaed7ec6a5ea5eb14d74992fe7bbd1e38c4ff365785f2bbf90e26b91a"
+      },
+      {
+        "steps": 378,
+        "behavior_logp_max_error": 2.86102294921875e-06,
+        "actor_head_change": 0.02445831708610058,
+        "critic_head_change": 0.006552082486450672,
+        "actor_loss_first": 0.0565878301858902,
+        "value_loss": 2.124279499053955,
+        "entropy": 1.2186452150344849,
+        "rollout_sha256": "38fbf1911bd0e85890baf6b4f3a464f2ea6f2ecf06e793894b7fc78d22ecfd92"
+      },
+      {
+        "steps": 456,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.02509884722530842,
+        "critic_head_change": 0.006718963384628296,
+        "actor_loss_first": -0.005007339641451836,
+        "value_loss": 1.7011582851409912,
+        "entropy": 1.1788909435272217,
+        "rollout_sha256": "4e5e4546f273952102bef45a0a717503f3be872f7f777400da1d671559aca61d"
+      },
+      {
+        "steps": 346,
+        "behavior_logp_max_error": 2.384185791015625e-06,
+        "actor_head_change": 0.024276377633213997,
+        "critic_head_change": 0.006898412946611643,
+        "actor_loss_first": 0.048423752188682556,
+        "value_loss": 2.0983097553253174,
+        "entropy": 1.196418285369873,
+        "rollout_sha256": "d4478d46ee1f68226a08a66feb818c79ff96a2f8796e7f247acc7dab7abd95df"
+      },
+      {
+        "steps": 437,
+        "behavior_logp_max_error": 3.337860107421875e-06,
+        "actor_head_change": 0.028020987287163734,
+        "critic_head_change": 0.006918860599398613,
+        "actor_loss_first": -0.01979042775928974,
+        "value_loss": 1.678891658782959,
+        "entropy": 1.2306815385818481,
+        "rollout_sha256": "f07ca2a8402295bb44c47520ae1efd1e79fcc0405d11ad02bf142bbe1aa9b0b3"
+      },
+      {
+        "steps": 273,
+        "behavior_logp_max_error": 2.384185791015625e-06,
+        "actor_head_change": 0.02577781490981579,
+        "critic_head_change": 0.006319258362054825,
+        "actor_loss_first": 0.01493067480623722,
+        "value_loss": 2.492621421813965,
+        "entropy": 1.2181873321533203,
+        "rollout_sha256": "382e35369cf0553297b2158b5d0195a8f3c2ad01264bfa0a5beff1254c6ce1a3"
+      },
+      {
+        "steps": 287,
+        "behavior_logp_max_error": 2.5033950805664062e-06,
+        "actor_head_change": 0.019749844446778297,
+        "critic_head_change": 0.005947936791926622,
+        "actor_loss_first": 0.031723540276288986,
+        "value_loss": 1.5553995370864868,
+        "entropy": 1.2473195791244507,
+        "rollout_sha256": "a13cd40b174a8b9800be5ad90e5b111ac3496ea24bf95b8cf01108ecf1e1b1a2"
+      },
+      {
+        "steps": 448,
+        "behavior_logp_max_error": 2.86102294921875e-06,
+        "actor_head_change": 0.01879076287150383,
+        "critic_head_change": 0.0061469003558158875,
+        "actor_loss_first": 0.07057778537273407,
+        "value_loss": 1.9052963256835938,
+        "entropy": 1.1589590311050415,
+        "rollout_sha256": "82524ec917d144d3a4938fc4f46803084521b18c634b1782b1a0442a06a46d64"
+      }
+    ]
+  },
+  "real-only-eval": {
+    "settings": {
+      "checkpoint_sha256": "6a295055ac95383e66de028c596b9df784cc045446be4eecea643c4551592051",
+      "native_tactics": false,
+      "trained": false,
+      "action_selection": "greedy",
+      "seed": 9234000,
+      "episodes": 10,
+      "scale": 1,
+      "checkpoint": "combat/real_only_ppo.pt"
+    },
+    "summary": {
+      "completed": 10,
+      "planned": 10,
+      "wins": 0,
+      "no_hit_wins": 0,
+      "first_cleared": 0,
+      "damage_mean": 132.9,
+      "damage_max": 240.0,
+      "fights_dealt_damage": 10,
+      "seconds_mean": 49.1,
+      "masks_lost": {
+        "SPIKES": 24.0,
+        "ENEMY_PROJECTILE": 33.0,
+        "BOSS_BODY": 33.0
+      },
+      "actions": 2091,
+      "nail_commands": 247
+    },
+    "episodes": [
+      {
+        "seed": 9234000,
+        "episode_id": 49,
+        "won": false,
+        "first_cleared": false,
+        "damage": 135.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.36,
+        "actions": {
+          "14": 48,
+          "16": 10,
+          "15": 6,
+          "18": 10,
+          "0": 33,
+          "4": 5,
+          "28": 35,
+          "2": 8,
+          "30": 8,
+          "27": 5,
+          "33": 1,
+          "29": 5,
+          "19": 1,
+          "21": 1,
+          "1": 2
+        },
+        "decisions": 178,
+        "scale_counts": {
+          "1.0": 175,
+          "0.22": 1,
+          "0.15": 1,
+          "0.12": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234001,
+        "episode_id": 50,
+        "won": false,
+        "first_cleared": false,
+        "damage": 147.0,
+        "lost": {
+          "SPIKES": 5.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "BOSS_BODY": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 49.68,
+        "actions": {
+          "14": 51,
+          "16": 6,
+          "15": 6,
+          "18": 8,
+          "0": 52,
+          "2": 5,
+          "21": 2,
+          "28": 29,
+          "29": 5,
+          "6": 2,
+          "32": 4,
+          "10": 1,
+          "30": 7,
+          "4": 4,
+          "37": 1,
+          "19": 1,
+          "7": 1,
+          "27": 6
+        },
+        "decisions": 191,
+        "scale_counts": {
+          "1.0": 190,
+          "0.14": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234002,
+        "episode_id": 51,
+        "won": false,
+        "first_cleared": false,
+        "damage": 84.0,
+        "lost": {
+          "BOSS_BODY": 6.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 52.1,
+        "actions": {
+          "14": 46,
+          "28": 39,
+          "30": 6,
+          "29": 10,
+          "16": 7,
+          "21": 1,
+          "2": 8,
+          "0": 41,
+          "32": 4,
+          "4": 7,
+          "1": 3,
+          "19": 2,
+          "18": 12,
+          "7": 1,
+          "6": 1,
+          "15": 5,
+          "27": 5,
+          "33": 1
+        },
+        "decisions": 199,
+        "scale_counts": {
+          "1.0": 198,
+          "0.33": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234003,
+        "episode_id": 52,
+        "won": false,
+        "first_cleared": false,
+        "damage": 240.0,
+        "lost": {
+          "BOSS_BODY": 2.0,
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 72.54,
+        "actions": {
+          "14": 102,
+          "16": 15,
+          "15": 10,
+          "19": 3,
+          "0": 64,
+          "18": 19,
+          "28": 49,
+          "30": 15,
+          "29": 11,
+          "21": 3,
+          "2": 9,
+          "1": 4,
+          "32": 5,
+          "4": 6,
+          "24": 1,
+          "10": 2,
+          "7": 1,
+          "35": 1,
+          "27": 2
+        },
+        "decisions": 322,
+        "scale_counts": {
+          "1.0": 321,
+          "0.82": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234004,
+        "episode_id": 53,
+        "won": false,
+        "first_cleared": false,
+        "damage": 42.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "SPIKES": 4.0,
+          "BOSS_BODY": 1.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 49.26,
+        "actions": {
+          "14": 54,
+          "28": 30,
+          "30": 7,
+          "35": 1,
+          "18": 12,
+          "16": 8,
+          "15": 6,
+          "0": 35,
+          "29": 5,
+          "21": 2,
+          "4": 2,
+          "32": 1,
+          "2": 1,
+          "7": 1
+        },
+        "decisions": 165,
+        "scale_counts": {
+          "1.0": 162,
+          "0.33": 1,
+          "0.32": 1,
+          "0.43": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234005,
+        "episode_id": 54,
+        "won": false,
+        "first_cleared": false,
+        "damage": 63.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 5.0,
+          "SPIKES": 1.0,
+          "BOSS_BODY": 3.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 45.66,
+        "actions": {
+          "14": 43,
+          "28": 33,
+          "30": 8,
+          "29": 7,
+          "0": 30,
+          "2": 9,
+          "32": 2,
+          "1": 4,
+          "16": 15,
+          "21": 2,
+          "18": 10,
+          "4": 3,
+          "19": 1,
+          "15": 3,
+          "31": 1,
+          "27": 6
+        },
+        "decisions": 177,
+        "scale_counts": {
+          "1.0": 175,
+          "0.28": 1,
+          "0.62": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234006,
+        "episode_id": 55,
+        "won": false,
+        "first_cleared": false,
+        "damage": 168.0,
+        "lost": {
+          "BOSS_BODY": 4.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 41.42,
+        "actions": {
+          "14": 47,
+          "28": 50,
+          "32": 3,
+          "0": 51,
+          "4": 6,
+          "34": 2,
+          "27": 8,
+          "2": 4,
+          "18": 12,
+          "19": 5,
+          "16": 10,
+          "30": 8,
+          "29": 2,
+          "15": 5,
+          "1": 1,
+          "31": 1
+        },
+        "decisions": 215,
+        "scale_counts": {
+          "1.0": 212,
+          "0.91": 1,
+          "0.83": 1,
+          "0.37": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234007,
+        "episode_id": 56,
+        "won": false,
+        "first_cleared": false,
+        "damage": 147.0,
+        "lost": {
+          "SPIKES": 2.0,
+          "ENEMY_PROJECTILE": 3.0,
+          "BOSS_BODY": 4.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 48.54,
+        "actions": {
+          "14": 69,
+          "28": 41,
+          "32": 2,
+          "0": 51,
+          "2": 4,
+          "7": 1,
+          "18": 20,
+          "1": 2,
+          "16": 9,
+          "30": 8,
+          "38": 1,
+          "15": 7,
+          "27": 12,
+          "4": 3,
+          "19": 2,
+          "29": 6,
+          "3": 1,
+          "6": 1,
+          "21": 2,
+          "31": 1
+        },
+        "decisions": 243,
+        "scale_counts": {
+          "1.0": 242,
+          "0.71": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234008,
+        "episode_id": 57,
+        "won": false,
+        "first_cleared": false,
+        "damage": 147.0,
+        "lost": {
+          "BOSS_BODY": 5.0,
+          "ENEMY_PROJECTILE": 2.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 35.94,
+        "actions": {
+          "14": 42,
+          "16": 15,
+          "15": 7,
+          "18": 15,
+          "0": 24,
+          "21": 2,
+          "2": 4,
+          "1": 4,
+          "28": 30,
+          "27": 5,
+          "30": 10,
+          "25": 1,
+          "29": 5,
+          "31": 2,
+          "19": 1,
+          "4": 1
+        },
+        "decisions": 168,
+        "scale_counts": {
+          "1.0": 167,
+          "0.94": 1
+        },
+        "policy_update": 0
+      },
+      {
+        "seed": 9234009,
+        "episode_id": 58,
+        "won": false,
+        "first_cleared": false,
+        "damage": 156.0,
+        "lost": {
+          "ENEMY_PROJECTILE": 4.0,
+          "BOSS_BODY": 3.0,
+          "SPIKES": 2.0
+        },
+        "minimum_hp": 0,
+        "truncated": false,
+        "seconds": 54.52,
+        "actions": {
+          "14": 68,
+          "0": 50,
+          "2": 6,
+          "1": 1,
+          "18": 15,
+          "16": 10,
+          "15": 6,
+          "28": 36,
+          "30": 15,
+          "29": 8,
+          "21": 2,
+          "32": 1,
+          "27": 6,
+          "10": 1,
+          "4": 4,
+          "35": 1,
+          "3": 1,
+          "7": 1,
+          "31": 1
+        },
+        "decisions": 233,
+        "scale_counts": {
+          "1.0": 231,
+          "0.57": 1,
+          "0.33": 1
+        },
+        "policy_update": 0
+      }
+    ]
+  }
+}

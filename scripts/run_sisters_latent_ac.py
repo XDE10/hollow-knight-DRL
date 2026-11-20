@@ -243,6 +243,7 @@ def main() -> None:
                 "checkpoint_sha256": digest,
                 "native_tactics": False,
                 "trained": args.train,
+                "action_selection": "sampled" if args.train else "greedy",
                 "pid": pid,
                 "port": args.port,
                 "seed": args.seed,
@@ -254,6 +255,7 @@ def main() -> None:
     opt = torch.optim.Adam(agent.policy.parameters(), lr=0.00012)
     batch = []
     updates = []
+    results = []
     with exclusive_game_lock(Path(f"runs/training/sisters-actor-{args.port}.lock")):
         env = HKRLEnv(make_transport(cfg, port=args.port), task, step_timeout_s=20)
         try:
@@ -262,12 +264,35 @@ def main() -> None:
                     env, agent, args.seed + i, args.train, args.scale
                 )
                 result["policy_update"] = len(updates)
+                results.append(result)
                 (out / f"episode-{i:03d}.json").write_text(json.dumps(result))
                 print(json.dumps(result), flush=True)
                 if args.train:
                     batch.append(data)
                     if len(batch) == args.update_every or i + 1 == args.episodes:
                         b = {k: torch.cat([game[k] for game in batch]) for k in data}
+                        with torch.no_grad():
+                            behavior, _ = agent.policy(b["state"], b["mask"])
+                            mismatch = (
+                                (behavior.log_prob(b["action"]) - b["logp"])
+                                .abs()
+                                .max()
+                                .item()
+                            )
+                            if mismatch > 1e-3:
+                                raise RuntimeError(
+                                    "Logged action probability differs from the collecting policy"
+                                )
+                            old_actor = agent.policy.actor.weight.clone()
+                            old_critic = agent.policy.critic.weight.clone()
+                        # Retain the actual on-policy batch with episode boundaries for independent replay.
+                        torch.save(
+                            {
+                                "batch": b,
+                                "lengths": [len(game["state"]) for game in batch],
+                            },
+                            out / f"rollout-{len(updates):03d}.pt",
+                        )
                         stats = optimize_ppo(
                             agent.policy,
                             opt,
@@ -278,7 +303,23 @@ def main() -> None:
                             b["advantage"],
                             mask=b["mask"],
                         )
-                        updates.append(dict(steps=len(b["state"]), **stats))
+                        updates.append(
+                            dict(
+                                steps=len(b["state"]),
+                                behavior_logp_max_error=mismatch,
+                                actor_head_change=(
+                                    agent.policy.actor.weight.detach() - old_actor
+                                )
+                                .norm()
+                                .item(),
+                                critic_head_change=(
+                                    agent.policy.critic.weight.detach() - old_critic
+                                )
+                                .norm()
+                                .item(),
+                                **stats,
+                            )
+                        )
                         batch = []
                         payload = dict(
                             agent.payload,
@@ -296,6 +337,22 @@ def main() -> None:
                 env.set_timescale(1)
             finally:
                 env.close()
+    sources = Counter()
+    for row in results:
+        sources.update(row["lost"])
+    summary = {
+        "episodes": len(results),
+        "first_cleared": sum(row["first_cleared"] for row in results),
+        "wins": sum(row["won"] for row in results),
+        "no_hit_wins": sum(
+            row["won"] and row["minimum_hp"] == 9 and not sum(row["lost"].values())
+            for row in results
+        ),
+        "mean_damage": sum(row["damage"] for row in results) / len(results),
+        "masks_lost": dict(sources),
+    }
+    (out / "summary.json").write_text(json.dumps(summary, indent=2))
+    print(json.dumps(summary), flush=True)
 
 
 if __name__ == "__main__":
