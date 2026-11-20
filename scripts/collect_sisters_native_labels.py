@@ -51,6 +51,11 @@ def main() -> None:
     ap.add_argument("--seed", required=True, type=int)
     ap.add_argument("--episodes", type=int, default=12)
     ap.add_argument("--checkpoint", required=True, type=Path)
+    ap.add_argument(
+        "--restart-after-win",
+        action="store_true",
+        help="Finish this worker after a victory so the supervisor can reopen the original save.",
+    )
     args = ap.parse_args()
     listeners = [
         c
@@ -70,6 +75,9 @@ def main() -> None:
     if args.checkpoint.resolve() != Path(envs["HKRL_NATIVE_ACTOR"]).resolve():
         raise RuntimeError("Wrong actor")
     tape_dir = Path(envs["HKRL_NATIVE_DEMO_DIR"])
+    scale = float(envs.get("HKRL_DEVELOPMENT_SPEED", "2"))
+    if scale not in (1.0, 2.0):
+        raise ValueError("Development collection supports 1x or 2x speed")
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
     args.output.mkdir(exist_ok=False, parents=True)
     manifest = []
@@ -82,17 +90,23 @@ def main() -> None:
         try:
             for i in range(args.episodes):
                 starts, elapsed, events, record = transition_recorder()
-                result = play_game(game, args.seed + i, scale=2, on_transition=record)
+                result = play_game(game, args.seed + i, scale=scale, on_transition=record)
                 eid = result["episode_id"]
                 mode = max(result["speed_counts"], key=result["speed_counts"].get)
-                if mode != 2:
+                if mode != scale:
                     raise RuntimeError("Wrong development speed")
                 if not result["win"] and not result["truncated"] and result["hp"] == 0:
                     events[-1][7] = 1
                 with (tape_dir / f"{eid}.native").open("rb") as f:
-                    if struct.unpack("<IQ", f.read(12)) != (0x31474144, eid):
+                    timing = envs.get("HKRL_NATIVE_TIMING") == "1"
+                    if struct.unpack("<IQ", f.read(12)) != (
+                        0x32474144 if timing else 0x31474144,
+                        eid,
+                    ):
                         raise ValueError("Wrong training tape")
-                    rows = np.frombuffer(f.read(), "<f4").reshape(-1, 67)
+                    rows = np.frombuffer(f.read(), "<f4").reshape(
+                        -1, 259 if timing else 67
+                    )
                 receipt = (
                     Path(envs["HKRL_NATIVE_ACTOR_LEDGER"])
                     .read_text(encoding="utf-8-sig")
@@ -122,6 +136,7 @@ def main() -> None:
                     time=np.array(starts, "f4"),
                     events=np.array(events, "f4"),
                     elapsed_ticks=np.array(elapsed, "i2"),
+                    **({"timing_state": rows[:, 67:]} if timing else {}),
                 )
                 result.update(
                     seed=args.seed + i,
@@ -143,6 +158,8 @@ def main() -> None:
                     json.dumps(manifest, indent=2) + "\n"
                 )
                 print(json.dumps(result), flush=True)
+                if result["win"] and args.restart_after_win:
+                    break
                 if result["win"]:
                     time.sleep(6)
         finally:

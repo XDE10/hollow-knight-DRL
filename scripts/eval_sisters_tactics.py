@@ -37,13 +37,18 @@ def verify_actor(policy_file: Path, episode: int, checkpoint: Path) -> None:
 
 
 def play_game(
-    env: HKRLEnv, seed: int, *, scale: float = 1.0,
+    env: HKRLEnv,
+    seed: int,
+    *,
+    scale: float = 1.0,
     on_transition: Callable[[float, float, dict], None] | None = None,
 ) -> dict[str, Any]:
     obs, info = env.reset(seed=seed, options={"reset_timeout_s": 90})
     episode = int(info["episode_id"])
     if list(obs["player"][4:7]) != [9, 9, 0]:
-        raise RuntimeError(f"Expected an original nine-mask start with empty SOUL, got {list(obs['player'][4:7])}.")
+        raise RuntimeError(
+            f"Expected an original nine-mask start with empty SOUL, got {list(obs['player'][4:7])}."
+        )
     env.set_timescale(scale)
     damage = 0.0
     losses: Counter[str] = Counter()
@@ -51,6 +56,12 @@ def play_game(
     peak = 0
     arena_complete = False
     minimum_hp = 9
+    trio_entry: dict[str, Any] | None = None
+    hits: list[dict[str, Any]] = []
+    trio_damage = 0.0
+    heals = 0.0
+    observed_dashes: Counter[str] = Counter()
+    last_trio: dict[str, Any] | None = None
     speeds: Counter[float] = Counter()
     noop: dict[str, Any] = {
         "movement_x": 1,
@@ -70,7 +81,32 @@ def play_game(
             raise RuntimeError("Unexpected Sisters second-phase health.")
         previous_health = int(obs["player"][4])
         previous_time = float(obs["global"][4])
+        phase_bosses = bosses[bosses[:, 13] == 750]
+        if len(phase_bosses):
+            last_trio = {
+                "game_time": previous_time,
+                "observed_hp_by_entity": {
+                    str(int(b[0])): int(b[12]) for b in phase_bosses
+                },
+            }
+        if trio_entry is None and len(bosses) >= 3:
+            trio_entry = {
+                "game_time": previous_time,
+                "physics_ticks": ticks,
+                "hp": previous_health,
+                "soul": int(obs["player"][6]),
+            }
+        position = [float(obs["player"][j]) for j in (0, 1)]
+        previous_dash = [
+            bool(obs["player"][spaces.PLAYER_FEATURE_INDEX[k]])
+            for k in ("dashing", "shadow_dashing")
+        ]
         obs, _, terminated, truncated, info = env.step(noop)
+        for before, name in zip(
+            previous_dash, ("dashing", "shadow_dashing"), strict=True
+        ):
+            if not before and obs["player"][spaces.PLAYER_FEATURE_INDEX[name]]:
+                observed_dashes[name] += 1
         if on_transition is not None:
             on_transition(previous_time, float(obs["global"][4]), info)
         minimum_hp = min(minimum_hp, previous_health, int(obs["player"][4]))
@@ -81,8 +117,25 @@ def play_game(
         for event in info["reward_events"]:
             if event.kind == protocol.RewardEventKind.DAMAGE_DEALT:
                 damage += event.amount
+                if trio_entry is not None:
+                    trio_damage += event.amount
             elif event.kind == protocol.RewardEventKind.DAMAGE_TAKEN:
-                losses[protocol.DamageSource(event.aux_int2).name] += int(event.amount)
+                source = protocol.DamageSource(event.aux_int2).name
+                losses[source] += int(event.amount)
+                hits.append(
+                    {
+                        "interval_start": previous_time,
+                        "interval_end": float(obs["global"][4]),
+                        "trio_already_observed": trio_entry is not None,
+                        "source": source,
+                        "masks": int(event.amount),
+                        "hp_before_interval": previous_health,
+                        "hp_after_interval": int(obs["player"][4]),
+                        "position_before_interval": position,
+                    }
+                )
+            elif event.kind == protocol.RewardEventKind.HEAL:
+                heals += event.amount
             elif (
                 event.kind == protocol.RewardEventKind.BOSS_KILLED
                 and event.entity_id == 0
@@ -106,6 +159,12 @@ def play_game(
         "physics_ticks": ticks,
         "hp": previous_health if won else int(obs["player"][4]),
         "minimum_hp": minimum_hp,
+        "trio_entry": trio_entry,
+        "damage_after_trio_observed": trio_damage,
+        "hit_intervals": hits,
+        "heal_event_amount": heals,
+        "observed_dash_starts": dict(observed_dashes),
+        "last_observed_trio": last_trio,
         "truncated": bool(truncated),
         "speed_counts": dict(speeds),
     }

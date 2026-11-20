@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+import importlib
+import struct
+from pathlib import Path
+
+import numpy as np
+import torch
+
+
+def test_masked_inference_and_native_export(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    cat = np.array([[-1, 0, 8], [0, 1, 0], [1, 1, 128], [1, -1, 16]])
+    torch.manual_seed(15)
+    actor = mod.TimingPolicy(torch.from_numpy(cat))
+    state = torch.randn(11, mod.WIDTH)
+    for k in (24, 60, 96, 132, 146):
+        state[:, k] = (torch.arange(11) % 3 != 0).float()
+    state[0, 25:60] = 0
+    with torch.no_grad():
+        expected = actor(state)[0]
+        state[0, 25:60] = 100
+        torch.testing.assert_close(expected, actor(state)[0])
+    path = tmp_path / "actor.bin"
+    mod.save_native(actor, cat, path)
+    with path.open("rb") as f:
+        assert struct.unpack("<5i", f.read(20)) == (0x324C5149, 192, 256, 192, len(cat))
+        np.testing.assert_array_equal(np.fromfile(f, "<i4", len(cat) * 3).reshape(-1, 3), cat)
+
+        def weights(n, j):
+            return np.fromfile(f, "<f4", n * j).reshape(j, n).T, np.fromfile(f, "<f4", j)
+
+        boss = weights(36, 48)
+        disc = weights(14, 24)
+        blocks = [weights(264, 256), weights(256, 192), weights(192, len(cat))]
+        assert not f.read(1)
+    x = state.numpy().copy()
+    pools = []
+    for start, stop, n, width, (w, b) in ((24, 132, 3, 36, boss), (132, 160, 2, 14, disc)):
+        slots = x[:, start:stop].reshape(len(x), n, width)
+        slots *= slots[:, :, :1].copy()
+        pools.append((np.maximum(slots @ w + b, 0) * slots[:, :, :1]).max(axis=1))
+    x = np.concatenate((x, *pools), axis=1)
+    for i, (w, b) in enumerate(blocks):
+        x = x @ w + b
+        if i < 2:
+            x = np.maximum(x, 0)
+    np.testing.assert_allclose(expected.numpy(), x, atol=1e-5)
+
+
+def test_previous_action_for_corrective_supervision(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    state = torch.zeros(2, mod.WIDTH)
+    c = mod.CONTROL
+    state[0, c : c + 2] = torch.tensor([-1, 1])
+    state[0, [c + 4 + 2, c + 4 + 8]] = 1
+    state[1, c + 13 :] = 1
+    assert mod.previous_commands(state).tolist() == [[-1, 1, 260], [0, 0, 0]]

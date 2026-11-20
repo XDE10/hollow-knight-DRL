@@ -67,7 +67,8 @@ def main() -> None:
                     raise RuntimeError(
                         "Native policy receipt does not match this battle"
                     )
-                if max(result["speed_counts"], key=result["speed_counts"].get) != 1.0:
+                speeds = result["speed_counts"]
+                if max(speeds, key=speeds.get) != 1.0 or max(speeds) > 1.001:
                     raise RuntimeError("Expected normal speed")
                 result.update(
                     seed=args.seed + i,

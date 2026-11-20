@@ -56,3 +56,51 @@ def test_only_a_live_arena_completion_counts(tmp_path: Path) -> None:
     usage.write_text("11 90 4")
     with pytest.raises(RuntimeError, match="usage"):
         module.play_episode(env, policy, tmp_path, 6)
+
+
+def test_second_phase_damage_and_health_use_observed_intervals() -> None:
+    path = Path(__file__).resolve().parents[2] / "scripts" / "eval_sisters_tactics.py"
+    spec = importlib.util.spec_from_file_location("eval_sisters_telemetry", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    def snapshot(hp: int, t: float, trio: bool) -> dict[str, np.ndarray]:
+        b = np.zeros((3 if trio else 1, 24))
+        b[:, 0] = np.arange(1, len(b) + 1)
+        b[:, 1] = protocol.EntityType.BOSS
+        b[:, 12:14] = 750 if trio else 500
+        p = np.zeros(32)
+        p[4:7] = [hp, 9, 0]
+        p[13] = 1 if t == 1 else 0
+        return {
+            "player": p,
+            "entities": b,
+            "entity_mask": np.ones(len(b), bool),
+            "global": np.array([0, 0, 0, 0, t, 1]),
+        }
+
+    def info(*events) -> dict:
+        return {"episode_id": 7, "reward_events": events, "elapsed_ticks": 5}
+
+    k = protocol.RewardEventKind
+    incoming = SimpleNamespace(
+        kind=k.DAMAGE_TAKEN, aux_int2=protocol.DamageSource.ENEMY_PROJECTILE, amount=1
+    )
+    outgoing = SimpleNamespace(kind=k.DAMAGE_DEALT, amount=21)
+    heal = SimpleNamespace(kind=k.HEAL, amount=1)
+    env = Mock()
+    env.task.action.enable_macro_actions = False
+    env.reset.return_value = snapshot(9, 0, False), info()
+    env.step.side_effect = [
+        (snapshot(8, 1, True), 0, False, False, info(incoming, outgoing)),
+        (snapshot(9, 2, True), 0, False, True, info(heal, outgoing)),
+    ]
+    game = module.play_game(env, 77)
+    assert game["first_cleared"] and not game["win"]
+    assert game["trio_entry"] == {"game_time": 1, "physics_ticks": 5, "hp": 8, "soul": 0}
+    assert game["damage"] == 42 and game["damage_after_trio_observed"] == 21
+    assert game["heal_event_amount"] == 1 and game["observed_dash_starts"] == {"dashing": 1}
+    assert game["last_observed_trio"]["observed_hp_by_entity"] == {"1": 750, "2": 750, "3": 750}
+    assert game["hit_intervals"][0]["source"] == "ENEMY_PROJECTILE"
+    assert not game["hit_intervals"][0]["trio_already_observed"]

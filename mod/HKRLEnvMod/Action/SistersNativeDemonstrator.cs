@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Globalization;
 using HKRLEnvMod.Observation;
 
 namespace HKRLEnvMod.Action
@@ -15,11 +16,21 @@ namespace HKRLEnvMod.Action
         private int _episodes;
         private float _until;
         private bool _teacherActs;
+        private readonly double? _teacherRatio;
+        private readonly bool _recordTiming;
 
         private SistersNativeDemonstrator(string folder, SistersTactics teacher)
         {
             _folder=folder;
             _teacher=teacher;
+            _recordTiming = Environment.GetEnvironmentVariable("HKRL_NATIVE_TIMING") == "1";
+            var ratio = Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_RATIO");
+            if (!string.IsNullOrWhiteSpace(ratio))
+            {
+                if (!double.TryParse(ratio, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ||
+                    double.IsNaN(value) || value < 0 || value > 1) throw new InvalidOperationException("Invalid teacher ratio");
+                _teacherRatio = value;
+            }
             int.TryParse(Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_OFFSET"), out _episodes);
             if (_episodes < 0) throw new InvalidOperationException("Invalid completed demonstration count");
             int seed;
@@ -41,20 +52,22 @@ namespace HKRLEnvMod.Action
         {
             _tape?.Dispose();
             _tape=new BinaryWriter(new FileStream(Path.Combine(_folder,episode+".native"),FileMode.CreateNew,FileAccess.Write,FileShare.Read));
-            _tape.Write(0x31474144);
+            _tape.Write(_recordTiming ? 0x32474144 : 0x31474144);
             _tape.Write(episode);
             _until=-1;
             _episodes++;
         }
 
-        internal PrimitiveInput Label(ObservationSnapshot obs, ulong tick, float[] raw, PrimitiveInput learner)
+        internal bool RecordsTiming => _recordTiming;
+
+        internal PrimitiveInput Label(ObservationSnapshot obs, ulong tick, float[] raw, PrimitiveInput learner, float[]? timing)
         {
             float now=obs.Global.TimeInEpisode;
             _teacher.Decide(obs,tick);
             var label=_teacher.Input;
             if (now>=_until)
             {
-                double teacherProbability=_episodes<=4 ? .8 : _episodes<=8 ? .5 : .2;
+                double teacherProbability=_teacherRatio ?? (_episodes<=4 ? .8 : _episodes<=8 ? .5 : .2);
                 _teacherActs=_random.NextDouble()<teacherProbability;
                 _until=now+.8f;
             }
@@ -66,6 +79,7 @@ namespace HKRLEnvMod.Action
             Write(tape,label);
             Write(tape,learner);
             tape.Write(_teacherActs?1f:0f);
+            if (_recordTiming) foreach (float x in timing!) tape.Write(x);
             return executed;
         }
 

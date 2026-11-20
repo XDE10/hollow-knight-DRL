@@ -1,0 +1,27 @@
+# ADR 0021. Learn from the timing of Sisters attacks and executed controls
+
+## Decision
+
+The optional timing encoder measures the current Knight, up to three Sisters and up to two enemy projectiles on the same game update that selects the next input. For a Sister it records her current game-reported animation state, its observed duration and the Knight's relative position at the last observed state change. A Sister can begin an attack before her collision box appears. In that case the encoder uses her transform position and records the missing box. Entity IDs link successive observations. Within each family the current slots are ordered by distance, and absent slots are masked. Previously executed key transitions are timed per fight. The resulting 192 values are computed locally from the existing observation and action interfaces.
+
+The actor shares one learned encoder across Sisters and another across discs. Masked maximum pooling and the ordered observations feed a two-layer policy. Joint action logits include learned movement, aim and button terms. The native binary stores the combined action head and the action catalogue. Earlier 56-feature policies retain their original weights and native layout.
+
+## Learning
+
+The development recorder asks the teacher for an action on the state actually visited. It records that label, the student's choice and the applied input separately. The recorder can hold a sampled teacher/student selection for a short segment to visit states that diverge from a demonstration. A whole episode goes into exactly one data split. The collector records individual damage and arena completion events.
+
+The actor first learns to reproduce the teacher's input. Offline IQL then fits two action-value functions and an expectile state value using the executed controls and measured rewards. The dynamics model estimates the next physical features. Its predicted successor contributes one quarter of the value bootstrap as described in [ADR 0020](0020-sisters-native-offline-rl.md). The actor's RL update weights applied actions by estimated advantage while retaining corrective teacher supervision. Only the actor is needed to play. The learner saves the actor, both critics, value and dynamics parameters.
+
+The trainer supports two data choices for experiments. Horizontal mirroring assumes a symmetric teacher. Use `--no-mirror` to retain the original left and right labels when its preferred resting position is asymmetric. Setting `--switch-weight` above one increases the corrective loss on states where the teacher asks to change the last executed input. The report includes accuracy on these states and on states where keys should remain held. Only a live fight tests the consequences of missed or repeated keys.
+
+## Reproduction and evaluation
+
+Collect development fights using `scripts/collect_sisters_native_labels.py` with the native timing recorder enabled. Pack the resulting manifest paths into a new archive and extract it before training.
+
+```sh
+python scripts/pack_sisters_timing_replay.py --manifests "$MANIFEST" --output development.zip
+python -m zipfile -e development.zip timing-data
+python scripts/train_sisters_timing_iql.py --data timing-data --output candidate
+```
+
+For an independent battle, launch the mod with `HKRL_NATIVE_ACTOR` pointing to the exported `world_iql.bin`, an episode receipt path in `HKRL_NATIVE_ACTOR_LEDGER`, and a nail multiplier of one. Clear the teacher and development recorder settings. Run `scripts/eval_sisters_native.py --checkpoint candidate/world_iql.bin --port "$PORT" --episodes 100 --seed "$FIRST_SEED" --output evaluation` on fresh evaluation seeds. The evaluator checks the opening health, episode identity, original speed including normal hit-stop, model digest and a live arena completion event. It records health at the first observed trio frame, healing, sampled dash starts and the source of each damage event. Short dashes between observations can be missed. Boss HP in the final trio snapshot covers the entities seen at that time. Evaluation, training and teacher-controlled collection use separate output directories.

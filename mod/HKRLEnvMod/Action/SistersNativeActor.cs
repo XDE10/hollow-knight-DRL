@@ -26,6 +26,7 @@ namespace HKRLEnvMod.Action
         private readonly float[] _boss = new float[3];
         private readonly float[] _disc = new float[2];
         private NativeSistersNetwork? _net;
+        private SistersTimingState? _timing;
         private ulong _episode, _tick, _commits;
         private int _count, _attack, _cast, _dash, _art;
         private string _digest = "";
@@ -74,11 +75,14 @@ namespace HKRLEnvMod.Action
                 _episode = obs.Global.EpisodeId;
                 _count = _attack = _cast = _dash = _art = 0;
                 _demonstrator?.Reset(_episode);
+                _timing = _net.UsesTiming || _demonstrator?.RecordsTiming == true ? new SistersTimingState() : null;
             }
             _tick = tick;
             SistersPolicyHead.WriteFeatures(obs, _raw, _boss, _disc);
-            Input = _net.Choose(_raw, obs.Global.TimeInEpisode);
-            if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input);
+            _timing?.Observe(obs);
+            Input = _net.Choose(_net.UsesTiming ? _timing!.Values : _raw, obs.Global.TimeInEpisode);
+            if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values);
+            _timing?.Commit(Input, obs.Global.TimeInEpisode);
             _net.Commit(Input, obs.Global.TimeInEpisode);
             _count++;
             if ((Input.Buttons & 8) != 0) _attack++;
@@ -102,22 +106,31 @@ namespace HKRLEnvMod.Action
 
     internal sealed class NativeSistersNetwork
     {
-        private const int Physical = 56, Width = 180, Hidden1 = 160, Hidden2 = 128;
+        private const int Physical = 56;
+        internal bool UsesTiming { get; }
         private static readonly uint[] Pulses = { 1, 4, 8, 16, 32, 256 };
         private static readonly uint[] Holds = { 2, 128, 32 };
         private readonly PrimitiveInput[] _actions;
         private readonly float[][] _w = new float[6][];
         private readonly float[] _history = new float[Physical * 4];
-        private readonly float[] _x = new float[Width], _h = new float[Hidden1], _z = new float[Hidden2];
+        private readonly float[] _x, _h, _z;
+        private readonly float[][] _entityWeights = new float[4][];
         private readonly float[] _scores, _pulseAt = new float[6], _holdAt = new float[3];
         private uint _previous;
         private int _index;
 
         internal NativeSistersNetwork(BinaryReader reader)
         {
-            if (reader.ReadInt32() != 0x314C5149 || reader.ReadInt32() != Width ||
-                reader.ReadInt32() != Hidden1 || reader.ReadInt32() != Hidden2)
+            int magic = reader.ReadInt32();
+            UsesTiming = magic == 0x324C5149;
+            int obsWidth = UsesTiming ? SistersTimingState.Width : 180;
+            int hidden1 = UsesTiming ? 256 : 160, hidden2 = UsesTiming ? 192 : 128;
+            if ((!UsesTiming && magic != 0x314C5149) || reader.ReadInt32() != obsWidth ||
+                reader.ReadInt32() != hidden1 || reader.ReadInt32() != hidden2)
                 throw new InvalidDataException("Invalid native actor architecture");
+            _x = new float[obsWidth + (UsesTiming ? 72 : 0)];
+            _h = new float[hidden1];
+            _z = new float[hidden2];
             int n = reader.ReadInt32();
             if (n < 1 || n > 4096) throw new InvalidDataException("Invalid action count");
             _scores = new float[n];
@@ -129,24 +142,68 @@ namespace HKRLEnvMod.Action
                     throw new InvalidDataException("Invalid primitive in native actor catalogue");
                 _actions[i]=new PrimitiveInput(move,aim,(uint)buttons);
             }
-            int[] sizes = {Width*Hidden1, Hidden1, Hidden1*Hidden2, Hidden2, Hidden2*n, n};
-            for (int layer=0; layer<sizes.Length; layer++)
+            if (UsesTiming)
             {
-                var weights = new float[sizes[layer]];
-                for (int i=0; i<weights.Length; i++)
-                {
-                    weights[i]=reader.ReadSingle();
-                    if (float.IsNaN(weights[i]) || float.IsInfinity(weights[i]))
-                        throw new InvalidDataException("Non-finite actor weight");
-                }
-                _w[layer]=weights;
+                int[] shape = {36*48, 48, 14*24, 24};
+                for (int i = 0; i < shape.Length; i++) _entityWeights[i] = ReadWeights(reader, shape[i]);
             }
+            int[] sizes = {_x.Length*hidden1, hidden1, hidden1*hidden2, hidden2, hidden2*n, n};
+            for (int layer = 0; layer < sizes.Length; layer++) _w[layer] = ReadWeights(reader, sizes[layer]);
             if(reader.BaseStream.Position!=reader.BaseStream.Length) throw new InvalidDataException("Trailing actor bytes");
             for (int i=0;i<_pulseAt.Length;i++) _pulseAt[i]=-100;
             for (int i=0;i<_holdAt.Length;i++) _holdAt[i]=-100;
         }
 
         internal PrimitiveInput Choose(float[] raw, float time)
+        {
+            if (UsesTiming)
+            {
+                Array.Copy(raw, _x, SistersTimingState.Width);
+                Pool(raw, 24, 3, 36, _entityWeights[0], _entityWeights[1], 192);
+                Pool(raw, 132, 2, 14, _entityWeights[2], _entityWeights[3], 240);
+            }
+            else PrepareHistory(raw, time);
+            Dense(_x,_w[0],_w[1],_h,true);
+            Dense(_h,_w[2],_w[3],_z,true);
+            Dense(_z,_w[4],_w[5],_scores,false);
+            int best=0;
+            for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
+            _index++;
+            return _actions[best];
+        }
+
+        private static float[] ReadWeights(BinaryReader reader, int count)
+        {
+            var w = new float[count];
+            for (int i=0; i<count; i++)
+            {
+                w[i] = reader.ReadSingle();
+                if (float.IsNaN(w[i]) || float.IsInfinity(w[i])) throw new InvalidDataException("Non-finite actor weight");
+            }
+            return w;
+        }
+
+        private void Pool(float[] raw, int start, int slots, int width, float[] weights, float[] bias, int output)
+        {
+            Array.Clear(_x, output, bias.Length);
+            for (int slot = 0; slot < slots; slot++)
+            {
+                int k = start + slot*width;
+                if (raw[k] == 0)
+                {
+                    Array.Clear(_x, k, width);
+                    continue;
+                }
+                for (int j=0; j<bias.Length; j++)
+                {
+                    float sum=bias[j];
+                    for (int i=0; i<width; i++) sum += raw[k+i]*weights[j*width+i];
+                    _x[output+j]=Math.Max(_x[output+j], sum);
+                }
+            }
+        }
+
+        private void PrepareHistory(float[] raw, float time)
         {
             if (_index==0)
                 for (int i=0; i<4; i++) Array.Copy(raw,0,_history,i*Physical,Physical);
@@ -162,13 +219,6 @@ namespace HKRLEnvMod.Action
                 _x[k++]=held?1f:0f;
                 _x[k++]=held?Math.Min(time-_holdAt[j],1f):0f;
             }
-            Dense(_x,_w[0],_w[1],_h,true);
-            Dense(_h,_w[2],_w[3],_z,true);
-            Dense(_z,_w[4],_w[5],_scores,false);
-            int best=0;
-            for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
-            _index++;
-            return _actions[best];
         }
 
         internal void Commit(PrimitiveInput action, float time)
