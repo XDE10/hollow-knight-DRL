@@ -43,3 +43,19 @@ python scripts/train_sisters_timing_iql.py --data timing-data --output candidate
 ```
 
 For an independent battle, launch the mod with `HKRL_NATIVE_ACTOR` pointing to the exported `world_iql.bin`, an episode receipt path in `HKRL_NATIVE_ACTOR_LEDGER`, and a nail multiplier of one. Clear the teacher and development recorder settings. Run `scripts/eval_sisters_native.py --checkpoint candidate/world_iql.bin --port "$PORT" --episodes 100 --seed "$FIRST_SEED" --output evaluation` on fresh evaluation seeds. The evaluator checks the opening health, episode identity, original speed including normal hit-stop, model digest and a live arena completion event. It records health at the first observed trio frame, healing, sampled dash starts and the source of each damage event. Short dashes between observations can be missed. Boss HP in the final trio snapshot covers the entities seen at that time. Evaluation, training and teacher-controlled collection use separate output directories.
+
+### Training on upcoming movement changes
+
+The four-clear actor kept its earlier movement on 1,397 of 5,107 observed
+movement changes in the held-out demonstrations. Of those missed changes, 696
+persisted for another closely spaced decision with a trusted label. Given the
+next real observation, the actor selected the desired movement in 489 cases.
+These counts describe predictions on recorded states.
+
+With `--future-key-weight`, an auxiliary head uses the shared actor representation
+to predict direction, jump and dash 0.04, 0.12 and 0.28 game seconds ahead.
+Targets come from observed controls that agreed with the teacher throughout
+that interval. The trainer masks gaps, phase changes and missing labels, and
+gives additional weight to an upcoming movement change. The action-value
+targets still use the rewards of executed inputs. The exported actor uses only
+observations and past controls available when it chooses the current input.

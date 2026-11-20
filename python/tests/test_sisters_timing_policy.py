@@ -215,6 +215,25 @@ def test_future_box_labels_respect_family_position_and_episode_end(monkeypatch) 
     assert np.isnan(field[-1]).all()
 
 
+def test_future_movements_require_observed_matching_inputs_in_one_phase(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    t = np.array([0, .04, .08, .12, .16, .20, .24, .28, .40, .44], dtype="f4")
+    keys = np.zeros((len(t), 3), dtype="i2")
+    keys[1] = [1, 0, 1]  # right and jump
+    keys[3] = [-1, 0, 4]  # left and dash
+    phase = np.zeros(len(t))
+    expected = mod.future_movements(t, keys, keys, phase)
+    np.testing.assert_equal(expected[0], [10, 1, 4])
+    assert expected[7, 1] == -1  # the recording has a gap
+    assert (expected[-1] == -1).all()
+    applied = keys.copy()
+    applied[2] = [1, 0, 0]
+    np.testing.assert_equal(mod.future_movements(t, applied, keys, phase)[0], [10, -1, -1])
+    phase[3:] = 1
+    np.testing.assert_equal(mod.future_movements(t, keys, keys, phase)[0], [10, -1, -1])
+
+
 @pytest.mark.parametrize("history", [False, True])
 def test_phase_bundle_preserves_the_opener_and_maps_action_rows(
     tmp_path: Path, monkeypatch, history: bool

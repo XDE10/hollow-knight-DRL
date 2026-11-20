@@ -156,6 +156,31 @@ def motion_history(times: np.ndarray, state: np.ndarray) -> np.ndarray:
     return np.concatenate(blocks, axis=1)
 
 
+MOVEMENT_HORIZONS = (0.04, 0.12, 0.28)
+
+
+def future_movements(
+    clock: np.ndarray, actions: np.ndarray, teacher: np.ndarray, phase: np.ndarray
+) -> np.ndarray:
+    """Targets for a training-only head, measured on uninterrupted matching controls."""
+    t = clock.astype("f8")
+    rows = np.arange(len(t))
+    mismatch = np.r_[0, np.cumsum((actions != teacher).any(1))]
+    segment = np.r_[0, np.cumsum((np.diff(t) > .081) | (phase[1:] != phase[:-1]))]
+    flags = teacher[:, 2]
+    movement = (teacher[:, 0] + 1) * 4 + 2 * ((flags & 3) != 0) + ((flags & 4) != 0)
+    targets = np.full((len(t), len(MOVEMENT_HORIZONS)), -1, dtype="i1")
+    for k, seconds in enumerate(MOVEMENT_HORIZONS):
+        desired = t + seconds
+        upper = np.searchsorted(t, desired).clip(0, len(t) - 1)
+        lower = (upper - 1).clip(0)
+        at = np.where(abs(t[upper] - desired) < abs(t[lower] - desired), upper, lower)
+        valid = ((at > rows) & (abs(t[at] - desired) <= .021) &
+                 (segment[at] == segment) & (mismatch[at + 1] == mismatch[rows]))
+        targets[valid, k] = movement[at[valid]]
+    return targets
+
+
 def measured_returns(
     times: np.ndarray,
     rewards: np.ndarray,
@@ -237,6 +262,7 @@ def build_data(
     opening_only: bool = False,
     no_hit_cost: float = 0.0,
     teacher_win_min_hz: float = 0.0,
+    future_keys: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -249,6 +275,7 @@ def build_data(
     fields: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     windows: dict[str, list[tuple]] = {"train": [], "holdout": []}
     options: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
+    movements: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
     mirror_axes = list(MIRROR)
     if history:
@@ -315,6 +342,10 @@ def build_data(
             fields[game["split"]].append(future_occupancy(t, s[:, :WIDTH])[selected])
         if plans:
             options[game["split"]].append(preferences[:n][selected])
+        if future_keys:
+            targets = (future_movements(t, act, teacher, s[:, 23]) if labeled
+                       else np.full((len(t), len(MOVEMENT_HORIZONS)), -1, "i1"))
+            movements[game["split"]].append(targets[selected])
         if return_seconds:
             total, remaining, last = measured_returns(
                 t, reward, d, good, return_seconds
@@ -371,6 +402,12 @@ def build_data(
                 flipped = weights.reshape(-1, 3, 4)[:, ::-1].reshape(-1, 12)
                 weights = np.concatenate((weights, flipped))
             result[split] += (torch.from_numpy(weights).to(device),)
+        if future_keys:
+            targets = np.concatenate(movements[split])
+            if split == "train" and mirror:
+                reflected = np.where(targets >= 0, (2 - targets // 4) * 4 + targets % 4, -1)
+                targets = np.concatenate((targets, reflected))
+            result[split] += (torch.from_numpy(targets).to(device),)
         if return_seconds:
             total, remaining, successor = [
                 np.concatenate(values) for values in zip(*windows[split], strict=True)
@@ -487,6 +524,7 @@ def train(
     late_path: Path | None = None,
     no_hit_cost: float = 0.0,
     teacher_win_min_hz: float = 0.0,
+    future_key_weight: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -510,6 +548,7 @@ def train(
         late is not None,
         no_hit_cost,
         teacher_win_min_hz,
+        future_key_weight > 0,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -539,6 +578,10 @@ def train(
         else 0
     )
     forecast_head = None
+    movement_head = None
+    movement_index = plan_index + int(plan_weight > 0)
+    if future_key_weight > 0:
+        movement_head = nn.Linear(192, len(MOVEMENT_HORIZONS) * 12).to(device)
     if forecast_weight > 0:
         forecast_head = nn.Sequential(
             nn.Linear(192, 128),
@@ -579,6 +622,8 @@ def train(
         "motion_history_lags": list(HISTORY_LAGS) if history else [],
         "teacher_plan_loss_weight": plan_weight,
         "no_hit_cost": no_hit_cost,
+        "future_key_loss_weight": future_key_weight,
+        "future_key_seconds": list(MOVEMENT_HORIZONS) if movement_head is not None else [],
         "teacher_win_min_hz": teacher_win_min_hz,
         "late_sha256": hashlib.sha256(late).hexdigest() if late is not None else None,
         "teacher_plan_train_rows": len(plan_rows) if plan_weight > 0 else 0,
@@ -655,7 +700,18 @@ def train(
         weight = plan_weights[j]
         return (F.softplus(-margin) * weight).sum() / weight.sum().clamp_min(1)
 
+    def future_key_loss(encoded: Tensor, rows: Tensor) -> Tensor:
+        if movement_head is None:
+            return encoded.new_zeros(())
+        target = data["train"][movement_index][rows].long()
+        logits = movement_head(encoded).reshape(-1, 12)
+        cost = F.cross_entropy(logits, target.flatten(), ignore_index=-1, reduction="none")
+        weights = (target >= 0) * (1 + (target != groups[expert[rows], None]).float())
+        return (cost * weights.flatten()).sum() / weights.sum().clamp_min(1)
+
     parameters = list(actor.parameters())
+    if movement_head is not None:
+        parameters.extend(movement_head.parameters())
     if forecast_head is not None:
         parameters.extend(forecast_head.parameters())
     opt = torch.optim.AdamW(parameters, lr=0.00065)
@@ -672,6 +728,7 @@ def train(
             loss
             + 0.30 * factor_loss(factor, expert[i])
             + forecast_weight * forecast_loss(encoded, i)
+            + future_key_weight * future_key_loss(encoded, i)
             + plan_weight * plan_loss(),
         )
         if (step + 1) % 2000 == 0:
@@ -752,9 +809,11 @@ def train(
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
             if agreement_seconds > 0 or teacher_win_min_hz > 0 or has_unlabeled:
                 j = supervised[indices(len(supervised))]
-                supervised_logits, factor = actor(s[j])
+                labeled_encoding = actor.encode(s[j])
+                supervised_logits, factor = actor.heads(labeled_encoding)
             else:
                 j, supervised_logits = i, logits
+                labeled_encoding = encoded
             lab = expert[j]
             w = rare[lab] * corrective_weight[j]
             supervision = (
@@ -767,11 +826,27 @@ def train(
                 + 0.85 * supervision
                 + 0.2 * factor_loss(factor, lab)
                 + forecast_weight * forecast_loss(encoded, i)
+                + future_key_weight * future_key_loss(labeled_encoding, j)
                 + plan_weight * plan_loss(),
             )
         if (step + 1) % 2000 == 0:
             print("iql", step + 1, flush=True)
     save("world_iql")
+    if movement_head is not None:
+        with torch.no_grad():
+            prediction = torch.cat([movement_head(actor.encode(x)).reshape(
+                -1, len(MOVEMENT_HORIZONS), 12).argmax(2) for x in hs.split(1024)])
+            target = data["holdout"][movement_index]
+            current = groups[data["holdout"][2].clamp_min(0), None]
+            valid_targets = ((target >= 0) & (data["holdout"][2][:, None] >= 0) &
+                             (data["holdout"][7][:, None] >= agreement_seconds))
+            changing = valid_targets & (current != target)
+            for name, mask in (("all", valid_targets), ("change", changing)):
+                report["future_key_holdout_" + name] = {
+                    "eligible": int(mask.sum()),
+                    "correct": int(((prediction == target) & mask).sum()),
+                    "retain_current_correct": int(((current == target) & mask).sum()),
+                }
     if plan_weight:
         with torch.no_grad():
             hold = data["holdout"]
@@ -830,6 +905,7 @@ def train(
             "q1": q1.cpu().state_dict(),
             "q2": q2.cpu().state_dict(),
             "value": val.cpu().state_dict(),
+            **({"future_keys": movement_head.cpu().state_dict()} if movement_head is not None else {}),
             **({"opener_native": opener} if opener is not None else {}),
             **({"late_native": late} if late is not None else {}),
             **(
@@ -887,6 +963,8 @@ if __name__ == "__main__":
         action="store_true",
         help="Encode two earlier full arena observations from this episode.",
     )
+    parser.add_argument("--future-key-weight", type=float, default=0.0,
+                        help="Train a shared auxiliary head on upcoming demonstrated movements.")
     parser.add_argument(
         "--return-seconds",
         type=float,
@@ -919,6 +997,8 @@ if __name__ == "__main__":
         parser.error("Measured return horizon must be between zero and four seconds")
     if not np.isfinite(args.plan_weight) or args.plan_weight < 0:
         parser.error("Plan weight must be finite and nonnegative")
+    if not np.isfinite(args.future_key_weight) or args.future_key_weight < 0:
+        parser.error("Future-key weight must be finite and nonnegative")
     if not np.isfinite(args.no_hit_cost) or args.no_hit_cost < 0:
         parser.error("No-hit cost must be finite and nonnegative")
     if not np.isfinite(args.teacher_win_min_hz) or args.teacher_win_min_hz < 0:
@@ -943,4 +1023,5 @@ if __name__ == "__main__":
         args.late_policy,
         args.no_hit_cost,
         args.teacher_win_min_hz,
+        args.future_key_weight,
     )
