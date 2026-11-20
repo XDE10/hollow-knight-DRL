@@ -153,10 +153,12 @@ def fit(
         "holdout"
     ]
     groups = movement_groups(cat)
-    mean = hidden.mean(0)
+    mean = hidden.double().mean(0).float()
     centered = hidden - mean
-    eigenvalues, vectors = torch.linalg.eigh(centered.T @ centered / len(centered))
-    projection = vectors[:, -8:] / eigenvalues[-8:].clamp_min(0.01).sqrt()
+    # Direct SVD avoids squaring the condition number for repeated arena states.
+    _, singular, axes = np.linalg.svd(centered.double().numpy(), full_matrices=False)
+    scale = np.maximum(singular[:8] / np.sqrt(len(centered)), 0.1)
+    projection = torch.from_numpy((axes[:8].T / scale).copy()).float()
     basis = centered @ projection
     held_basis = (held_h - mean) @ projection
     theta = torch.zeros((basis.shape[1], 12), requires_grad=True)

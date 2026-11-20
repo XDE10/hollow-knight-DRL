@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import json
 import struct
 from pathlib import Path
 
@@ -65,3 +66,64 @@ def test_random_choice_policy_gradient_uses_executed_arms(monkeypatch: pytest.Mo
     p = torch.full((2,), 0.5)
     assert mod.realized_gain(new, old, arm, payoff, p).mean().item() == 3.0
     assert mod.realized_gain(new, old, arm, payoff - 5, p).mean().item() == 3.0
+
+
+def test_online_fit_preserves_parent_when_neither_arm_earns_reward(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_online_choices")
+    catalogue = torch.tensor([[0, 0, 8], [1, 0, 8], [-1, 0, 8]])
+    actor = mod.TimingPolicy(catalogue)
+    value = mod.mlp(192, 1)
+    with torch.no_grad():
+        actor.out.weight.zero_()
+        actor.out.bias.copy_(torch.tensor([0.5, 0, -1.0]))
+        actor.factors.weight.zero_()
+        actor.factors.bias.zero_()
+        for parameter in value.parameters():
+            parameter.zero_()
+    parent = tmp_path / "parent.bin"
+    learner = tmp_path / "learner.pt"
+    mod.save_native(actor, catalogue.numpy(), parent)
+    torch.save(
+        {"actor": actor.state_dict(), "catalogue": catalogue, "value": value.state_dict()}, learner
+    )
+    t = np.arange(121, dtype="f4") * 0.04
+    state = np.zeros((len(t), 192), "f4")
+    state[:, 23] = 1
+    rows = np.arange(3, 104, 20)
+    draws = np.arange(len(rows)) % 2
+    applied = np.repeat(catalogue.numpy()[:1], len(t), axis=0)
+    applied[rows] = catalogue.numpy()[draws]
+    manifest = []
+    for i in range(4):
+        path = tmp_path / f"test-{i}.npz"
+        np.savez(
+            path,
+            timing_state=state,
+            control_time=t,
+            controls=applied,
+            time=np.arange(48, dtype="f4") * 0.1,
+            elapsed_ticks=np.full(48, 5),
+            events=np.zeros((48, 8), "f4"),
+            choice_rows=rows,
+            choice_draw=draws,
+            choice_pairs=np.tile([0, 1], (len(rows), 1)),
+            choice_probability=np.full(len(rows), 0.5, "f4"),
+            choice_gap=np.full(len(rows), 0.5, "f4"),
+        )
+        manifest.append(
+            {
+                "source": f"native-development/synthetic-test-{i}",
+                "file": path.name,
+                "sha256": mod.sha(path),
+                "behavior_policy_sha256": mod.sha(parent),
+                "split": "train" if i < 2 else "holdout",
+            }
+        )
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest))
+    out = tmp_path / "result"
+    result = mod.fit(tmp_path, parent, learner, out)
+    assert min(result["trials"].values()) > 0 and result["selected"]["scale"] == 0
+    assert (out / "world_iql.bin").read_bytes() == parent.read_bytes()
