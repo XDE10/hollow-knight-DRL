@@ -24,6 +24,9 @@ namespace HKRLEnvMod.Action
         private int _decisions, _different, _baselineChoice;
         private float _bestBaseline;
         private BinaryWriter? _trace;
+        private BinaryWriter? _planTrace;
+        private readonly float[] _planCosts = new float[Actions];
+        private float _planTime;
         private int _rows;
         private static float Clip(float v) => Math.Max(-2f, Math.Min(2f,v));
 
@@ -46,6 +49,15 @@ namespace HKRLEnvMod.Action
                     throw new InvalidDataException("Unexpected Sisters policy weight count.");
                 _weights=Array.ConvertAll(values,v=>float.Parse(v,CultureInfo.InvariantCulture));
             }
+            string? demo = Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_DIR");
+            if (Environment.GetEnvironmentVariable("HKRL_NATIVE_PLAN_TRACE") == "1" && !string.IsNullOrWhiteSpace(demo))
+            {
+                _planTrace = new BinaryWriter(new FileStream(Path.Combine(demo!, episode + ".plans"),
+                    FileMode.CreateNew, FileAccess.Write, FileShare.Read));
+                _planTrace.Write(0x31504B48);
+                _planTrace.Write(episode);
+                _planTrace.Write(Actions);
+            }
             if(Environment.GetEnvironmentVariable("HKRL_TACTICS_TRACE")!="1")return;
             _trace=new BinaryWriter(new FileStream(config+".trace",FileMode.Create,FileAccess.Write,FileShare.ReadWrite));
             _trace.Write(0x31534B48);
@@ -57,6 +69,7 @@ namespace HKRLEnvMod.Action
         // Stable physical slots sorted by distance; no episode, instance ID or seed enters the policy.
         public void Observe(ObservationSnapshot obs)
         {
+            if (_planTrace != null) _planTime = obs.Global.TimeInEpisode;
             if(_trace==null && _weights==null && _world==null)return;
             WriteFeatures(obs, _features, _bossDistances, _discDistances);
             ScoreFeatures();
@@ -139,21 +152,33 @@ namespace HKRLEnvMod.Action
             return _baseScale*_q[index]+_worldScale*(_world?.Value(index) ?? 0);
         }
 
-        public void BeginChoice() => _bestBaseline = float.PositiveInfinity;
+        public void BeginChoice()
+        {
+            _bestBaseline = float.PositiveInfinity;
+            if (_planTrace != null)
+                for (int i = 0; i < Actions; i++) _planCosts[i] = float.PositiveInfinity;
+        }
 
         public void Compare(float cost, int move, bool jump, bool dash)
         {
-            if (_world == null) return;
             int code = (move + 1) * 4 + (jump ? 2 : 0) + (dash ? 1 : 0);
+            if (_planTrace != null && cost < _planCosts[code]) _planCosts[code] = cost;
+            if (_world == null) return;
             float baseline = cost + _worldScale * _world.Value(code);
             if (baseline < _bestBaseline) { _bestBaseline = baseline; _baselineChoice = code; }
         }
 
         public void FinalizeChoice(int move, bool jump, bool dash)
         {
+            int code = (move + 1) * 4 + (jump ? 2 : 0) + (dash ? 1 : 0);
+            if (_planTrace != null)
+            {
+                _planTrace.Write(_planTime);
+                _planTrace.Write(code);
+                foreach (float cost in _planCosts) _planTrace.Write(cost);
+            }
             if (_world == null || float.IsPositiveInfinity(_bestBaseline)) return;
             _decisions++;
-            int code = (move + 1) * 4 + (jump ? 2 : 0) + (dash ? 1 : 0);
             if (_baselineChoice != code) _different++;
         }
 
@@ -168,10 +193,11 @@ namespace HKRLEnvMod.Action
 
         public void Flush()
         {
+            _planTrace?.Flush();
             _trace?.Flush();
             if (_usageFile != null)
                 File.WriteAllText(_usageFile, string.Join(" ", _usageEpisode, _decisions, _different));
         }
-        public void Dispose() { _trace?.Dispose();_trace=null; }
+        public void Dispose() { _trace?.Dispose();_trace=null; _planTrace?.Dispose();_planTrace=null; }
     }
 }

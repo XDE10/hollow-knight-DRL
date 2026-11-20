@@ -131,6 +131,11 @@ def main() -> None:
                 ):
                     raise ValueError("Incorrect executed action trace")
                 file = f"dev-{i:03d}.npz"
+                plans = {}
+                if envs.get("HKRL_NATIVE_PLAN_TRACE") == "1":
+                    from sisters_plan_labels import read_plans
+
+                    plans = read_plans(tape_dir / f"{eid}.plans", eid, rows[:, 0])
                 np.savez_compressed(
                     args.output / file,
                     control_time=rows[:, 0],
@@ -141,6 +146,7 @@ def main() -> None:
                     events=np.array(events, "f4"),
                     elapsed_ticks=np.array(elapsed, "i2"),
                     **({"timing_state": rows[:, 67:]} if timing else {}),
+                    **plans,
                 )
                 result.update(
                     seed=args.seed + i,

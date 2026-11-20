@@ -18,12 +18,14 @@ namespace HKRLEnvMod.Action
         private bool _teacherActs;
         private readonly double? _teacherRatio;
         private readonly bool _recordTiming;
+        private readonly bool _recordPlans;
 
         private SistersNativeDemonstrator(string folder, SistersTactics teacher)
         {
             _folder=folder;
             _teacher=teacher;
             _recordTiming = Environment.GetEnvironmentVariable("HKRL_NATIVE_TIMING") == "1";
+            _recordPlans = Environment.GetEnvironmentVariable("HKRL_NATIVE_PLAN_TRACE") == "1";
             var ratio = Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_RATIO");
             if (!string.IsNullOrWhiteSpace(ratio))
             {
@@ -90,7 +92,7 @@ namespace HKRLEnvMod.Action
             writer.Write((float)a.Buttons);
         }
 
-        internal void Flush() { _tape?.Flush(); }
+        internal void Flush() { _tape?.Flush(); if (_recordPlans) _teacher.Flush(); }
         public void Dispose() { _tape?.Dispose(); _teacher.Dispose(); }
     }
 }

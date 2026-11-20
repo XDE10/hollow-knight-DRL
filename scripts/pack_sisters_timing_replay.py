@@ -53,6 +53,15 @@ def pack(
                     raise ValueError(f"Invalid decision trace in {path}")
                 if not any(features[:, 24]):
                     raise ValueError(f"No observed Sisters in {path}")
+                plan_keys: tuple[str, ...] = ()
+                if "plan_costs" in raw or "plan_choice" in raw:
+                    plan_keys = ("plan_costs", "plan_choice")
+                    if (
+                        not all(key in raw for key in plan_keys)
+                        or raw["plan_costs"].shape != (len(t), 12)
+                        or raw["plan_choice"].shape != (len(t),)
+                    ):
+                        raise ValueError(f"Incomplete movement alternatives in {path}")
                 buf = io.BytesIO()
                 np.savez_compressed(
                     buf,
@@ -66,6 +75,7 @@ def pack(
                             "time",
                             "events",
                             "elapsed_ticks",
+                            *plan_keys,
                         )
                     },
                 )

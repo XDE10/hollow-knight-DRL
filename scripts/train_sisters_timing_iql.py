@@ -186,6 +186,25 @@ def measured_returns(
     return total, remaining, last
 
 
+def opening_rewards(
+    state: np.ndarray, reward: np.ndarray, terminal: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """End the opening subtask on the first observed trio and value resources carried in."""
+    reward, terminal = reward.copy(), terminal.copy()
+    switches = np.flatnonzero(state[:, 23] > 0.5)
+    stop = int(switches[0]) if len(switches) else len(state)
+    pairs = min(stop, len(state) - 1)
+    # Actual net changes count, including health restored before the transition.
+    # Taking damage and rebuilding soul by attacking remain visible to the learner.
+    changes = np.diff(state[: pairs + 1, 4:6], axis=0)
+    reward[:pairs] += 1.25 * 9 * changes[:, 0] + 1.5 * changes[:, 1]
+    if 0 < stop < len(state):
+        entry = state[stop]
+        reward[stop - 1] += 5 + 0.5 * 9 * entry[4] + 1.5 * entry[5]
+        terminal[stop - 1] = True
+    return reward, terminal
+
+
 def build_data(
     directory: Path,
     device: str,
@@ -194,6 +213,8 @@ def build_data(
     trio_only: bool = False,
     return_seconds: float = 0.0,
     history: bool = False,
+    plans: bool = False,
+    opening_only: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -205,6 +226,7 @@ def build_data(
     parts: dict[str, list] = {"train": [], "holdout": []}
     fields: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     windows: dict[str, list[tuple]] = {"train": [], "holdout": []}
+    options: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
     mirror_axes = list(MIRROR)
     if history:
@@ -224,25 +246,41 @@ def build_data(
             ):
                 raise ValueError("Invalid native state or timestamp")
             ev = attribute_events(t, f["time"], f["elapsed_ticks"], f["events"])
+            if plans:
+                from sisters_plan_labels import PLAN_ACTIONS, plan_preferences
+
+                if ("plan_costs" in f) != ("plan_choice" in f):
+                    raise ValueError("Incomplete teacher plan tape")
+                preferences = (
+                    plan_preferences(f["plan_costs"], f["plan_choice"], teacher)
+                    if "plan_costs" in f
+                    else np.zeros((len(t), PLAN_ACTIONS), dtype="f4")
+                )
         terminal = ev[:, 6:].any(1)
         limit = np.flatnonzero(terminal)
         n = int(limit[0]) + 1 if len(limit) else len(t)
         s, t, act, teacher, ev, terminal = [
             v[:n] for v in (s, t, act, teacher, ev, terminal)
         ]
+        reward = ev @ REWARD_WEIGHTS
+        if opening_only:
+            reward, terminal = opening_rewards(s, reward, terminal)
         dt = np.r_[np.diff(t), 0.04].astype("f4")
         d = (0.995 ** (dt / 0.04)) * (~terminal)
         good = (dt <= 0.24) & (np.r_[np.ones(n - 1, bool), False] | terminal)
         if history:
             s = motion_history(t, s)
         next_state = np.r_[s[1:], s[-1:]]
-        reward = ev @ REWARD_WEIGHTS
         agreement = teacher_history_age(t, act, teacher)
         selected = s[:, 23] > 0.5 if trio_only else slice(None)
-        if trio_only and not selected.any():
+        if opening_only:
+            selected = s[:, 23] <= 0.5
+        if (trio_only or opening_only) and not selected.any():
             continue
         if forecast:
             fields[game["split"]].append(future_occupancy(t, s[:, :WIDTH])[selected])
+        if plans:
+            options[game["split"]].append(preferences[:n][selected])
         if return_seconds:
             total, remaining, last = measured_returns(
                 t, reward, d, good, return_seconds
@@ -290,6 +328,12 @@ def build_data(
                 volumes = np.concatenate((volumes, volumes[..., ::-1]))
             flat = volumes.reshape(len(volumes), -1)
             result[split] += (torch.from_numpy(flat).to(device),)
+        if plans:
+            weights = np.concatenate(options[split])
+            if split == "train" and mirror:
+                flipped = weights.reshape(-1, 3, 4)[:, ::-1].reshape(-1, 12)
+                weights = np.concatenate((weights, flipped))
+            result[split] += (torch.from_numpy(weights).to(device),)
         if return_seconds:
             total, remaining, successor = [
                 np.concatenate(values) for values in zip(*windows[split], strict=True)
@@ -322,6 +366,17 @@ def previous_commands(states: Tensor) -> Tensor:
     return torch.cat((states[:, CONTROL : CONTROL + 2].long(), flags[:, None]), 1)
 
 
+def movement_groups(catalogue: Tensor) -> Tensor:
+    buttons = catalogue[:, 2]
+    return (catalogue[:, 0] + 1) * 4 + 2 * ((buttons & 3) != 0) + ((buttons & 4) != 0)
+
+
+def movement_margins(logits: Tensor, membership: Tensor, chosen: Tensor) -> Tensor:
+    """Log odds of the issued motion against each motion in the native catalogue."""
+    grouped = logits[:, None, :].masked_fill(~membership, -1e9).logsumexp(2)
+    return grouped.gather(1, chosen[:, None]) - grouped
+
+
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     for component in (opener, trio):
         if (
@@ -331,6 +386,18 @@ def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
         ):
             raise ValueError("Expected a native timing actor for each battle phase")
     return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
+
+
+def late_component(checkpoint: bytes) -> bytes:
+    if len(checkpoint) >= 12 and struct.unpack_from("<i", checkpoint)[0] == 0x334C5149:
+        _, first, late = struct.unpack_from("<3i", checkpoint)
+        if min(first, late) < 20 or 12 + first + late != len(checkpoint):
+            raise ValueError("Invalid phase checkpoint lengths")
+        opener, trio = checkpoint[12 : 12 + first], checkpoint[12 + first :]
+        phase_checkpoint(opener, trio)
+        return trio
+    phase_checkpoint(checkpoint, checkpoint)
+    return checkpoint
 
 
 def initialize_actor(actor: TimingPolicy, commands: np.ndarray, path: Path) -> int:
@@ -374,12 +441,17 @@ def train(
     initial_learner: Path | None = None,
     return_seconds: float = 0.0,
     history: bool = False,
+    plan_weight: float = 0.0,
+    late_path: Path | None = None,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_float32_matmul_precision("high")
     opener = opener_path.read_bytes() if opener_path is not None else None
+    if opener is not None and late_path is not None:
+        raise ValueError("Select exactly one frozen phase when fitting a specialist")
+    late = late_component(late_path.read_bytes()) if late_path is not None else None
     if opener is not None:
         phase_checkpoint(opener, opener)
     data, commands, counts = build_data(
@@ -390,6 +462,8 @@ def train(
         opener is not None,
         return_seconds,
         history,
+        plan_weight > 0,
+        late is not None,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -400,6 +474,16 @@ def train(
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
     actor = TimingPolicy(cat, history).to(device)
+    groups = movement_groups(cat)
+    membership = F.one_hot(groups, 12).T.bool()
+    plan_index = 8 + int(forecast_weight > 0)
+    if plan_weight > 0:
+        plan_weights = data["train"][plan_index] * membership.any(1)
+        plan_rows = (
+            ((plan_weights.sum(1) > 0) & (age >= agreement_seconds)).nonzero().flatten()
+        )
+        if not len(plan_rows):
+            raise ValueError("No eligible recorded teacher alternatives in training")
     inherited = (
         initialize_actor(actor, commands, initial_learner)
         if initial_learner is not None
@@ -444,6 +528,9 @@ def train(
         "rl_steps": rl_steps,
         "measured_return_seconds": return_seconds,
         "motion_history_lags": list(HISTORY_LAGS) if history else [],
+        "teacher_plan_loss_weight": plan_weight,
+        "late_sha256": hashlib.sha256(late).hexdigest() if late is not None else None,
+        "teacher_plan_train_rows": len(plan_rows) if plan_weight > 0 else 0,
         "hardware": torch.cuda.get_device_name() if device == "cuda" else "CPU",
         "manifest_sha256": hashlib.sha256(
             (data_dir / "manifest.json").read_bytes()
@@ -487,6 +574,8 @@ def train(
             save_native(actor, commands, path)
             if opener is not None:
                 path.write_bytes(phase_checkpoint(opener, path.read_bytes()))
+            elif late is not None:
+                path.write_bytes(phase_checkpoint(path.read_bytes(), late))
         actor.train(was_training)
         print(name, report[name + "_holdout_exact"], flush=True)
 
@@ -500,6 +589,14 @@ def train(
         return (
             (forecast_head(encoded) - target).square() * weights
         ).sum() / weights.sum().clamp_min(1)
+
+    def plan_loss() -> Tensor:
+        if not plan_weight:
+            return s.new_zeros(())
+        j = plan_rows[indices(len(plan_rows))]
+        margin = movement_margins(actor(s[j])[0], membership, groups[expert[j]])
+        weight = plan_weights[j]
+        return (F.softplus(-margin) * weight).sum() / weight.sum().clamp_min(1)
 
     parameters = list(actor.parameters())
     if forecast_head is not None:
@@ -517,7 +614,8 @@ def train(
             opt,
             loss
             + 0.30 * factor_loss(factor, expert[i])
-            + forecast_weight * forecast_loss(encoded, i),
+            + forecast_weight * forecast_loss(encoded, i)
+            + plan_weight * plan_loss(),
         )
         if (step + 1) % 2000 == 0:
             print("teacher", step + 1, flush=True)
@@ -611,11 +709,31 @@ def train(
                 + 0.7 * F.kl_div(logits.log_softmax(1), prior, reduction="batchmean")
                 + 0.85 * supervision
                 + 0.2 * factor_loss(factor, lab)
-                + forecast_weight * forecast_loss(encoded, i),
+                + forecast_weight * forecast_loss(encoded, i)
+                + plan_weight * plan_loss(),
             )
         if (step + 1) % 2000 == 0:
             print("iql", step + 1, flush=True)
     save("world_iql")
+    if plan_weight:
+        with torch.no_grad():
+            hold = data["holdout"]
+            weights = hold[plan_index] * membership.any(1)
+            usable = (
+                (weights.sum(1) > 0) & (hold[2] >= 0) & (hold[7] >= agreement_seconds)
+            )
+            rows = usable.nonzero().flatten()
+            report["teacher_plan_holdout_rows"] = len(rows)
+            if len(rows):
+                correct = s.new_zeros(())
+                for j in rows.split(1024):
+                    margin = movement_margins(
+                        actor(hs[j])[0], membership, groups[hold[2][j]]
+                    )
+                    correct += (weights[j] * (margin > 0)).sum()
+                report["teacher_plan_holdout_weighted_order"] = (
+                    correct / weights[rows].sum()
+                ).item()
     if return_seconds:
         with torch.no_grad():
             payout, continuation, successor = data["holdout"][-3:]
@@ -656,6 +774,7 @@ def train(
             "q2": q2.cpu().state_dict(),
             "value": val.cpu().state_dict(),
             **({"opener_native": opener} if opener is not None else {}),
+            **({"late_native": late} if late is not None else {}),
             **(
                 {"future_boxes": forecast_head.cpu().state_dict()}
                 if forecast_head is not None
@@ -683,6 +802,17 @@ if __name__ == "__main__":
     parser.add_argument("--switch-weight", type=float, default=1.0)
     parser.add_argument("--teacher-agreement-seconds", type=float, default=0.0)
     parser.add_argument("--forecast-weight", type=float, default=0.0)
+    parser.add_argument(
+        "--late-policy",
+        type=Path,
+        help="Fit the opening subtask and preserve this network's late-phase policy.",
+    )
+    parser.add_argument(
+        "--plan-weight",
+        type=float,
+        default=0.0,
+        help="Supervise movement rankings from optional development planner traces.",
+    )
     parser.add_argument(
         "--motion-history",
         action="store_true",
@@ -718,6 +848,8 @@ if __name__ == "__main__":
         parser.error("Forecast weight must be finite and nonnegative")
     if not 0 <= args.return_seconds <= 4:
         parser.error("Measured return horizon must be between zero and four seconds")
+    if not np.isfinite(args.plan_weight) or args.plan_weight < 0:
+        parser.error("Plan weight must be finite and nonnegative")
     train(
         args.data,
         args.output,
@@ -734,4 +866,6 @@ if __name__ == "__main__":
         args.initial_learner,
         args.return_seconds,
         args.motion_history,
+        args.plan_weight,
+        args.late_policy,
     )

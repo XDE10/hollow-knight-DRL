@@ -24,6 +24,21 @@ def test_measured_returns_use_game_seconds_gaps_and_terminal(monkeypatch) -> Non
     np.testing.assert_array_equal(short, [0, 4, 0, 2, 6, 0])
 
 
+def test_opening_target_uses_only_resources_at_first_trio(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    s = np.zeros((5, mod.WIDTH), dtype="f4")
+    s[:, 4] = np.array([9, 8, 9, 9, 1]) / 9
+    s[:, 5] = [0, 0, 1/3, 1/3, 0]
+    s[3:, 23] = 1
+    r, done = mod.opening_rewards(s, np.zeros(5, "f4"), np.zeros(5, bool))
+    np.testing.assert_allclose(r, [-1.25, 1.75, 10, 0, 0], atol=1e-6)
+    np.testing.assert_array_equal(done, [False, False, True, False, False])
+    s[:, 23] = 0
+    _, death = mod.opening_rewards(s, np.zeros(5, "f4"), np.array([0, 0, 0, 0, 1], bool))
+    assert death.nonzero()[0].tolist() == [4]
+
+
 def test_motion_history_masks_gaps_and_only_reads_past(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")
@@ -152,3 +167,4 @@ def test_phase_bundle_preserves_the_opener_and_maps_action_rows(
     pair = mod.phase_checkpoint(a, b)
     assert struct.unpack_from("<3i", pair) == (0x334C5149, len(a), len(b))
     assert pair[12 : 12 + len(a)] == a and pair[12 + len(a) :] == b
+    assert mod.late_component(pair) == b and mod.late_component(b) == b
