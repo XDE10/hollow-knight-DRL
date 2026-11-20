@@ -1,0 +1,10 @@
+{
+  "bc.bin": "c5ce3a66e7539bef9dbd0529034b82ff914747fc946f6be3640d4e5bb5c5d36b",
+  "development.zip": "3ed9d180ec4c7513b6d3ca1a0008e392ee6daaa7b89d824fee2bce38619b830e",
+  "evaluation.json": "2d8848953ea04c824734bf5b7f778eda65d43b8560a5e558b3a8e10a54bacaa2",
+  "learner.pt": "fe8f1a1c339edefbcb9b0497fdad9963f8d8f0770d270ba1cd4a30a1719fcead",
+  "shared-pilot-holdout-key-accuracy.json": "14dd06eaa59972ea7a726169c3fc955862180871100516a1626c4cc1ec822240",
+  "study.json": "e422f364a3304f159bcf7460b7f3368c156bbfc5200f9fe2d70cac1cccc448f5",
+  "training.json": "425cc274a6e8b52723417abd2c3a75d782c4a5ff1313e726ac1485b6c84f6948",
+  "world_iql.bin": "2c8c92112580dde1362fd00df3270f9803640092cef4bd8319496131c4cac509"
+}

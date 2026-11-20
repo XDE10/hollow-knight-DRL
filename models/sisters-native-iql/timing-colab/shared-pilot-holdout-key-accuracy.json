@@ -1,0 +1,30 @@
+{
+  "keep": [
+    4056,
+    4629
+  ],
+  "change": [
+    1005,
+    1974
+  ],
+  "movement_change": [
+    722,
+    1264
+  ],
+  "jump_change": [
+    256,
+    344
+  ],
+  "attack_change": [
+    378,
+    491
+  ],
+  "focus_change": [
+    2,
+    8
+  ],
+  "release_change": [
+    0,
+    0
+  ]
+}
