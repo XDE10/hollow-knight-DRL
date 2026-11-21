@@ -511,6 +511,7 @@ namespace HKRLEnvMod.Env
                         _rewardTracker.Reset();
                         _runningEpisodeId = 0;
                         _human.Finish(false);
+                        EvaluationSeed.Apply(_lifecycle.NextEpisodeId);
                         _resetManager.BeginReset(request.TaskId, request.TaskScene);
                         _lifecycle.RequestReset();
                         break;

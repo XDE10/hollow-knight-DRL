@@ -23,6 +23,8 @@ def main() -> None:
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--checkpoint", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--verify-unity-seed", action="store_true",
+                   help="Require the reset-time Unity RNG receipt from the dedicated game process.")
     p.add_argument("--record-skills", action="store_true",
                    help="Track observed quake starts, health gain and net SOUL decreases in live samples.")
     p.add_argument(
@@ -93,6 +95,12 @@ def main() -> None:
                     raise RuntimeError(
                         "Native policy receipt does not match this battle"
                     )
+                if args.verify_unity_seed:
+                    seed_file = Path(environment["HKRL_ARENA_SEED_RECEIPT"])
+                    ids = list(map(int, seed_file.read_text(encoding="utf-8-sig").splitlines()))
+                    if ids != [result["episode_id"], args.seed + i]:
+                        raise RuntimeError("Unity RNG receipt differs from the assigned fight")
+                    result["unity_reset_seed"] = ids[1]
                 speeds = result["speed_counts"]
                 if max(speeds, key=speeds.get) != 1.0 or max(speeds) > 1.001:
                     raise RuntimeError("Expected normal speed")

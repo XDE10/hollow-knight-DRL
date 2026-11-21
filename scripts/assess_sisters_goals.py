@@ -37,6 +37,8 @@ def score(plan: dict, games: list[dict]) -> dict:
         seed = g["seed"]
         if seed not in assigned or seed in seen:
             raise ValueError(f"Repeated or unassigned game {seed}")
+        if plan.get("verify_unity_seed") and g.get("unity_reset_seed") != seed:
+            raise ValueError(f"Missing or different Unity reset seed in game {seed}")
         seen.add(seed)
         if (
             g["policy_sha256"] != plan["policy_sha256"]
@@ -83,6 +85,7 @@ def freeze(
     game_mod: Path,
     first_seed: int,
     previous: Path | None,
+    *, verify_unity_seed: bool = False,
 ) -> dict:
     plan = {
         "goal": number,
@@ -90,6 +93,10 @@ def freeze(
         "policy_sha256": digest(checkpoint),
         "mod_sha256": digest(game_mod),
     }
+    if verify_unity_seed:
+        if first_seed < 0 or first_seed + goal(number)["episodes"] - 1 > 2**31 - 1:
+            raise ValueError("Assigned seeds must fit in a nonnegative Unity Int32")
+        plan["verify_unity_seed"] = True
     if number == 2:
         if previous is None:
             raise ValueError("Goal 2 opens after a passing goal 1 report")
@@ -116,6 +123,7 @@ def main() -> None:
     create.add_argument("--game-mod", required=True, type=Path)
     create.add_argument("--first-seed", required=True, type=int)
     create.add_argument("--previous-report", type=Path)
+    create.add_argument("--verify-unity-seed", action="store_true")
     grade = sub.add_parser("score")
     grade.add_argument("--plan", required=True, type=Path)
     grade.add_argument("--directories", nargs="+", required=True, type=Path)
@@ -128,7 +136,7 @@ def main() -> None:
             args.checkpoint,
             args.game_mod,
             args.first_seed,
-            args.previous_report,
+            args.previous_report, verify_unity_seed=args.verify_unity_seed,
         )
     else:
         plan = json.loads(args.plan.read_bytes())

@@ -19,9 +19,11 @@ namespace HKRLEnvMod.Env
 
         public bool IsRunning => State == HKRL.LifecycleState.Running;
 
+        internal ulong NextEpisodeId => EpisodeId == ulong.MaxValue ? 1 : EpisodeId + 1;
+
         public void RequestReset()
         {
-            EpisodeId = EpisodeId == ulong.MaxValue ? 1 : EpisodeId + 1;
+            EpisodeId = NextEpisodeId;
             ErrorCode = HKRL.StatusCode.Ok;
             State = HKRL.LifecycleState.ResetRequested;
         }

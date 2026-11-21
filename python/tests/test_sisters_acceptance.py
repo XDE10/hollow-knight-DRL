@@ -34,6 +34,13 @@ def test_successive_frozen_cohorts_and_damage_rules(tmp_path: Path, monkeypatch)
         ]
 
     valid = games(first, 7, 98)
+    seeded = mod.freeze(1, actor, dll, 1100, None, verify_unity_seed=True)
+    with pytest.raises(ValueError, match="Unity reset seed"):
+        mod.score(seeded, valid)
+    assert mod.score(seeded, [dict(g, unity_reset_seed=g["seed"]) for g in valid])["passed"]
+    with pytest.raises(ValueError, match="Int32"):
+        mod.freeze(1, actor, dll, 2**31 - 10, None, verify_unity_seed=True)
+
     assert mod.score(first, valid)["next_goal"] == 2
     assert not mod.score(first, games(first, 7, 97))["passed"]
     assert not mod.score(first, valid[:-1])["passed"]

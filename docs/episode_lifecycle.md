@@ -176,3 +176,7 @@ half-loaded scenes, and un-spawned bosses quietly poison the training data and
 the agent learns from noise. The state machine + ack + event-clear + `episode_id`
 make episodes clean by construction. See PRD §9.3 and
 [`reward_design.md`](./reward_design.md) §5.
+
+### Dedicated Sisters evaluation processes
+
+Ordinary Gymnasium resets seed Python. In dedicated original-speed evaluation, set `HKRL_ARENA_BASE_SEED` and `HKRL_ARENA_SEED_RECEIPT` in the game process before launch. The mod initializes Unity's global random generator on the main thread before loading the arena and writes the episode ID and applied seed to the receipt. The first reset uses the base seed, subsequent resets increment it. Pass `--verify-unity-seed` to both `scripts/eval_sisters_native.py` and `scripts/assess_sisters_goals.py freeze` to bind each game to its assigned seed. Real-time control cadence and other game random generators can still vary. Older cohorts used separate real battles with Python-side trial identifiers. Their archived win and damage counts come from those battles.
