@@ -1,0 +1,81 @@
+{
+  "method": "Real on-policy PPO over native action options with a fight-cross-fitted critic, elapsed-time GAE and frozen world features.",
+  "games": 8,
+  "decisions": 384,
+  "accepted_ppo_epochs": 12,
+  "first_hit_cost": 0.0,
+  "episodes": [
+    {
+      "source": "native-development/9951016",
+      "won": false,
+      "masks_lost": 10.0,
+      "boss_damage": 1701.0,
+      "decisions": 43,
+      "verified_continuation_inputs": 300
+    },
+    {
+      "source": "native-development/9951017",
+      "won": false,
+      "masks_lost": 9.0,
+      "boss_damage": 1738.0,
+      "decisions": 41,
+      "verified_continuation_inputs": 286
+    },
+    {
+      "source": "native-development/9951018",
+      "won": true,
+      "masks_lost": 5.0,
+      "boss_damage": 2712.0,
+      "decisions": 70,
+      "verified_continuation_inputs": 493
+    },
+    {
+      "source": "native-development/9951019",
+      "won": false,
+      "masks_lost": 9.0,
+      "boss_damage": 2152.0,
+      "decisions": 43,
+      "verified_continuation_inputs": 301
+    },
+    {
+      "source": "native-development/9951020",
+      "won": false,
+      "masks_lost": 9.0,
+      "boss_damage": 2356.0,
+      "decisions": 49,
+      "verified_continuation_inputs": 345
+    },
+    {
+      "source": "native-development/9951021",
+      "won": false,
+      "masks_lost": 10.0,
+      "boss_damage": 1816.0,
+      "decisions": 35,
+      "verified_continuation_inputs": 245
+    },
+    {
+      "source": "native-development/9951022",
+      "won": true,
+      "masks_lost": 6.0,
+      "boss_damage": 2721.0,
+      "decisions": 51,
+      "verified_continuation_inputs": 356
+    },
+    {
+      "source": "native-development/9951023",
+      "won": false,
+      "masks_lost": 9.0,
+      "boss_damage": 2173.0,
+      "decisions": 52,
+      "verified_continuation_inputs": 364
+    }
+  ],
+  "rollout_games": 8,
+  "changes_to_greedy_option": 74,
+  "base_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+  "sampler_input_sha256": "1eeac34cb9a98da4ee55bf09cb5ef7eea391ea15d90be247ff43a337b64a6c88",
+  "sampler_sha256": "09b9d9a905f9a60cd3c441b05ced50c4e06381e44af3e5dc12f8bd62ff5dc997",
+  "policy_sha256": "2c667682f19065349fd122b334c9fabbeeec42a6904b2baccd6c039ad2d14489",
+  "rollout_sha256": "56861d799083075fbe1feaffd18f15d66b52b051809df78ec4092a49296fea2b",
+  "projection_sha256": "b891871209afbee7e695da4a1bba26d9056bf945565f2f495a5457f6f43a756c"
+}

@@ -1,4 +1,6 @@
 {
+  "goal1-plan.json": "f3f8dc0e2a6a6af4b3186ab0527a8226a92362b1f9ff468979e7e6c8bd705e85",
+  "learner.pt": "e8dc64ac50b2e3577a9a7a12cdaf896049dc79c40f09f0da4968719742763f71",
   "preflight.json": "e97b92777d3ac8fd1bd2a06892a1ad5c8c9ec9633ee83001bb146e1e51561623",
   "round-00/batch.json": "df86ffbe54bdc352fa23266298c7d0de53411645c3d55fbfab3bfd297ffaf75d",
   "round-00/development-games.json": "07e3be2d68b441049bd14403fb7630f05a170a322bd01b28212a37a656d27fa1",
@@ -16,5 +18,17 @@
   "round-01/training.json": "cb7bcdd68cb8a3b0142c1e2bb3f96ad3cb675ea26730ec3e531d6b2cb0127004",
   "round-01/updated-sampler.bin": "1eeac34cb9a98da4ee55bf09cb5ef7eea391ea15d90be247ff43a337b64a6c88",
   "round-01/world_iql.bin": "685d5e1cf567df8f6a935ac633fe72bf657a99b1981199c6025ef789020f5f99",
-  "study.json": "7d963fdb2dd6bc469946cd12183937f783890bcce249ba9625088734495b288c"
+  "round-02/batch.json": "dab0990d21479d3b6ccf5aeaa7ac4d6f44a3f583e0de239240470da0cf9cc877",
+  "round-02/development-games.json": "70a710a57a1d3af9d7399785573e06b8929056af91fa9c5857660a6ced8edb29",
+  "round-02/learner.pt": "e8dc64ac50b2e3577a9a7a12cdaf896049dc79c40f09f0da4968719742763f71",
+  "round-02/rollout.zip": "56861d799083075fbe1feaffd18f15d66b52b051809df78ec4092a49296fea2b",
+  "round-02/sampler.bin": "1eeac34cb9a98da4ee55bf09cb5ef7eea391ea15d90be247ff43a337b64a6c88",
+  "round-02/training.json": "c06fa01143f7d115ec5ecd63f3083f92d8593c910fbf5b8dce03e8cabdf27242",
+  "round-02/updated-sampler.bin": "09b9d9a905f9a60cd3c441b05ced50c4e06381e44af3e5dc12f8bd62ff5dc997",
+  "round-02/world_iql.bin": "2c667682f19065349fd122b334c9fabbeeec42a6904b2baccd6c039ad2d14489",
+  "runtime-parity.json": "8ff19fce08e752027fb9c06b9184854bb0a82e1ccf8f015ff334e42dd9cae045",
+  "sampler.bin": "09b9d9a905f9a60cd3c441b05ced50c4e06381e44af3e5dc12f8bd62ff5dc997",
+  "study.json": "7d963fdb2dd6bc469946cd12183937f783890bcce249ba9625088734495b288c",
+  "training.json": "c06fa01143f7d115ec5ecd63f3083f92d8593c910fbf5b8dce03e8cabdf27242",
+  "world_iql.bin": "2c667682f19065349fd122b334c9fabbeeec42a6904b2baccd6c039ad2d14489"
 }
