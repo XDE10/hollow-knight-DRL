@@ -1,0 +1,971 @@
+{
+  "inputs": [
+    {
+      "dataset": "timing-winning-guidance",
+      "sha256": "15b3d6bd2db1824f6f331fa422630e339e64a6393072b40d42da1d70613ddd97",
+      "fights": 105
+    },
+    {
+      "dataset": "timing-randomized",
+      "sha256": "254861f9976ff8536b119c0b03557ffeecb24af41d6295460fde20c83235e9e5",
+      "fights": 24
+    }
+  ],
+  "fights": 129,
+  "train": 106,
+  "holdout": 23,
+  "sha256": "f534b4d3d2da80bcf15deae83686732657b4951dc6be23417c3e676069666306",
+  "episodes": [
+    {
+      "source": "native-development/9526004",
+      "file": "fight-9526004.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "270bb28dd8b39cc41765ad20ccb6139a54b8542e093875f9c6223cd4e5956e0e"
+    },
+    {
+      "source": "native-development/9526005",
+      "file": "fight-9526005.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "6a19987616b927a421bd02c2516c66b402436f699a7a64ee13043fb9e4c22387"
+    },
+    {
+      "source": "native-development/9526006",
+      "file": "fight-9526006.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "803537a86d4684750d9e9968bc3398835a135895ec34bf00859afc56e33273a1"
+    },
+    {
+      "source": "native-development/9526007",
+      "file": "fight-9526007.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "6691de7c1120bd42753b6f1923ea7a88d5d3139ca7c5dffdb5a1d6075981b7ee"
+    },
+    {
+      "source": "native-development/9526008",
+      "file": "fight-9526008.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "4b210715a8e90f5e1febeef4d299b32ee2896f97e0c31400270fce3f8e77563c"
+    },
+    {
+      "source": "native-development/9526009",
+      "file": "fight-9526009.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "3063d95bd75477868e9ec7bcb5a20b92259c79e7697a75b0d8860409aba85cab"
+    },
+    {
+      "source": "native-development/9526010",
+      "file": "fight-9526010.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "80350835efc22acc667d53ee10004e5c673f04bffb515fa7c761621f85b840c5"
+    },
+    {
+      "source": "native-development/9526011",
+      "file": "fight-9526011.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "bc7a1839d9c7e33f939645c86db60d443d6d6b0d9f04997fc4ce3265862c9b50"
+    },
+    {
+      "source": "native-development/9526012",
+      "file": "fight-9526012.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "7672bfaeb4fea1ed7fba20c53d331c28892875b28417ca75c66031ee76455a70"
+    },
+    {
+      "source": "native-development/9526013",
+      "file": "fight-9526013.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "d1e6270e085113381199583a18be49c7b87837f55e0759d37bc173a6b4a6834e"
+    },
+    {
+      "source": "native-development/9526014",
+      "file": "fight-9526014.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "0f543e980631b1692c5d57c0d0f863d6a5db0a860a610f1ecf089c15b4cb08a4"
+    },
+    {
+      "source": "native-development/9526015",
+      "file": "fight-9526015.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "111f7b55df1b8d84d2ca13d2e0cc34a354b2de58da297438d6ade4d006c2d8dd"
+    },
+    {
+      "source": "native-development/9558000",
+      "file": "fight-9558000.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "2cbddd482518f9b0323698168fef70105f5e2e79c683085a7f90f1b29a9d84b4"
+    },
+    {
+      "source": "native-development/9558001",
+      "file": "fight-9558001.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "2b08c2723533deb35ed3fc407c1da2a301cc3f2ddbb7dab0c053ecb6e8457493"
+    },
+    {
+      "source": "native-development/9558002",
+      "file": "fight-9558002.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "bb37dc1ca182fa97e1ecc9fec602757b9a96d7b529c0e87962731d0ef087e273"
+    },
+    {
+      "source": "native-development/9558003",
+      "file": "fight-9558003.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "62ff58e337f5bcf2a891678e2372e0f0fb1377190956e17c4795f6b77e76271c"
+    },
+    {
+      "source": "native-development/9558004",
+      "file": "fight-9558004.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "66ca5af8e378c409117c4a0ec8e49c97db886992816c05301106455d2acc1648"
+    },
+    {
+      "source": "native-development/9558005",
+      "file": "fight-9558005.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "f38e23d7945932e481c99d7f652f55c801f3b05ab3a958a4769d221f3cf0d460"
+    },
+    {
+      "source": "native-development/9558006",
+      "file": "fight-9558006.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "ee1aa6d6eaebce8b1fa650d1e87aea64202dd00025002d596f7cf36c5ab9fcab"
+    },
+    {
+      "source": "native-development/9558007",
+      "file": "fight-9558007.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "a36e0d5a1b4389c7f0bd63b28d4a25c736a3b59c6b7e224d7df0818cd235822e"
+    },
+    {
+      "source": "native-development/9558008",
+      "file": "fight-9558008.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "8a8c03077942ea123c2223338518cbb7f8949babde8490313a28179b96a434fe"
+    },
+    {
+      "source": "native-development/9558009",
+      "file": "fight-9558009.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "6d8fd4257f3ceec69ded64fe7e318089363581ba481df178d63300dd5f091a24"
+    },
+    {
+      "source": "native-development/9558010",
+      "file": "fight-9558010.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "5bc5ad096548069b9902271905cb71fd11a439bb4eb6227a35620956f758086f"
+    },
+    {
+      "source": "native-development/9558011",
+      "file": "fight-9558011.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "730244a10c577d5018261ab82fd36b49972a4992778cc38807f46d3e06986be5"
+    },
+    {
+      "source": "native-development/9558012",
+      "file": "fight-9558012.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "839a008ad0e683ea9bb46b2ead6b95b3882b67d9506fce9f611d5a4a576fa5d5"
+    },
+    {
+      "source": "native-development/9558013",
+      "file": "fight-9558013.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "d548c670de0cfcbcfbab788a5f15024746b88730f294e394f986f33dcb645c84"
+    },
+    {
+      "source": "native-development/9558014",
+      "file": "fight-9558014.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "53366676689b5ac1a4e0f9749ddabc6b1b6e209619dcfc1d7c5295aa3512ecfb"
+    },
+    {
+      "source": "native-development/9558015",
+      "file": "fight-9558015.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "8355d7da64974272e13d9f5f839ac27d0e768c116b2eebb3ab9bc2851a769de6"
+    },
+    {
+      "source": "native-development/9558016",
+      "file": "fight-9558016.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "87619bf8bdfad5f80f135bfd9c81720a808a0a87c04a49f78a4a6ef20248c04f"
+    },
+    {
+      "source": "native-development/9558017",
+      "file": "fight-9558017.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "e6f935e9287e4c540593ca1c622231cdd18969b6edd8b82fa7045b7ee23f4a7f"
+    },
+    {
+      "source": "native-development/9567000",
+      "file": "fight-9567000.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "c20b209e3220f59ebf7f523bc13ee3961196168a948e303f7385904c5017140c"
+    },
+    {
+      "source": "native-development/9567001",
+      "file": "fight-9567001.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "6a5f14c95fca3cb93dbd81cbf40f1f30600f16b1f0b3e37a36acc20a65bf8c10"
+    },
+    {
+      "source": "native-development/9567002",
+      "file": "fight-9567002.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "0b124e94bf81059d89899cae9f4ad62ccf04b578bed6202152f94038e861fb0d"
+    },
+    {
+      "source": "native-development/9567003",
+      "file": "fight-9567003.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "4d4fa975d8223880ef0bc8b28e965be2cec842ef873f5d8b1d5d142873435a1c"
+    },
+    {
+      "source": "native-development/9567004",
+      "file": "fight-9567004.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "7a66c45de946d1a1f02d53f513b683611530fef63f95755cb764deaf391d1cbd"
+    },
+    {
+      "source": "native-development/9567005",
+      "file": "fight-9567005.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "1b5fd4bf6f709edcbb24cae39b7503fad8fbb121f97ced423be5e29e3ea08e91"
+    },
+    {
+      "source": "native-development/9567006",
+      "file": "fight-9567006.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "969dbdca91b84745824741e479359dfceccab58ada6e5496554aa2f89a233675"
+    },
+    {
+      "source": "native-development/9567007",
+      "file": "fight-9567007.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "a9711842beddbf4dc58f0c0b7df1a212dc7766d2ce71ea7ea70850fa364a5c30"
+    },
+    {
+      "source": "native-development/9567008",
+      "file": "fight-9567008.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "219906920544c8a93254a0118c0c4b609d502f89a65282af5698e2c4f182958f"
+    },
+    {
+      "source": "native-development/9567009",
+      "file": "fight-9567009.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "fb737081ba360ffd7efa4712aceb2d536382f5f0052d8f256095ca75fadf3361"
+    },
+    {
+      "source": "native-development/9586000",
+      "file": "fight-9586000.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "a7cd277e1ec38ebc11924e377952f455339239a97c5f53894781729939fef759"
+    },
+    {
+      "source": "native-development/9586001",
+      "file": "fight-9586001.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "a0f95c6a36a7b2554c0cae21961bca7662c3d23c6dfee876911a0b3491be0589"
+    },
+    {
+      "source": "native-development/9586002",
+      "file": "fight-9586002.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "1e8daaa90ed1ed311ccb9e21de7324e4e8dea5105a7fc80d0199db3c36d9343c"
+    },
+    {
+      "source": "native-development/9586003",
+      "file": "fight-9586003.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "fad136014888eecef0fff2da466fd3d7235200bc167f6f79dff976e8d3664f93"
+    },
+    {
+      "source": "native-development/9586004",
+      "file": "fight-9586004.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "4f77540d7932658d55d2a34f414c70c9829e88eb49ae766c47f7842886f00823"
+    },
+    {
+      "source": "native-development/9586005",
+      "file": "fight-9586005.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "26ad9e72c6a9077949344f93b54231c233c75c0b2b36ecbfb13990c8d6440bcd"
+    },
+    {
+      "source": "native-development/9586006",
+      "file": "fight-9586006.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "f598544a0d94d96427e056361241942a84deca2ff06ca8216b03832e548c1943"
+    },
+    {
+      "source": "native-development/9586007",
+      "file": "fight-9586007.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "fdb339420315a01a4154cb91d48864652d86029b7d192be3cbeaefe62a24b710"
+    },
+    {
+      "source": "native-development/9586008",
+      "file": "fight-9586008.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "adbb93fe3a07ca7e0dbb8aaa4189bc4edb8bb31383a7bd6fde3f7e8539c926b9"
+    },
+    {
+      "source": "native-development/9586009",
+      "file": "fight-9586009.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "f7beca9de4173583759f9ca1c1912e4b73a742eeb6f9d71b886b38d8d9201f58"
+    },
+    {
+      "source": "native-development/9587000",
+      "file": "fight-9587000.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "8441ddfd5fbdbb87135fb43fef4cd3f8f108fb53e7654be382abddb261819506"
+    },
+    {
+      "source": "native-development/9587001",
+      "file": "fight-9587001.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "df225e6bdc315cd69336209b5a85951eb98f72c1be4740ec763cff077b19e130"
+    },
+    {
+      "source": "native-development/9587002",
+      "file": "fight-9587002.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "2b7ae85f5fb447158708ef77ce7e59b98966161d0b612f21c83e8d72b53fa8d8"
+    },
+    {
+      "source": "native-development/9587003",
+      "file": "fight-9587003.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "63451d541be825d1c8b5ed213a76c73ce37299b25822b2f812b00479ea373ef5"
+    },
+    {
+      "source": "native-development/9587004",
+      "file": "fight-9587004.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "cd97ea0983a4b7d3bd9d480bd8bc468457928f5ec80526de6392f3b2d7a18a5b"
+    },
+    {
+      "source": "native-development/9587005",
+      "file": "fight-9587005.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "064ffffb4547e630c1eed5c2d8d6457f5224e6e45a060422beb044b03472064e"
+    },
+    {
+      "source": "native-development/9587006",
+      "file": "fight-9587006.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "032afc881ba857035e1e5b4f321f7d5fa22e2c3ff4b4b4394c0c7075c3d1df2b"
+    },
+    {
+      "source": "native-development/9587007",
+      "file": "fight-9587007.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "a54feb096baa514ed277b67c6d602e06213025f8baa470061e409c398922847d"
+    },
+    {
+      "source": "native-development/9587008",
+      "file": "fight-9587008.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "5fac7fb70576d465e8a30f221ce12c454e7386d33d102915d75b12316baf4421"
+    },
+    {
+      "source": "native-development/9587009",
+      "file": "fight-9587009.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "3fb4362a004c8f60a4b8314aa2a641cb31f389140218d3e4f21d5336a88cc894"
+    },
+    {
+      "source": "native-development/9587010",
+      "file": "fight-9587010.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "5e93990a42554b7c9cbe4d5e15cc639dcd3b6510d07ad567b5f9f5d7a1f7aa3a"
+    },
+    {
+      "source": "native-development/9587011",
+      "file": "fight-9587011.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "c64bc5c091fa7e5584f52db9d10c8d6e2c52bb9d945039856d59b0c48ef4f379"
+    },
+    {
+      "source": "native-development/9587012",
+      "file": "fight-9587012.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "cda3d61a6802bd6faaa142073eacea7d11f20ff5eab4ea71eb76d7caab3dd392"
+    },
+    {
+      "source": "native-development/9587013",
+      "file": "fight-9587013.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "f0a007e2d301839f06ce6116dd6d429337d62b89324db78a941ac965d671e0fd"
+    },
+    {
+      "source": "native-development/9587014",
+      "file": "fight-9587014.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "f93e3485faa913c74e8f98de39ae86ddd538ea7a78f7ff4d0e3a1d072390acfe"
+    },
+    {
+      "source": "native-development/9587015",
+      "file": "fight-9587015.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "732d2433262b94079c465d530658eb00d3b70709f59647eb8b168b3ad6fe70f0"
+    },
+    {
+      "source": "native-development/9589900",
+      "file": "fight-9589900.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "c1842eaa943e900c714cdfcd3a0a84d444e4bfddc3d5c1152cf7b1a78f0272d5"
+    },
+    {
+      "source": "native-development/9589901",
+      "file": "fight-9589901.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "e61af61f0b3164018059b9ede668407dc1d78a7a2e8b5edbf7e72df76e861ec9"
+    },
+    {
+      "source": "native-development/9589902",
+      "file": "fight-9589902.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "a6b55fde19c587c2ec4a13c34405d1ccff75c03b02fee850264236b0ce6c7340"
+    },
+    {
+      "source": "native-development/9589903",
+      "file": "fight-9589903.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "3a0b2377283d0f27ec618e51f106153c28aafb1b7983383c1e70196e9f8b0640"
+    },
+    {
+      "source": "native-development/9589904",
+      "file": "fight-9589904.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "cbe8e6772b43a95b35eb68be4d77762b2bdbd0763a18ee5087f05d6dbb993576"
+    },
+    {
+      "source": "native-development/9589905",
+      "file": "fight-9589905.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "b512deecf57e9445f60c68b887186f82aa823cddd639d211baa189051d23e829"
+    },
+    {
+      "source": "native-development/9589906",
+      "file": "fight-9589906.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "4dbb5ec1138aa386bc2be1661cb14d372c9865050e46e0c1080f4d6ef7f7a717"
+    },
+    {
+      "source": "native-development/9589907",
+      "file": "fight-9589907.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "74c259922258cbd5030e22ded3e7f9a92069d0dbd1679341d0f95c7c8f1e350b"
+    },
+    {
+      "source": "native-development/9589908",
+      "file": "fight-9589908.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "bee90b2506339cf002fff52a52b05927956517f52c10f0f9805321229526839f"
+    },
+    {
+      "source": "native-development/9589909",
+      "file": "fight-9589909.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "23066e49b7d61abfe27ef26d4aa25549fdced6cfc3d8c6b06fb8b5690b54b482"
+    },
+    {
+      "source": "native-development/9590100",
+      "file": "fight-9590100.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "12c7a1fe07199bc48aab00426ca8e2bd80e3ac6c670aff7d080fec2073feec0b"
+    },
+    {
+      "source": "native-development/9590101",
+      "file": "fight-9590101.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "8f6e132a72b814f37e520f4509ce47153e51f524d2aebcb500b8bf1dc8305bd8"
+    },
+    {
+      "source": "native-development/9590102",
+      "file": "fight-9590102.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "d4b7bc296078dd45434233721189b6ffb4069edc36a8cbe3a88f9b76623f6443"
+    },
+    {
+      "source": "native-development/9590103",
+      "file": "fight-9590103.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "b38c4da53472e57375ca30a5d04de7ff1212adf5cc7a3e0eb1fd81466bb621f5"
+    },
+    {
+      "source": "native-development/9590104",
+      "file": "fight-9590104.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "ee8a30c5a21fcf2f04c274238e0427b49d1d77aa6de56844acd830a7076ade8c"
+    },
+    {
+      "source": "native-development/9590105",
+      "file": "fight-9590105.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "a4f10b48824aa4052d74550425c65063aa223ce0b600e83869f4fb331fc127e5"
+    },
+    {
+      "source": "native-development/9590106",
+      "file": "fight-9590106.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "06ea8f10756438ae7b8b612f3777308bc8987831e45ae812f20fff07336d4f8b"
+    },
+    {
+      "source": "native-development/9590107",
+      "file": "fight-9590107.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "68bb8c5217a37b518030fb987e7819be6a2379aafedf992c2b203a99a8f6c530"
+    },
+    {
+      "source": "native-development/9592000",
+      "file": "fight-9592000.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "4c6decc25c8c86e16efce091a6de0f08a178dd9397489f52fe4cb0108680c8e6"
+    },
+    {
+      "source": "native-development/9592001",
+      "file": "fight-9592001.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "67c9a35e49ac6ce68db1c33fa5650a459cbb7096c888807b5966d0f129b43457"
+    },
+    {
+      "source": "native-development/9592002",
+      "file": "fight-9592002.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "75be792f1c7f0ccf675f68a61463d0f1037ac5ac7aae2dbc654bc6221eb92489"
+    },
+    {
+      "source": "native-development/9592003",
+      "file": "fight-9592003.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "88800c2b1b8f3cac372faeb26d53025fa4c5e1ac61e2ddd43a8fe6daf2dd3af3"
+    },
+    {
+      "source": "native-development/9592004",
+      "file": "fight-9592004.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "d495db7aec9c5901825cb8d11a293851175ea85010b2c5a3882607fd7ddb0b89"
+    },
+    {
+      "source": "native-development/9592005",
+      "file": "fight-9592005.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "8bc1449bcc3b654d1f87107881eaf4c36b4fee8681c58e664083cabae00517bd"
+    },
+    {
+      "source": "native-development/9592006",
+      "file": "fight-9592006.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "eaa1f594bf4d3e641163f467fe3bfb84fd9cd5d3c7b308e39c008687cf7178d4"
+    },
+    {
+      "source": "native-development/9592007",
+      "file": "fight-9592007.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "466e5d5c420e351b7f22b054a74412fc17d25d196910539c8e7e80f84be57804"
+    },
+    {
+      "source": "native-development/9592008",
+      "file": "fight-9592008.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "d7fe8d67eb7fa20b33c013d7c990864e54429e1d7f436898ed57dfb3f85fca95"
+    },
+    {
+      "source": "native-development/9592009",
+      "file": "fight-9592009.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "fbce3ea5c9a7d22eb088efb7840972e4f36c75c488fb7da02561a4c4ff461b8e"
+    },
+    {
+      "source": "native-development/9592010",
+      "file": "fight-9592010.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "5738a7d2b32deec4715322099234bc19af1e8f4669a24adf631fb03e5859324d"
+    },
+    {
+      "source": "native-development/9592011",
+      "file": "fight-9592011.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "b5c56006ddd7ab14f748ad3a55d712d3cc9ab92b42e2552353ee85474a9f78cc"
+    },
+    {
+      "source": "native-development/9593000",
+      "file": "fight-9593000.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "9aa6e9c4cb28801629615362641d7f44f4a0c55891008525fbcaac83f052beb5"
+    },
+    {
+      "source": "native-development/9593001",
+      "file": "fight-9593001.npz",
+      "split": "holdout",
+      "won": true,
+      "sha256": "4f73b2860a5e2e2f71db88177dc855e35d462cfbfbcc66a5e9512cdb6badcfe0"
+    },
+    {
+      "source": "native-development/9593002",
+      "file": "fight-9593002.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "738365bead5ada02ea0acf7c21542175a7c4fa013c0f9b50a157b609d04d96fd"
+    },
+    {
+      "source": "native-development/9593003",
+      "file": "fight-9593003.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "765eefb0684e7a280df0c8dccbbbec27c6167776f303fdf142c3f1afe77654d4"
+    },
+    {
+      "source": "native-development/9593004",
+      "file": "fight-9593004.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "4110d0b468228e8f0021e6820d074c4fd374da3f5ff7a04ca5a9f69fa0a5d65b"
+    },
+    {
+      "source": "native-development/9593005",
+      "file": "fight-9593005.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "954640750eb2987f21bcdd084015fdaba8bb69ea864bd175921b977eec069997"
+    },
+    {
+      "source": "native-development/9593006",
+      "file": "fight-9593006.npz",
+      "split": "train",
+      "won": false,
+      "sha256": "3eb5b8e638959d29ccb7d2aff32d069bf522c1757a7b9ca2ef12df9b459af88f"
+    },
+    {
+      "source": "native-development/9593007",
+      "file": "fight-9593007.npz",
+      "split": "holdout",
+      "won": false,
+      "sha256": "52bfa16977e171c6154dda45b856190688f1eaa63ca74daf1d90c825b7ba74f5"
+    },
+    {
+      "source": "native-development/9593008",
+      "file": "fight-9593008.npz",
+      "split": "train",
+      "won": true,
+      "sha256": "c30ffe470034dea2e199f97468713e50f315cda0fc81c058eac56b3bf86f8195"
+    },
+    {
+      "source": "native-development/9631000",
+      "file": "fight-9631000.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "2bcc971badb8675e0b2bbbb7fbb1e6d7081bc387bfa55eb4c3ea1b00d6b69c8d"
+    },
+    {
+      "source": "native-development/9631001",
+      "file": "fight-9631001.npz",
+      "split": "holdout",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "45976a834973f78a51947af0dcfb72b26529a8d67c17bf4c7b55bd79e3a4895a"
+    },
+    {
+      "source": "native-development/9631002",
+      "file": "fight-9631002.npz",
+      "split": "train",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "c6aa1421b8b53f6680a3847ef0499f8cd61c6641db313ec9a2f8510ae8cb38c1"
+    },
+    {
+      "source": "native-development/9631003",
+      "file": "fight-9631003.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "04c734e8220959a10d3cc42adb0ce716354820a006c8ecc980ed517c0c7dcfe1"
+    },
+    {
+      "source": "native-development/9631004",
+      "file": "fight-9631004.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "7405512c6b81acb6a919a6c0fb1c6abcbafb572c2008ac38f6aff14ba14c17c0"
+    },
+    {
+      "source": "native-development/9631005",
+      "file": "fight-9631005.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "e5e19b43cfcf78a8ce25351978d256755a13450c2520a49905738e10bfcaf908"
+    },
+    {
+      "source": "native-development/9631006",
+      "file": "fight-9631006.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "b220ec88b885c2fc49a73f36849a432696a6fbcef4dbdd32ae788c27488b5453"
+    },
+    {
+      "source": "native-development/9631007",
+      "file": "fight-9631007.npz",
+      "split": "holdout",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "5014c70a1c720821fa89661dc1c4f06e13f207083cbd892d8b13be138bd88134"
+    },
+    {
+      "source": "native-development/9631008",
+      "file": "fight-9631008.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "d91edfcc7c69c962da85fb8586e996dc610374f4a62ae9797d63398937c656fd"
+    },
+    {
+      "source": "native-development/9631009",
+      "file": "fight-9631009.npz",
+      "split": "train",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "6bda533aa0c1be7f3cd53821c7518349434f30ddb55479a69c7c4cb5b220367f"
+    },
+    {
+      "source": "native-development/9631010",
+      "file": "fight-9631010.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "49d166cdbcfc9a5771c2079c885c0a9918ac81bc9e164dd13de46501dd1c81bc"
+    },
+    {
+      "source": "native-development/9631011",
+      "file": "fight-9631011.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "07253511e1b74ec44fb5e58859a26a4a3506cb2223b561dc6738a46690203ed1"
+    },
+    {
+      "source": "native-development/9632000",
+      "file": "fight-9632000.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "99dd7822a7ec1169d9da16e1a57439d14a5778acb6da3663b3d33c425356cf4c"
+    },
+    {
+      "source": "native-development/9632001",
+      "file": "fight-9632001.npz",
+      "split": "holdout",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "2cbd2d2ca0a33114aa34d4c48de29b8fecce0029f2e3c954be12ee32ccbf4d1f"
+    },
+    {
+      "source": "native-development/9632002",
+      "file": "fight-9632002.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "360ed27bbd9cc3f0b6ee56b4913b95e0058c8c0e6738627b3acdf26be426880b"
+    },
+    {
+      "source": "native-development/9632003",
+      "file": "fight-9632003.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "f45318c27cbdade68411a417de91b3dffe651e11a2222383c8d2334ff53b44b6"
+    },
+    {
+      "source": "native-development/9632004",
+      "file": "fight-9632004.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "d60d0e6b2e475a3c92258b225828874977291bab2511dfbea80b1c1067199982"
+    },
+    {
+      "source": "native-development/9632005",
+      "file": "fight-9632005.npz",
+      "split": "train",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "e158758c77549ba43fe846ad16ef375f84e48792a5eb0bd91e7f4538712de77c"
+    },
+    {
+      "source": "native-development/9632006",
+      "file": "fight-9632006.npz",
+      "split": "train",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "93c1d6dc88baed7e9b9ce683a7caeea586720dbc2c96734a1e33bc65562fe369"
+    },
+    {
+      "source": "native-development/9632007",
+      "file": "fight-9632007.npz",
+      "split": "holdout",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "3e6bb66377a0e185f145b15131243f588a2aac21865e6263955d863d7415e9f6"
+    },
+    {
+      "source": "native-development/9632008",
+      "file": "fight-9632008.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "a31a2a0c062e551a17b5dcc0d1dbe79f5dae048f74701c099f35ce45ce174e1c"
+    },
+    {
+      "source": "native-development/9632009",
+      "file": "fight-9632009.npz",
+      "split": "train",
+      "won": false,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "45c7f5d78b01a5eabd81d2281b13386fd769ff8e2213df6341f2302c2526629d"
+    },
+    {
+      "source": "native-development/9632010",
+      "file": "fight-9632010.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "9ee8b90d1d5bf1d906d560fc38d01d24cfd0308579ac99727a97e3b2959d371e"
+    },
+    {
+      "source": "native-development/9632011",
+      "file": "fight-9632011.npz",
+      "split": "train",
+      "won": true,
+      "teacher_labels": false,
+      "behavior_policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+      "sha256": "a4195ed6ac42f3da2008dd5729e85db50dab19a2614b5a9a3d4753a36850d0d3"
+    }
+  ]
+}

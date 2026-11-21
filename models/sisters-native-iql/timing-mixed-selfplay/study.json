@@ -1,0 +1,62 @@
+{
+  "fights": 129,
+  "parts": 15,
+  "sha256": "f534b4d3d2da80bcf15deae83686732657b4951dc6be23417c3e676069666306",
+  "bc": 3000,
+  "world": 6000,
+  "rl": 18000,
+  "original_speed_only": true,
+  "initialization": "plans98h",
+  "fixed_opener": "opening98i",
+  "additional_training_flags": [
+    "--no-mirror",
+    "--motion-history",
+    "--switch-weight",
+    "2.5",
+    "--teacher-agreement-seconds",
+    "1.6",
+    "--forecast-weight",
+    "4",
+    "--return-seconds",
+    ".8",
+    "--plan-weight",
+    ".35",
+    "--initial-learner",
+    "/content/warmstart.pt",
+    "--opener-policy",
+    "/content/opener.bin"
+  ],
+  "scripts": {
+    "train_sisters_native_iql.py": "8bb4eea6e0ed2c2d81675499082e566f3c507c49ee502e8f0b187278621841f7",
+    "train_sisters_timing_iql.py": "df0c5eceb51e74dc3125a056edf4a34fc43e0da504427855dd4a72077b4b8157",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22",
+    "sisters_plan_labels.py": "d5f259f21468bc78d37b59fffb89dd514b0a083c88817582758d9244768be794",
+    "sisters_episode_returns.py": "f99a02ef29c4f9a3f661ebed08d26c0149ff94f6cb4bdd78f83fcbf2c5fa5fd3"
+  },
+  "assets": {
+    "warmstart.pt": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+    "opener.bin": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3"
+  },
+  "source_manifest": {
+    "inputs": [
+      {
+        "dataset": "timing-winning-guidance",
+        "sha256": "15b3d6bd2db1824f6f331fa422630e339e64a6393072b40d42da1d70613ddd97",
+        "fights": 105
+      },
+      {
+        "dataset": "timing-randomized",
+        "sha256": "254861f9976ff8536b119c0b03557ffeecb24af41d6295460fde20c83235e9e5",
+        "fights": 24
+      }
+    ],
+    "fights": 129,
+    "train": 106,
+    "holdout": 23,
+    "sha256": "f534b4d3d2da80bcf15deae83686732657b4951dc6be23417c3e676069666306"
+  },
+  "cohort": {
+    "first_seed": 9671000,
+    "count": 100
+  }
+}
