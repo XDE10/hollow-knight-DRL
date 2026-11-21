@@ -18,6 +18,7 @@ CONTROLLER_FIELDS = (
     "candidate_probability",
     "sampler_sha256",
     "sampler_draw_seed",
+    "directional_groups",
 )
 
 
@@ -156,6 +157,15 @@ def pack(
                     from sisters_online_choices import CHOICE_KEYS
 
                     online_keys = CHOICE_KEYS
+                    if game.get("directional_groups"):
+                        from sisters_directional_options import MENU_KEYS
+
+                        if (game["directional_groups"] != 6 or not on_policy_batch
+                                or raw["menu_slots"].shape != (len(raw["choice_rows"]), 6)
+                                or raw["menu_probability"].shape != raw["menu_slots"].shape
+                                or "choice_hold_stop" not in raw):
+                            raise ValueError("Incomplete on-policy directional options")
+                        online_keys = MENU_KEYS
                     if "choice_hold_stop" in raw:
                         stops = raw["choice_hold_stop"]
                         if (

@@ -13,6 +13,7 @@ namespace HKRLEnvMod.Action
         private float _next, _release;
         private int _movement;
         private readonly SistersCompoundOption? _compound;
+        private readonly SistersDirectionalOptions? _directional;
         private readonly bool _descent = Environment.GetEnvironmentVariable("HKRL_NATIVE_DESCENT_TRIAL") == "1";
 
         internal SistersOnlineChoices(string directory, int seed)
@@ -21,7 +22,14 @@ namespace HKRLEnvMod.Action
             _random = new Random(seed);
             var riskPath = Environment.GetEnvironmentVariable("HKRL_NATIVE_COMPOUND_RISK");
             var sampledHead = Environment.GetEnvironmentVariable("HKRL_NATIVE_OPTION_SAMPLER");
-            if (!string.IsNullOrEmpty(sampledHead))
+            var directional = Environment.GetEnvironmentVariable("HKRL_NATIVE_DIRECTIONAL_SAMPLER");
+            if (!string.IsNullOrEmpty(directional))
+            {
+                if (_descent || !string.IsNullOrEmpty(sampledHead) || !string.IsNullOrEmpty(riskPath))
+                    throw new InvalidOperationException("Choose one native sampler");
+                _directional = new SistersDirectionalOptions(File.ReadAllBytes(directional!));
+            }
+            else if (!string.IsNullOrEmpty(sampledHead))
             {
                 if (_descent || !string.IsNullOrEmpty(riskPath)) throw new InvalidOperationException("Choose one option sampler");
                 _compound = SistersCompoundOption.SamplePolicy(sampledHead!);
@@ -39,9 +47,15 @@ namespace HKRLEnvMod.Action
             _writer = new BinaryWriter(new FileStream(Path.Combine(_directory, episode + ".choices"),
                 FileMode.CreateNew, FileAccess.Write, FileShare.Read));
             _compound?.Reset();
-            _writer.Write(_compound?.LearnedSampling == true ? 0x34434B48 : _compound != null ? 0x33434B48 : _descent ? 0x32434B48 : 0x31434B48);
+            _directional?.Reset();
+            _writer.Write(_directional != null ? SistersDirectionalOptions.TapeMagic : _compound?.LearnedSampling == true ? 0x34434B48 : _compound != null ? 0x33434B48 : _descent ? 0x32434B48 : 0x31434B48);
             _writer.Write(episode);
-            if (_compound?.LearnedSampling == true)
+            if (_directional != null)
+            {
+                _writer.Write(_directional.Interval);
+                _writer.Write(_directional.Digest);
+            }
+            else if (_compound?.LearnedSampling == true)
             {
                 _writer.Write(_compound.Interval);
                 _writer.Write(_compound.SamplingDigest!);
@@ -60,6 +74,7 @@ namespace HKRLEnvMod.Action
 
         internal PrimitiveInput Choose(float time, NativeSistersNetwork policy, PrimitiveInput greedy, float[] state)
         {
+            if (_directional != null) return _directional.Choose(policy, state, time, _random, _writer);
             if (_compound != null) return _compound.Choose(policy, state, time, _random, _writer);
             if (_descent && time < _release) return policy.BestHorizontal(_movement);
             if (time < _next) return greedy;

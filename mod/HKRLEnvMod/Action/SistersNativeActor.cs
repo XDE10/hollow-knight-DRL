@@ -109,6 +109,7 @@ namespace HKRLEnvMod.Action
             _trioNet?.Focus?.WriteReceipt(_ledger + ".focus", _episode);
             _trioNet?.Memory?.WriteReceipt(_ledger + ".memory", _episode);
             _trioNet?.Compound?.WriteReceipt(_ledger + ".options", _episode);
+            _trioNet?.Directional?.WriteReceipt(_ledger + ".options", _episode);
             File.WriteAllText(_ledger, string.Join("\n", _episode.ToString(CultureInfo.InvariantCulture),
                 _digest, _count, _attack, _cast, _dash, _art));
         }
@@ -133,6 +134,7 @@ namespace HKRLEnvMod.Action
         private int _index;
         private int _best;
         internal SistersCompoundOption? Compound { get; set; }
+        internal SistersDirectionalOptions? Directional { get; set; }
         internal SistersFocusOption? Focus { get; set; }
         internal SistersMemoryResidual? Memory { get; set; }
         internal int ActionCount => _actions.Length;
@@ -230,6 +232,7 @@ namespace HKRLEnvMod.Action
             _best = best;
             _index++;
             if (Focus != null) return Focus.Choose(_actions[best], raw, time);
+            if (Directional != null) return Directional.Choose(this, raw, time);
             return Compound == null ? _actions[best] : Compound.Choose(this, raw, time);
         }
 

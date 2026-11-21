@@ -581,6 +581,7 @@ def option_components(component: bytes) -> tuple[bytes, bytes, np.ndarray]:
 
 COMPOUND_MAGIC = 0x364C5149
 POLICY_GRADIENT_MAGIC = 0x394C5149
+DIRECTIONAL_MAGIC = 0x3A4C5149
 FOCUS_MAGIC = 0x374C5149
 FOCUS_FEATURES = 16
 MEMORY_MAGIC = 0x384C5149
@@ -635,7 +636,7 @@ def compound_components(component: bytes) -> tuple[bytes, np.ndarray, np.ndarray
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     if not _timing_component(opener):
         raise ValueError("Expected a timing actor for the opening")
-    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == POLICY_GRADIENT_MAGIC:
+    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (POLICY_GRADIENT_MAGIC, DIRECTIONAL_MAGIC):
         policy_gradient_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == MEMORY_MAGIC:
         memory_components(trio)
@@ -656,16 +657,16 @@ def policy_gradient_components(component: bytes) -> tuple[bytes, bytes]:
     leaf = component[8 : 8 + n]
     head = component[8 + n :]
     if (
-        magic != POLICY_GRADIENT_MAGIC
+        magic not in (POLICY_GRADIENT_MAGIC, DIRECTIONAL_MAGIC)
         or n < 20
         or not _timing_component(leaf)
         or struct.unpack_from("<i", leaf)[0] != 0x344C5149
-        or len(head) != 8 + (WIDTH + 1) * 8
+        or len(head) != 8 + (WIDTH + 1) * 4 * (7 if magic == DIRECTIONAL_MAGIC else 2)
     ):
         raise ValueError("Invalid learned sampling policy")
     marker, interval = struct.unpack_from("<if", head)
     if (
-        marker != 0x31504753
+        marker != (0x33504753 if magic == DIRECTIONAL_MAGIC else 0x31504753)
         or not 0.31999 <= interval <= 8.40001
         or not np.isfinite(np.frombuffer(head, "<f4", offset=8)).all()
     ):

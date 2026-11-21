@@ -1,0 +1,960 @@
+{
+  "scope": "Student-controlled recorded states with shadow suggestions on every input. The prospective native continuation is replayed on that recorded state sequence. Counts measure action agreement, not counterfactual outcomes.",
+  "source_sha256": "a26094a69d5216c07196dd3873d0aeb3f59864dfe4aab88f3d28990cd3719b7f",
+  "games": [
+    {
+      "source": "native-development/9567000",
+      "counts": {
+        "all/total": 12,
+        "all/two": 5,
+        "all/six": 9,
+        "all/new_six": 4,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 24,
+        "all/compared_native_ticks": 61,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 0,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 0,
+        "near_loss/compared_native_ticks": 0
+      }
+    },
+    {
+      "source": "native-development/9567002",
+      "counts": {
+        "all/total": 4,
+        "all/two": 3,
+        "all/six": 3,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 16,
+        "all/compared_native_ticks": 24,
+        "near_loss/total": 2,
+        "near_loss/two": 1,
+        "near_loss/six": 1,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 4,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9567003",
+      "counts": {
+        "all/total": 5,
+        "all/two": 2,
+        "all/six": 4,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 23,
+        "all/compared_native_ticks": 31,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 0,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 0,
+        "near_loss/compared_native_ticks": 0
+      }
+    },
+    {
+      "source": "native-development/9567004",
+      "counts": {
+        "all/total": 7,
+        "all/two": 6,
+        "all/six": 7,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 3,
+        "all/matching_native_ticks": 35,
+        "all/compared_native_ticks": 54
+      }
+    },
+    {
+      "source": "native-development/9567005",
+      "counts": {
+        "all/total": 4,
+        "all/two": 4,
+        "all/six": 4,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 27,
+        "all/compared_native_ticks": 34
+      }
+    },
+    {
+      "source": "native-development/9567008",
+      "counts": {
+        "all/total": 4,
+        "all/two": 1,
+        "all/six": 3,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 9,
+        "all/compared_native_ticks": 22
+      }
+    },
+    {
+      "source": "native-development/9567009",
+      "counts": {
+        "all/total": 6,
+        "all/two": 2,
+        "all/six": 4,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 20,
+        "all/compared_native_ticks": 29
+      }
+    },
+    {
+      "source": "native-development/9586000",
+      "counts": {
+        "all/total": 4,
+        "all/two": 1,
+        "all/six": 3,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 3,
+        "all/matching_native_ticks": 14,
+        "all/compared_native_ticks": 22,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 1,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 5,
+        "near_loss/compared_native_ticks": 7
+      }
+    },
+    {
+      "source": "native-development/9586004",
+      "counts": {
+        "all/total": 1,
+        "all/two": 0,
+        "all/six": 0,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 0,
+        "all/compared_native_ticks": 0,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 0,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 0,
+        "near_loss/compared_native_ticks": 0
+      }
+    },
+    {
+      "source": "native-development/9586005",
+      "counts": {
+        "all/total": 4,
+        "all/two": 0,
+        "all/six": 3,
+        "all/new_six": 3,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 12,
+        "all/compared_native_ticks": 21,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 3,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9586006",
+      "counts": {
+        "all/total": 2,
+        "all/two": 1,
+        "all/six": 1,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 8,
+        "all/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9586009",
+      "counts": {
+        "all/total": 1,
+        "all/two": 0,
+        "all/six": 1,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 2,
+        "all/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9587000",
+      "counts": {
+        "all/total": 11,
+        "all/two": 8,
+        "all/six": 11,
+        "all/new_six": 3,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 5,
+        "all/matching_native_ticks": 47,
+        "all/compared_native_ticks": 82,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 1,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9587002",
+      "counts": {
+        "all/total": 4,
+        "all/two": 1,
+        "all/six": 4,
+        "all/new_six": 3,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 12,
+        "all/compared_native_ticks": 32,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 1,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9587003",
+      "counts": {
+        "all/total": 2,
+        "all/two": 1,
+        "all/six": 2,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 13,
+        "all/compared_native_ticks": 16
+      }
+    },
+    {
+      "source": "native-development/9587004",
+      "counts": {
+        "all/total": 6,
+        "all/two": 3,
+        "all/six": 5,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 22,
+        "all/compared_native_ticks": 38
+      }
+    },
+    {
+      "source": "native-development/9587005",
+      "counts": {
+        "all/total": 2,
+        "all/two": 1,
+        "all/six": 1,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 8,
+        "all/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9587006",
+      "counts": {
+        "all/total": 4,
+        "all/two": 2,
+        "all/six": 2,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 11,
+        "all/compared_native_ticks": 12
+      }
+    },
+    {
+      "source": "native-development/9587008",
+      "counts": {
+        "all/total": 1,
+        "all/two": 0,
+        "all/six": 1,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 3,
+        "all/compared_native_ticks": 3,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 1,
+        "near_loss/new_entire_key_sequence": 1,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 3,
+        "near_loss/compared_native_ticks": 3
+      }
+    },
+    {
+      "source": "native-development/9587009",
+      "counts": {
+        "all/total": 5,
+        "all/two": 4,
+        "all/six": 5,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 21,
+        "all/compared_native_ticks": 34
+      }
+    },
+    {
+      "source": "native-development/9587010",
+      "counts": {
+        "all/total": 2,
+        "all/two": 1,
+        "all/six": 2,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 10,
+        "all/compared_native_ticks": 13
+      }
+    },
+    {
+      "source": "native-development/9587011",
+      "counts": {
+        "all/total": 1,
+        "all/two": 1,
+        "all/six": 1,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 4,
+        "all/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9587012",
+      "counts": {
+        "all/total": 4,
+        "all/two": 3,
+        "all/six": 4,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 19,
+        "all/compared_native_ticks": 31,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 3,
+        "near_loss/compared_native_ticks": 7
+      }
+    },
+    {
+      "source": "native-development/9587015",
+      "counts": {
+        "all/total": 2,
+        "all/two": 2,
+        "all/six": 2,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 6,
+        "all/compared_native_ticks": 13
+      }
+    },
+    {
+      "source": "native-development/9589900",
+      "counts": {
+        "all/total": 9,
+        "all/two": 5,
+        "all/six": 7,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 27,
+        "all/compared_native_ticks": 42,
+        "near_loss/total": 1,
+        "near_loss/two": 1,
+        "near_loss/six": 1,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 1,
+        "near_loss/compared_native_ticks": 5
+      }
+    },
+    {
+      "source": "native-development/9589902",
+      "counts": {
+        "all/total": 4,
+        "all/two": 2,
+        "all/six": 4,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 4,
+        "all/matching_native_ticks": 25,
+        "all/compared_native_ticks": 30
+      }
+    },
+    {
+      "source": "native-development/9589903",
+      "counts": {
+        "all/total": 8,
+        "all/two": 6,
+        "all/six": 8,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 40,
+        "all/compared_native_ticks": 64,
+        "near_loss/total": 1,
+        "near_loss/two": 1,
+        "near_loss/six": 1,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 7,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9589904",
+      "counts": {
+        "all/total": 41,
+        "all/two": 23,
+        "all/six": 32,
+        "all/new_six": 9,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 10,
+        "all/matching_native_ticks": 138,
+        "all/compared_native_ticks": 233,
+        "near_loss/total": 5,
+        "near_loss/two": 3,
+        "near_loss/six": 4,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 6,
+        "near_loss/compared_native_ticks": 27
+      }
+    },
+    {
+      "source": "native-development/9589905",
+      "counts": {
+        "all/total": 35,
+        "all/two": 21,
+        "all/six": 30,
+        "all/new_six": 9,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 11,
+        "all/matching_native_ticks": 133,
+        "all/compared_native_ticks": 235,
+        "near_loss/total": 4,
+        "near_loss/two": 2,
+        "near_loss/six": 3,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 13,
+        "near_loss/compared_native_ticks": 24
+      }
+    },
+    {
+      "source": "native-development/9589906",
+      "counts": {
+        "all/total": 58,
+        "all/two": 37,
+        "all/six": 50,
+        "all/new_six": 13,
+        "all/new_follow_horizontal_jump": 4,
+        "all/new_entire_key_sequence": 3,
+        "all/six_follow_horizontal_jump": 22,
+        "all/matching_native_ticks": 253,
+        "all/compared_native_ticks": 405,
+        "near_loss/total": 5,
+        "near_loss/two": 2,
+        "near_loss/six": 4,
+        "near_loss/new_six": 2,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 14,
+        "near_loss/compared_native_ticks": 33
+      }
+    },
+    {
+      "source": "native-development/9589908",
+      "counts": {
+        "all/total": 37,
+        "all/two": 29,
+        "all/six": 34,
+        "all/new_six": 5,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 17,
+        "all/matching_native_ticks": 192,
+        "all/compared_native_ticks": 272,
+        "near_loss/total": 4,
+        "near_loss/two": 1,
+        "near_loss/six": 2,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 1,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 11,
+        "near_loss/compared_native_ticks": 16
+      }
+    },
+    {
+      "source": "native-development/9589909",
+      "counts": {
+        "all/total": 48,
+        "all/two": 27,
+        "all/six": 38,
+        "all/new_six": 11,
+        "all/new_follow_horizontal_jump": 3,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 12,
+        "all/matching_native_ticks": 206,
+        "all/compared_native_ticks": 304,
+        "near_loss/total": 7,
+        "near_loss/two": 1,
+        "near_loss/six": 4,
+        "near_loss/new_six": 3,
+        "near_loss/new_follow_horizontal_jump": 1,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 16,
+        "near_loss/compared_native_ticks": 32
+      }
+    },
+    {
+      "source": "native-development/9590101",
+      "counts": {
+        "all/total": 22,
+        "all/two": 13,
+        "all/six": 18,
+        "all/new_six": 5,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 6,
+        "all/matching_native_ticks": 71,
+        "all/compared_native_ticks": 118,
+        "near_loss/total": 4,
+        "near_loss/two": 0,
+        "near_loss/six": 2,
+        "near_loss/new_six": 2,
+        "near_loss/new_follow_horizontal_jump": 1,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 6,
+        "near_loss/compared_native_ticks": 13
+      }
+    },
+    {
+      "source": "native-development/9590102",
+      "counts": {
+        "all/total": 9,
+        "all/two": 8,
+        "all/six": 9,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 42,
+        "all/compared_native_ticks": 65,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 1,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 4,
+        "near_loss/compared_native_ticks": 7
+      }
+    },
+    {
+      "source": "native-development/9590104",
+      "counts": {
+        "all/total": 8,
+        "all/two": 4,
+        "all/six": 4,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 15,
+        "all/compared_native_ticks": 28
+      }
+    },
+    {
+      "source": "native-development/9590105",
+      "counts": {
+        "all/total": 21,
+        "all/two": 15,
+        "all/six": 18,
+        "all/new_six": 3,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 4,
+        "all/matching_native_ticks": 57,
+        "all/compared_native_ticks": 121,
+        "near_loss/total": 3,
+        "near_loss/two": 3,
+        "near_loss/six": 3,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 8,
+        "near_loss/compared_native_ticks": 21
+      }
+    },
+    {
+      "source": "native-development/9590106",
+      "counts": {
+        "all/total": 13,
+        "all/two": 7,
+        "all/six": 12,
+        "all/new_six": 5,
+        "all/new_follow_horizontal_jump": 2,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 4,
+        "all/matching_native_ticks": 38,
+        "all/compared_native_ticks": 61,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 0,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 0,
+        "near_loss/compared_native_ticks": 0
+      }
+    },
+    {
+      "source": "native-development/9590107",
+      "counts": {
+        "all/total": 16,
+        "all/two": 11,
+        "all/six": 14,
+        "all/new_six": 3,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 5,
+        "all/matching_native_ticks": 62,
+        "all/compared_native_ticks": 100,
+        "near_loss/total": 4,
+        "near_loss/two": 3,
+        "near_loss/six": 4,
+        "near_loss/new_six": 1,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 1,
+        "near_loss/matching_native_ticks": 15,
+        "near_loss/compared_native_ticks": 28
+      }
+    },
+    {
+      "source": "native-development/9593005",
+      "counts": {
+        "all/total": 2,
+        "all/two": 1,
+        "all/six": 2,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 11,
+        "all/compared_native_ticks": 17
+      }
+    },
+    {
+      "source": "native-development/9691002",
+      "counts": {
+        "all/total": 6,
+        "all/two": 6,
+        "all/six": 6,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 35,
+        "all/compared_native_ticks": 47
+      }
+    },
+    {
+      "source": "native-development/9691003",
+      "counts": {
+        "all/total": 5,
+        "all/two": 3,
+        "all/six": 5,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 8,
+        "all/compared_native_ticks": 41,
+        "near_loss/total": 1,
+        "near_loss/two": 1,
+        "near_loss/six": 1,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 1,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9691004",
+      "counts": {
+        "all/total": 7,
+        "all/two": 3,
+        "all/six": 6,
+        "all/new_six": 3,
+        "all/new_follow_horizontal_jump": 1,
+        "all/new_entire_key_sequence": 1,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 32,
+        "all/compared_native_ticks": 48,
+        "near_loss/total": 1,
+        "near_loss/two": 0,
+        "near_loss/six": 0,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 0,
+        "near_loss/compared_native_ticks": 0
+      }
+    },
+    {
+      "source": "native-development/9691006",
+      "counts": {
+        "all/total": 9,
+        "all/two": 6,
+        "all/six": 8,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 40,
+        "all/compared_native_ticks": 63,
+        "near_loss/total": 1,
+        "near_loss/two": 1,
+        "near_loss/six": 1,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 4,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9691007",
+      "counts": {
+        "all/total": 2,
+        "all/two": 1,
+        "all/six": 2,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 3,
+        "all/compared_native_ticks": 16
+      }
+    },
+    {
+      "source": "native-development/9691008",
+      "counts": {
+        "all/total": 1,
+        "all/two": 1,
+        "all/six": 1,
+        "all/new_six": 0,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 6,
+        "all/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9691010",
+      "counts": {
+        "all/total": 6,
+        "all/two": 5,
+        "all/six": 6,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 1,
+        "all/matching_native_ticks": 22,
+        "all/compared_native_ticks": 48,
+        "near_loss/total": 1,
+        "near_loss/two": 1,
+        "near_loss/six": 1,
+        "near_loss/new_six": 0,
+        "near_loss/new_follow_horizontal_jump": 0,
+        "near_loss/new_entire_key_sequence": 0,
+        "near_loss/six_follow_horizontal_jump": 0,
+        "near_loss/matching_native_ticks": 3,
+        "near_loss/compared_native_ticks": 8
+      }
+    },
+    {
+      "source": "native-development/9691011",
+      "counts": {
+        "all/total": 6,
+        "all/two": 4,
+        "all/six": 5,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 25,
+        "all/compared_native_ticks": 39
+      }
+    },
+    {
+      "source": "native-development/9691012",
+      "counts": {
+        "all/total": 6,
+        "all/two": 4,
+        "all/six": 5,
+        "all/new_six": 1,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 35,
+        "all/compared_native_ticks": 43
+      }
+    },
+    {
+      "source": "native-development/9691014",
+      "counts": {
+        "all/total": 6,
+        "all/two": 4,
+        "all/six": 6,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 2,
+        "all/matching_native_ticks": 19,
+        "all/compared_native_ticks": 48
+      }
+    },
+    {
+      "source": "native-development/9691015",
+      "counts": {
+        "all/total": 3,
+        "all/two": 1,
+        "all/six": 3,
+        "all/new_six": 2,
+        "all/new_follow_horizontal_jump": 0,
+        "all/new_entire_key_sequence": 0,
+        "all/six_follow_horizontal_jump": 0,
+        "all/matching_native_ticks": 10,
+        "all/compared_native_ticks": 25
+      }
+    }
+  ],
+  "totals": {
+    "all/total": 486,
+    "all/two": 299,
+    "all/six": 415,
+    "all/new_six": 116,
+    "all/new_follow_horizontal_jump": 28,
+    "all/new_entire_key_sequence": 14,
+    "all/six_follow_horizontal_jump": 147,
+    "all/matching_native_ticks": 1911,
+    "all/compared_native_ticks": 3125,
+    "near_loss/total": 55,
+    "near_loss/two": 21,
+    "near_loss/six": 39,
+    "near_loss/new_six": 18,
+    "near_loss/new_follow_horizontal_jump": 5,
+    "near_loss/new_entire_key_sequence": 1,
+    "near_loss/six_follow_horizontal_jump": 7,
+    "near_loss/matching_native_ticks": 129,
+    "near_loss/compared_native_ticks": 287
+  }
+}

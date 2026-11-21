@@ -114,7 +114,10 @@ def main() -> None:
     has_teacher = bool(envs.get("HKRL_TACTICS_POLICY"))
     sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
     candidate = envs.get("HKRL_NATIVE_TRIAL_CANDIDATE")
-    sampler_path = envs.get("HKRL_NATIVE_OPTION_SAMPLER")
+    directional = envs.get("HKRL_NATIVE_DIRECTIONAL_SAMPLER")
+    if directional and envs.get("HKRL_NATIVE_OPTION_SAMPLER"):
+        raise ValueError("Conflicting option samplers")
+    sampler_path = directional or envs.get("HKRL_NATIVE_OPTION_SAMPLER")
     sampler = Path(sampler_path).read_bytes() if sampler_path else None
     if sampler is not None and (has_teacher or not sampling or candidate):
         raise ValueError(
@@ -204,7 +207,13 @@ def main() -> None:
                         raise ValueError(
                             "Randomized training requires original-speed student control"
                         )
-                    online = read_choices(
+                    read_online = read_choices
+                    if directional:
+                        from sisters_directional_options import read_menu
+
+                        read_online = read_menu
+                        controller["directional_groups"] = 6
+                    online = read_online(
                         tape_dir / f"{eid}.choices",
                         eid,
                         clock,

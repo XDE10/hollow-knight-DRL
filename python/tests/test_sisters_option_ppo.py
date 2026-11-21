@@ -89,8 +89,11 @@ def test_sampled_choice_receipt_binds_behavior_and_seed(tmp_path, ppo):
         choices.read_choices(path, 123, clock, state, applied, actions)
 
 
-def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
+@pytest.mark.parametrize("directional", [False, True])
+def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo, directional):
     timing = importlib.import_module("train_sisters_timing_iql")
+    trainer = importlib.import_module("train_sisters_directional_ppo") if directional else ppo
+    menu = importlib.import_module("sisters_directional_options")
     torch.set_num_threads(1)
     with torch.random.fork_rng():
         torch.manual_seed(22)
@@ -105,7 +108,7 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
     risk = tmp_path / "risk.bin"
     risk.write_bytes(struct.pack("<i", 0x314B5352) + bytes(193 * 4))
     sampler = tmp_path / "sampler.bin"
-    sampler.write_bytes(ppo.start_policy(risk))
+    sampler.write_bytes(trainer.initial_head(risk) if directional else ppo.start_policy(risk))
     projection = tmp_path / "risk-projection.npy"
     np.save(projection, np.eye(192, 10, dtype="f4"))
     (tmp_path / "training.json").write_text(
@@ -118,8 +121,12 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
             times = np.arange(150, dtype="f4") * 0.04
             state = np.random.default_rng(seed).normal(0, 0.2, (len(times), 192)).astype("f4")
             state[:, 4], state[:, 23] = 1, 1
+            if directional:
+                state[:, 7], state[:, 164] = 1, 0
             rows = np.array([25, 60, 100])
-            stops = np.searchsorted(times, times[rows] + np.float32(0.32))
+            stops = np.searchsorted(
+                times, times[rows] + (menu.HOLD_SECONDS if directional else np.float32(0.32))
+            )
             all_scores = actor(torch.from_numpy(timing.motion_history(times, state)))[0].numpy()
             samples = all_scores[rows]
             pairs = np.argsort(-samples, axis=1)
@@ -132,6 +139,27 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
                     applied[start + 1 : stops[j]] = catalogue.numpy()[0]
             observed = np.zeros((len(times), 8), "f4")
             observed[-1, 6 if seed % 2 else 7] = 1
+            if directional:
+                slots, primary = menu.menu_slots(samples, catalogue.numpy(), state[rows])
+                sampled = np.argmax(slots == pairs[np.arange(len(rows)), draws, None], axis=1)
+                logits = menu.menu_logits(
+                    np.zeros((len(rows), 192)), np.zeros((6, 193)), slots, primary
+                )
+                trace = {
+                    "menu_draw": sampled,
+                    "menu_primary": primary,
+                    "menu_slots": slots,
+                    "menu_risk": np.zeros(len(rows)),
+                    "menu_probability": menu.behavior_probabilities(logits),
+                }
+            else:
+                trace = {
+                    "choice_draw": draws,
+                    "choice_probability": np.full(len(rows), 0.5),
+                    "choice_pairs": pairs,
+                    "choice_scores": np.take_along_axis(samples, pairs, axis=1),
+                    "choice_risk": np.zeros(len(rows)),
+                }
             buf = io.BytesIO()
             np.savez(
                 buf,
@@ -143,11 +171,7 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
                 elapsed_ticks=np.full(len(times), 2),
                 choice_rows=rows,
                 choice_hold_stop=stops,
-                choice_draw=draws,
-                choice_probability=np.full(len(rows), 0.5),
-                choice_pairs=pairs,
-                choice_scores=np.take_along_axis(samples, pairs, axis=1),
-                choice_risk=np.zeros(len(rows)),
+                **trace,
             )
             name = f"fight-{seed}.npz"
             z.writestr(name, buf.getvalue())
@@ -157,6 +181,11 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
                     "split": "train",
                     "teacher_labels": False,
                     "sampler_sha256": ppo.sha(sampler),
+                    **(
+                        {"sampler_draw_seed": seed + 31, "directional_groups": 6}
+                        if directional
+                        else {}
+                    ),
                     "behavior_policy_sha256": ppo.sha(base),
                     "won": bool(seed % 2),
                     "file": name,
@@ -165,11 +194,11 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
             )
         z.writestr("manifest.json", json.dumps(manifest))
     output = tmp_path / "result"
-    ppo.train(archive, base, learner, sampler, tmp_path, output)
+    trainer.train(archive, base, learner, sampler, tmp_path, output)
     metrics = json.loads((output / "training.json").read_bytes())
     assert metrics["rollout_games"] == 4 and metrics["decisions"] == 12
     assert (
-        metrics["accepted_ppo_epochs"] > 0
+        metrics["epochs" if directional else "accepted_ppo_epochs"] > 0
         and metrics["sampler_input_sha256"] != metrics["sampler_sha256"]
     )
     _, trio = timing.phase_components((output / "world_iql.bin").read_bytes())
@@ -181,12 +210,12 @@ def test_on_policy_pack_preserves_training_role_and_rejects_mixed_heads(tmp_path
     pack = importlib.import_module("pack_sisters_timing_replay").pack
     entries = []
     for i, seed in enumerate((1000, 1001)):
-        meta = dict(
-            behavior_policy_sha256="b" * 64,
-            sampler_sha256="c" * 64,
-            sampler_draw_seed=seed + 30,
-            teacher_labels=False,
-        )
+        meta = {
+            "behavior_policy_sha256": "b" * 64,
+            "sampler_sha256": "c" * 64,
+            "sampler_draw_seed": seed + 30,
+            "teacher_labels": False,
+        }
         observation = np.zeros((3, 192), "f4")
         observation[:, 24] = 1
         np.savez(
