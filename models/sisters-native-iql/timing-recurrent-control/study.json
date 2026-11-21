@@ -1,0 +1,26 @@
+{
+  "training_fights": 148,
+  "heldout_fights": 35,
+  "parts": 22,
+  "sha256": "a26094a69d5216c07196dd3873d0aeb3f59864dfe4aab88f3d28990cd3719b7f",
+  "updates": 1500,
+  "batch": 24,
+  "seed": 71964,
+  "variants": [
+    "raw",
+    "instant",
+    "encoded"
+  ],
+  "method": "Residual recurrent actor and critic trained on actual four-second discounted returns and world-assisted one-step values. Use a matched instantaneous model and a frozen-embedding recurrent model as controls. Hidden state resets at trio entry, observation gaps and 3.2 game seconds. Identical base opening.",
+  "selection": "Deploy only the fixed raw-state recurrent variant if both teacher-free mean future-mask and safe-output Brier losses improve relative to its instantaneous control; between 0.1% and 25% of valid held inputs may change; issued-teacher horizontal accuracy must remain within three percentage points. Frozen real fights then determine both targets.",
+  "scripts": {
+    "train_sisters_memory_residual.py": "603b1275dd982dac57f7373c540e071dce779b332832752cf40f279184ca8cd4",
+    "train_sisters_timing_iql.py": "0a0761e1fd81a745f961d522e59255aed44b7ced726595b740acd839bd70f370",
+    "train_sisters_native_iql.py": "5ab7448cfdd4c54c9efedf4219cdf89b2dd193c1fd01adb362c0b80746d7fe69",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22"
+  },
+  "assets": {
+    "warmstart.pt": "037b4c3f83fb68ed95d158c60bcd8d692d1db9eaad7b573a517b1a122331fc4a",
+    "opener.bin": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c"
+  }
+}

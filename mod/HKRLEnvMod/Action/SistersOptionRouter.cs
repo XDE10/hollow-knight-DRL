@@ -30,6 +30,7 @@ namespace HKRLEnvMod.Action
             int magic = reader.ReadInt32();
             reader.BaseStream.Position = 0;
             router = null;
+            if (magic == SistersMemoryResidual.Magic) return SistersMemoryResidual.Read(reader);
             if (magic == SistersFocusOption.Magic) return SistersFocusOption.Read(reader);
             if (magic == SistersCompoundOption.Magic)
             {

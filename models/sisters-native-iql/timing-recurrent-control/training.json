@@ -1,0 +1,2036 @@
+{
+  "method": "Recurrent advantage-weighted offline actor-critic on native actions, with real four-second returns and a frozen world-assisted one-step target. Whole continuous blocks are replayed from zero state. Only the raw-state actor is eligible for deployment.",
+  "hardware": "NVIDIA L4",
+  "updates_per_variant": 1500,
+  "variants": {
+    "raw": {
+      "native-development/9526007": {
+        "teacher_free": false,
+        "factual_inputs": 3000,
+        "changed_inputs": 64,
+        "issued_teacher_inputs": 3000,
+        "correct_teacher_direction": 2576,
+        "base_correct_teacher_direction": 2568,
+        "matched_teacher_key": 2395,
+        "base_matched_teacher_key": 2383,
+        "return_weighted_shift": -0.002151876250749389,
+        "brier": [
+          0.03231091532505139,
+          0.14831135605170612
+        ],
+        "event_windows": [
+          3162,
+          3079
+        ]
+      },
+      "native-development/9526013": {
+        "teacher_free": false,
+        "factual_inputs": 1415,
+        "changed_inputs": 24,
+        "issued_teacher_inputs": 1415,
+        "correct_teacher_direction": 1189,
+        "base_correct_teacher_direction": 1183,
+        "matched_teacher_key": 1084,
+        "base_matched_teacher_key": 1076,
+        "return_weighted_shift": -0.0014141558496120323,
+        "brier": [
+          0.03248701459453087,
+          0.10252605560772356
+        ],
+        "event_windows": [
+          2143,
+          1718
+        ]
+      },
+      "native-development/9558001": {
+        "teacher_free": false,
+        "factual_inputs": 2,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 2,
+        "correct_teacher_direction": 2,
+        "base_correct_teacher_direction": 2,
+        "matched_teacher_key": 2,
+        "base_matched_teacher_key": 2,
+        "return_weighted_shift": -0.0005234201089479029,
+        "brier": [
+          0.010465892435735967,
+          0.11015043740576887
+        ],
+        "event_windows": [
+          332,
+          141
+        ]
+      },
+      "native-development/9558007": {
+        "teacher_free": false,
+        "factual_inputs": 147,
+        "changed_inputs": 2,
+        "issued_teacher_inputs": 147,
+        "correct_teacher_direction": 125,
+        "base_correct_teacher_direction": 124,
+        "matched_teacher_key": 108,
+        "base_matched_teacher_key": 108,
+        "return_weighted_shift": -0.002119291304552462,
+        "brier": [
+          0.027108158737664936,
+          0.07746736913456885
+        ],
+        "event_windows": [
+          1283,
+          451
+        ]
+      },
+      "native-development/9558013": {
+        "teacher_free": false,
+        "factual_inputs": 1622,
+        "changed_inputs": 34,
+        "issued_teacher_inputs": 1622,
+        "correct_teacher_direction": 1397,
+        "base_correct_teacher_direction": 1397,
+        "matched_teacher_key": 1295,
+        "base_matched_teacher_key": 1293,
+        "return_weighted_shift": 0.008473108271109244,
+        "brier": [
+          0.004570631244144233,
+          0.10997686600150015
+        ],
+        "event_windows": [
+          2673,
+          2005
+        ]
+      },
+      "native-development/9567001": {
+        "teacher_free": false,
+        "factual_inputs": 862,
+        "changed_inputs": 17,
+        "issued_teacher_inputs": 377,
+        "correct_teacher_direction": 317,
+        "base_correct_teacher_direction": 317,
+        "matched_teacher_key": 289,
+        "base_matched_teacher_key": 290,
+        "return_weighted_shift": 0.01039382543074473,
+        "brier": [
+          0.048699080028843864,
+          0.10242792611702235
+        ],
+        "event_windows": [
+          1677,
+          1159
+        ]
+      },
+      "native-development/9567007": {
+        "teacher_free": false,
+        "factual_inputs": 1846,
+        "changed_inputs": 34,
+        "issued_teacher_inputs": 1004,
+        "correct_teacher_direction": 837,
+        "base_correct_teacher_direction": 834,
+        "matched_teacher_key": 774,
+        "base_matched_teacher_key": 767,
+        "return_weighted_shift": -0.005540207912433402,
+        "brier": [
+          0.04209709858270718,
+          0.16508077080173378
+        ],
+        "event_windows": [
+          2485,
+          2153
+        ]
+      },
+      "native-development/9586001": {
+        "teacher_free": false,
+        "factual_inputs": 59,
+        "changed_inputs": 1,
+        "issued_teacher_inputs": 25,
+        "correct_teacher_direction": 15,
+        "base_correct_teacher_direction": 15,
+        "matched_teacher_key": 13,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": -0.12945808895996638,
+        "brier": [
+          0.043140424059535804,
+          0.38985267905301824
+        ],
+        "event_windows": [
+          853,
+          215
+        ]
+      },
+      "native-development/9586007": {
+        "teacher_free": false,
+        "factual_inputs": 14,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 14,
+        "correct_teacher_direction": 13,
+        "base_correct_teacher_direction": 13,
+        "matched_teacher_key": 13,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": -0.007008916552357343,
+        "brier": [
+          0.04834947043231556,
+          0.150661867492053
+        ],
+        "event_windows": [
+          224,
+          49
+        ]
+      },
+      "native-development/9587001": {
+        "teacher_free": false,
+        "factual_inputs": 1394,
+        "changed_inputs": 19,
+        "issued_teacher_inputs": 461,
+        "correct_teacher_direction": 390,
+        "base_correct_teacher_direction": 389,
+        "matched_teacher_key": 367,
+        "base_matched_teacher_key": 366,
+        "return_weighted_shift": -0.0018854542678872937,
+        "brier": [
+          0.027984615312198202,
+          0.15013727246413586
+        ],
+        "event_windows": [
+          2709,
+          1832
+        ]
+      },
+      "native-development/9587007": {
+        "teacher_free": false,
+        "factual_inputs": 55,
+        "changed_inputs": 2,
+        "issued_teacher_inputs": 19,
+        "correct_teacher_direction": 16,
+        "base_correct_teacher_direction": 16,
+        "matched_teacher_key": 12,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": 0.2620336359197443,
+        "brier": [
+          0.196159927299739,
+          0.37941336998572717
+        ],
+        "event_windows": [
+          223,
+          65
+        ]
+      },
+      "native-development/9587013": {
+        "teacher_free": false,
+        "factual_inputs": 2,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.051698654890060425,
+        "brier": [
+          0.09575804210194916,
+          0.06717078387737274
+        ],
+        "event_windows": [
+          204,
+          2
+        ]
+      },
+      "native-development/9589901": {
+        "teacher_free": false,
+        "factual_inputs": 3,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.06839639530517161,
+        "brier": [
+          0.09845966465619145,
+          0.16774942725896835
+        ],
+        "event_windows": [
+          392,
+          64
+        ]
+      },
+      "native-development/9589907": {
+        "teacher_free": false,
+        "factual_inputs": 1992,
+        "changed_inputs": 37,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0024735877724818825,
+        "brier": [
+          0.05891887140096785,
+          0.17787712421196308
+        ],
+        "event_windows": [
+          2152,
+          2072
+        ]
+      },
+      "native-development/9590103": {
+        "teacher_free": false,
+        "factual_inputs": 1,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.6814565658569336,
+        "brier": [
+          0.19892572655397303,
+          0.6700322031974792
+        ],
+        "event_windows": [
+          68,
+          1
+        ]
+      },
+      "native-development/9592001": {
+        "teacher_free": false,
+        "factual_inputs": 3588,
+        "changed_inputs": 47,
+        "issued_teacher_inputs": 3588,
+        "correct_teacher_direction": 3170,
+        "base_correct_teacher_direction": 3162,
+        "matched_teacher_key": 2987,
+        "base_matched_teacher_key": 2980,
+        "return_weighted_shift": 0.00011453804864904704,
+        "brier": [
+          0.012492940643825126,
+          0.1255715284060475
+        ],
+        "event_windows": [
+          3588,
+          3588
+        ]
+      },
+      "native-development/9592007": {
+        "teacher_free": false,
+        "factual_inputs": 3617,
+        "changed_inputs": 54,
+        "issued_teacher_inputs": 3617,
+        "correct_teacher_direction": 3192,
+        "base_correct_teacher_direction": 3186,
+        "matched_teacher_key": 3024,
+        "base_matched_teacher_key": 3012,
+        "return_weighted_shift": -0.0005607547374401808,
+        "brier": [
+          0.015532889878977258,
+          0.15293112689696658
+        ],
+        "event_windows": [
+          3617,
+          3617
+        ]
+      },
+      "native-development/9593001": {
+        "teacher_free": false,
+        "factual_inputs": 2510,
+        "changed_inputs": 45,
+        "issued_teacher_inputs": 1579,
+        "correct_teacher_direction": 1320,
+        "base_correct_teacher_direction": 1313,
+        "matched_teacher_key": 1223,
+        "base_matched_teacher_key": 1213,
+        "return_weighted_shift": 0.0021015397482890804,
+        "brier": [
+          0.03165280241622502,
+          0.14663321739087828
+        ],
+        "event_windows": [
+          2705,
+          2591
+        ]
+      },
+      "native-development/9593007": {
+        "teacher_free": false,
+        "factual_inputs": 1161,
+        "changed_inputs": 28,
+        "issued_teacher_inputs": 744,
+        "correct_teacher_direction": 602,
+        "base_correct_teacher_direction": 603,
+        "matched_teacher_key": 544,
+        "base_matched_teacher_key": 543,
+        "return_weighted_shift": 0.004603630255076511,
+        "brier": [
+          0.07236208274147728,
+          0.1313918701171875
+        ],
+        "event_windows": [
+          1375,
+          1250
+        ]
+      },
+      "native-development/9631001": {
+        "teacher_free": true,
+        "factual_inputs": 2746,
+        "changed_inputs": 43,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.0008811686909240556,
+        "brier": [
+          0.05066218504305439,
+          0.18235032847692706
+        ],
+        "event_windows": [
+          2828,
+          2786
+        ]
+      },
+      "native-development/9631007": {
+        "teacher_free": true,
+        "factual_inputs": 2767,
+        "changed_inputs": 44,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.0006821441953866939,
+        "brier": [
+          0.053820316051377,
+          0.14983582712055588
+        ],
+        "event_windows": [
+          2767,
+          2767
+        ]
+      },
+      "native-development/9632001": {
+        "teacher_free": true,
+        "factual_inputs": 3446,
+        "changed_inputs": 56,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.00020857241309437484,
+        "brier": [
+          0.02284185794475668,
+          0.18710075899300327
+        ],
+        "event_windows": [
+          3528,
+          3486
+        ]
+      },
+      "native-development/9632007": {
+        "teacher_free": true,
+        "factual_inputs": 2577,
+        "changed_inputs": 42,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0023395619804773083,
+        "brier": [
+          0.031348902374875864,
+          0.12066590918080698
+        ],
+        "event_windows": [
+          2659,
+          2617
+        ]
+      },
+      "native-development/9691001": {
+        "teacher_free": false,
+        "factual_inputs": 309,
+        "changed_inputs": 4,
+        "issued_teacher_inputs": 173,
+        "correct_teacher_direction": 153,
+        "base_correct_teacher_direction": 154,
+        "matched_teacher_key": 149,
+        "base_matched_teacher_key": 150,
+        "return_weighted_shift": -0.0060487280254958,
+        "brier": [
+          0.035801810669333994,
+          0.18774798785938937
+        ],
+        "event_windows": [
+          691,
+          425
+        ]
+      },
+      "native-development/9691005": {
+        "teacher_free": false,
+        "factual_inputs": 1585,
+        "changed_inputs": 30,
+        "issued_teacher_inputs": 774,
+        "correct_teacher_direction": 653,
+        "base_correct_teacher_direction": 656,
+        "matched_teacher_key": 593,
+        "base_matched_teacher_key": 589,
+        "return_weighted_shift": 0.005987359473934281,
+        "brier": [
+          0.014046924649798441,
+          0.1076507607686151
+        ],
+        "event_windows": [
+          2533,
+          1940
+        ]
+      },
+      "native-development/9691009": {
+        "teacher_free": false,
+        "factual_inputs": 2831,
+        "changed_inputs": 45,
+        "issued_teacher_inputs": 1499,
+        "correct_teacher_direction": 1309,
+        "base_correct_teacher_direction": 1311,
+        "matched_teacher_key": 1208,
+        "base_matched_teacher_key": 1207,
+        "return_weighted_shift": -0.0017975207359071763,
+        "brier": [
+          0.02860475186646508,
+          0.12675515834853532
+        ],
+        "event_windows": [
+          3188,
+          2955
+        ]
+      },
+      "native-development/9691013": {
+        "teacher_free": false,
+        "factual_inputs": 1447,
+        "changed_inputs": 23,
+        "issued_teacher_inputs": 692,
+        "correct_teacher_direction": 612,
+        "base_correct_teacher_direction": 611,
+        "matched_teacher_key": 563,
+        "base_matched_teacher_key": 559,
+        "return_weighted_shift": -0.002920045890759412,
+        "brier": [
+          0.009260528456759863,
+          0.0719400689452297
+        ],
+        "event_windows": [
+          2267,
+          1769
+        ]
+      },
+      "native-development/9713001": {
+        "teacher_free": true,
+        "factual_inputs": 2459,
+        "changed_inputs": 38,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.004413720320290445,
+        "brier": [
+          0.049050162409611374,
+          0.17857437164815473
+        ],
+        "event_windows": [
+          2459,
+          2459
+        ]
+      },
+      "native-development/9713005": {
+        "teacher_free": true,
+        "factual_inputs": 2747,
+        "changed_inputs": 39,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.002028239785267453,
+        "brier": [
+          0.04420314548577141,
+          0.18320910853388356
+        ],
+        "event_windows": [
+          2747,
+          2747
+        ]
+      },
+      "native-development/9713009": {
+        "teacher_free": true,
+        "factual_inputs": 3133,
+        "changed_inputs": 62,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0022799852581946536,
+        "brier": [
+          0.034158520983158115,
+          0.11274657384907137
+        ],
+        "event_windows": [
+          3133,
+          3133
+        ]
+      },
+      "native-development/9756001": {
+        "teacher_free": false,
+        "factual_inputs": 3276,
+        "changed_inputs": 30,
+        "issued_teacher_inputs": 3276,
+        "correct_teacher_direction": 2883,
+        "base_correct_teacher_direction": 2877,
+        "matched_teacher_key": 2692,
+        "base_matched_teacher_key": 2684,
+        "return_weighted_shift": -0.0026198215155144172,
+        "brier": [
+          0.0030321005125378453,
+          0.12684495855429176
+        ],
+        "event_windows": [
+          3440,
+          3356
+        ]
+      },
+      "native-development/9761001": {
+        "teacher_free": true,
+        "factual_inputs": 2672,
+        "changed_inputs": 43,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.001055335731185528,
+        "brier": [
+          0.04147255519703004,
+          0.14363466673544376
+        ],
+        "event_windows": [
+          2769,
+          2712
+        ]
+      },
+      "native-development/9761007": {
+        "teacher_free": true,
+        "factual_inputs": 1649,
+        "changed_inputs": 42,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.00957953906572495,
+        "brier": [
+          0.08064485987371822,
+          0.2503671685642854
+        ],
+        "event_windows": [
+          1731,
+          1689
+        ]
+      },
+      "native-development/9761013": {
+        "teacher_free": true,
+        "factual_inputs": 3024,
+        "changed_inputs": 60,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0042312298065576796,
+        "brier": [
+          0.03571849651437588,
+          0.14493090008932447
+        ],
+        "event_windows": [
+          3024,
+          3024
+        ]
+      },
+      "native-development/9761019": {
+        "teacher_free": true,
+        "factual_inputs": 1686,
+        "changed_inputs": 35,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.012631233041371896,
+        "brier": [
+          0.0812822402332703,
+          0.236482640130495
+        ],
+        "event_windows": [
+          1768,
+          1726
+        ]
+      }
+    },
+    "instant": {
+      "native-development/9526007": {
+        "teacher_free": false,
+        "factual_inputs": 3000,
+        "changed_inputs": 60,
+        "issued_teacher_inputs": 3000,
+        "correct_teacher_direction": 2575,
+        "base_correct_teacher_direction": 2568,
+        "matched_teacher_key": 2392,
+        "base_matched_teacher_key": 2383,
+        "return_weighted_shift": -0.0018003351439840544,
+        "brier": [
+          0.03162613132194505,
+          0.1397143293023303
+        ],
+        "event_windows": [
+          3162,
+          3079
+        ]
+      },
+      "native-development/9526013": {
+        "teacher_free": false,
+        "factual_inputs": 1415,
+        "changed_inputs": 29,
+        "issued_teacher_inputs": 1415,
+        "correct_teacher_direction": 1190,
+        "base_correct_teacher_direction": 1183,
+        "matched_teacher_key": 1089,
+        "base_matched_teacher_key": 1076,
+        "return_weighted_shift": -0.0016982181843309436,
+        "brier": [
+          0.03463923944333308,
+          0.1111346640048399
+        ],
+        "event_windows": [
+          2143,
+          1718
+        ]
+      },
+      "native-development/9558001": {
+        "teacher_free": false,
+        "factual_inputs": 2,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 2,
+        "correct_teacher_direction": 2,
+        "base_correct_teacher_direction": 2,
+        "matched_teacher_key": 2,
+        "base_matched_teacher_key": 2,
+        "return_weighted_shift": 0.0001051360450219363,
+        "brier": [
+          0.012807385039414806,
+          0.1049336241492143
+        ],
+        "event_windows": [
+          332,
+          141
+        ]
+      },
+      "native-development/9558007": {
+        "teacher_free": false,
+        "factual_inputs": 147,
+        "changed_inputs": 2,
+        "issued_teacher_inputs": 147,
+        "correct_teacher_direction": 125,
+        "base_correct_teacher_direction": 124,
+        "matched_teacher_key": 108,
+        "base_matched_teacher_key": 108,
+        "return_weighted_shift": -0.0022040182288037614,
+        "brier": [
+          0.026791203789563962,
+          0.07478049893072598
+        ],
+        "event_windows": [
+          1283,
+          451
+        ]
+      },
+      "native-development/9558013": {
+        "teacher_free": false,
+        "factual_inputs": 1622,
+        "changed_inputs": 30,
+        "issued_teacher_inputs": 1622,
+        "correct_teacher_direction": 1400,
+        "base_correct_teacher_direction": 1397,
+        "matched_teacher_key": 1300,
+        "base_matched_teacher_key": 1293,
+        "return_weighted_shift": 0.008665495261947903,
+        "brier": [
+          0.004540641712330719,
+          0.1104686213847705
+        ],
+        "event_windows": [
+          2673,
+          2005
+        ]
+      },
+      "native-development/9567001": {
+        "teacher_free": false,
+        "factual_inputs": 862,
+        "changed_inputs": 17,
+        "issued_teacher_inputs": 377,
+        "correct_teacher_direction": 317,
+        "base_correct_teacher_direction": 317,
+        "matched_teacher_key": 289,
+        "base_matched_teacher_key": 290,
+        "return_weighted_shift": 0.02037809101004475,
+        "brier": [
+          0.04940703911090366,
+          0.10416425518993677
+        ],
+        "event_windows": [
+          1677,
+          1159
+        ]
+      },
+      "native-development/9567007": {
+        "teacher_free": false,
+        "factual_inputs": 1846,
+        "changed_inputs": 34,
+        "issued_teacher_inputs": 1004,
+        "correct_teacher_direction": 839,
+        "base_correct_teacher_direction": 834,
+        "matched_teacher_key": 775,
+        "base_matched_teacher_key": 767,
+        "return_weighted_shift": -0.0013899944244174782,
+        "brier": [
+          0.04251342865542867,
+          0.16510729118662548
+        ],
+        "event_windows": [
+          2485,
+          2153
+        ]
+      },
+      "native-development/9586001": {
+        "teacher_free": false,
+        "factual_inputs": 59,
+        "changed_inputs": 1,
+        "issued_teacher_inputs": 25,
+        "correct_teacher_direction": 15,
+        "base_correct_teacher_direction": 15,
+        "matched_teacher_key": 13,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": -0.22327223792672157,
+        "brier": [
+          0.04317931276238398,
+          0.38324030942695086
+        ],
+        "event_windows": [
+          853,
+          215
+        ]
+      },
+      "native-development/9586007": {
+        "teacher_free": false,
+        "factual_inputs": 14,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 14,
+        "correct_teacher_direction": 13,
+        "base_correct_teacher_direction": 13,
+        "matched_teacher_key": 13,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": -0.004883866211977355,
+        "brier": [
+          0.049082935388599126,
+          0.1418207445923163
+        ],
+        "event_windows": [
+          224,
+          49
+        ]
+      },
+      "native-development/9587001": {
+        "teacher_free": false,
+        "factual_inputs": 1394,
+        "changed_inputs": 21,
+        "issued_teacher_inputs": 461,
+        "correct_teacher_direction": 390,
+        "base_correct_teacher_direction": 389,
+        "matched_teacher_key": 366,
+        "base_matched_teacher_key": 366,
+        "return_weighted_shift": -0.0024301109778516344,
+        "brier": [
+          0.029120261222949192,
+          0.1511746077558359
+        ],
+        "event_windows": [
+          2709,
+          1832
+        ]
+      },
+      "native-development/9587007": {
+        "teacher_free": false,
+        "factual_inputs": 55,
+        "changed_inputs": 2,
+        "issued_teacher_inputs": 19,
+        "correct_teacher_direction": 15,
+        "base_correct_teacher_direction": 16,
+        "matched_teacher_key": 12,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": 0.3345650066028942,
+        "brier": [
+          0.18353663217861022,
+          0.3641758258526142
+        ],
+        "event_windows": [
+          223,
+          65
+        ]
+      },
+      "native-development/9587013": {
+        "teacher_free": false,
+        "factual_inputs": 2,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.1371770054101944,
+        "brier": [
+          0.09435185621316801,
+          0.014724107459187508
+        ],
+        "event_windows": [
+          204,
+          2
+        ]
+      },
+      "native-development/9589901": {
+        "teacher_free": false,
+        "factual_inputs": 3,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.36737180955242366,
+        "brier": [
+          0.10536843416642169,
+          0.18392231315374374
+        ],
+        "event_windows": [
+          392,
+          64
+        ]
+      },
+      "native-development/9589907": {
+        "teacher_free": false,
+        "factual_inputs": 1992,
+        "changed_inputs": 40,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.004136013153730704,
+        "brier": [
+          0.06058044149973135,
+          0.17962705398618484
+        ],
+        "event_windows": [
+          2152,
+          2072
+        ]
+      },
+      "native-development/9590103": {
+        "teacher_free": false,
+        "factual_inputs": 1,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.019709110260009766,
+        "brier": [
+          0.2088057626696194,
+          0.7659388780593872
+        ],
+        "event_windows": [
+          68,
+          1
+        ]
+      },
+      "native-development/9592001": {
+        "teacher_free": false,
+        "factual_inputs": 3588,
+        "changed_inputs": 55,
+        "issued_teacher_inputs": 3588,
+        "correct_teacher_direction": 3171,
+        "base_correct_teacher_direction": 3162,
+        "matched_teacher_key": 2988,
+        "base_matched_teacher_key": 2980,
+        "return_weighted_shift": 9.134642668199037e-05,
+        "brier": [
+          0.01262187741804814,
+          0.12014975064042685
+        ],
+        "event_windows": [
+          3588,
+          3588
+        ]
+      },
+      "native-development/9592007": {
+        "teacher_free": false,
+        "factual_inputs": 3617,
+        "changed_inputs": 47,
+        "issued_teacher_inputs": 3617,
+        "correct_teacher_direction": 3193,
+        "base_correct_teacher_direction": 3186,
+        "matched_teacher_key": 3028,
+        "base_matched_teacher_key": 3012,
+        "return_weighted_shift": 0.0010757890874660775,
+        "brier": [
+          0.01553746920314849,
+          0.15369140861243347
+        ],
+        "event_windows": [
+          3617,
+          3617
+        ]
+      },
+      "native-development/9593001": {
+        "teacher_free": false,
+        "factual_inputs": 2510,
+        "changed_inputs": 35,
+        "issued_teacher_inputs": 1579,
+        "correct_teacher_direction": 1319,
+        "base_correct_teacher_direction": 1313,
+        "matched_teacher_key": 1219,
+        "base_matched_teacher_key": 1213,
+        "return_weighted_shift": 0.002183377027715897,
+        "brier": [
+          0.03131429633459631,
+          0.14486149589512073
+        ],
+        "event_windows": [
+          2705,
+          2591
+        ]
+      },
+      "native-development/9593007": {
+        "teacher_free": false,
+        "factual_inputs": 1161,
+        "changed_inputs": 30,
+        "issued_teacher_inputs": 744,
+        "correct_teacher_direction": 603,
+        "base_correct_teacher_direction": 603,
+        "matched_teacher_key": 545,
+        "base_matched_teacher_key": 543,
+        "return_weighted_shift": 0.006795995710528805,
+        "brier": [
+          0.07123469127308239,
+          0.13239473876953126
+        ],
+        "event_windows": [
+          1375,
+          1250
+        ]
+      },
+      "native-development/9631001": {
+        "teacher_free": true,
+        "factual_inputs": 2746,
+        "changed_inputs": 50,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.00031839956046543933,
+        "brier": [
+          0.051173409781665076,
+          0.179637988351355
+        ],
+        "event_windows": [
+          2828,
+          2786
+        ]
+      },
+      "native-development/9631007": {
+        "teacher_free": true,
+        "factual_inputs": 2767,
+        "changed_inputs": 43,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.0006944175362112794,
+        "brier": [
+          0.053514784580971045,
+          0.14789695174503636
+        ],
+        "event_windows": [
+          2767,
+          2767
+        ]
+      },
+      "native-development/9632001": {
+        "teacher_free": true,
+        "factual_inputs": 3446,
+        "changed_inputs": 56,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.00019930462785816374,
+        "brier": [
+          0.023167110624767485,
+          0.18313084753915215
+        ],
+        "event_windows": [
+          3528,
+          3486
+        ]
+      },
+      "native-development/9632007": {
+        "teacher_free": true,
+        "factual_inputs": 2577,
+        "changed_inputs": 37,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0027271862494455076,
+        "brier": [
+          0.031047689058404975,
+          0.13218368279555848
+        ],
+        "event_windows": [
+          2659,
+          2617
+        ]
+      },
+      "native-development/9691001": {
+        "teacher_free": false,
+        "factual_inputs": 309,
+        "changed_inputs": 3,
+        "issued_teacher_inputs": 173,
+        "correct_teacher_direction": 154,
+        "base_correct_teacher_direction": 154,
+        "matched_teacher_key": 150,
+        "base_matched_teacher_key": 150,
+        "return_weighted_shift": -0.012011186886823714,
+        "brier": [
+          0.03585897820601415,
+          0.19993645107044894
+        ],
+        "event_windows": [
+          691,
+          425
+        ]
+      },
+      "native-development/9691005": {
+        "teacher_free": false,
+        "factual_inputs": 1585,
+        "changed_inputs": 29,
+        "issued_teacher_inputs": 774,
+        "correct_teacher_direction": 655,
+        "base_correct_teacher_direction": 656,
+        "matched_teacher_key": 593,
+        "base_matched_teacher_key": 589,
+        "return_weighted_shift": 0.005255968557239252,
+        "brier": [
+          0.014038972971329236,
+          0.1039460998220542
+        ],
+        "event_windows": [
+          2533,
+          1940
+        ]
+      },
+      "native-development/9691009": {
+        "teacher_free": false,
+        "factual_inputs": 2831,
+        "changed_inputs": 49,
+        "issued_teacher_inputs": 1499,
+        "correct_teacher_direction": 1310,
+        "base_correct_teacher_direction": 1311,
+        "matched_teacher_key": 1210,
+        "base_matched_teacher_key": 1207,
+        "return_weighted_shift": 0.0002859439168657575,
+        "brier": [
+          0.028788852422419874,
+          0.123857201900579
+        ],
+        "event_windows": [
+          3188,
+          2955
+        ]
+      },
+      "native-development/9691013": {
+        "teacher_free": false,
+        "factual_inputs": 1447,
+        "changed_inputs": 22,
+        "issued_teacher_inputs": 692,
+        "correct_teacher_direction": 612,
+        "base_correct_teacher_direction": 611,
+        "matched_teacher_key": 564,
+        "base_matched_teacher_key": 559,
+        "return_weighted_shift": -0.0008411964517137467,
+        "brier": [
+          0.009020417915549528,
+          0.07337175674395348
+        ],
+        "event_windows": [
+          2267,
+          1769
+        ]
+      },
+      "native-development/9713001": {
+        "teacher_free": true,
+        "factual_inputs": 2459,
+        "changed_inputs": 35,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.003471210305720621,
+        "brier": [
+          0.04978350576902609,
+          0.1777946158801215
+        ],
+        "event_windows": [
+          2459,
+          2459
+        ]
+      },
+      "native-development/9713005": {
+        "teacher_free": true,
+        "factual_inputs": 2747,
+        "changed_inputs": 44,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.001979020416860008,
+        "brier": [
+          0.04409173605092274,
+          0.17822725555008873
+        ],
+        "event_windows": [
+          2747,
+          2747
+        ]
+      },
+      "native-development/9713009": {
+        "teacher_free": true,
+        "factual_inputs": 3133,
+        "changed_inputs": 64,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.002752715439666845,
+        "brier": [
+          0.03508611947554884,
+          0.11131311459850284
+        ],
+        "event_windows": [
+          3133,
+          3133
+        ]
+      },
+      "native-development/9756001": {
+        "teacher_free": false,
+        "factual_inputs": 3276,
+        "changed_inputs": 40,
+        "issued_teacher_inputs": 3276,
+        "correct_teacher_direction": 2882,
+        "base_correct_teacher_direction": 2877,
+        "matched_teacher_key": 2695,
+        "base_matched_teacher_key": 2684,
+        "return_weighted_shift": -0.0015650629874314997,
+        "brier": [
+          0.003082183332637299,
+          0.1285236526871182
+        ],
+        "event_windows": [
+          3440,
+          3356
+        ]
+      },
+      "native-development/9761001": {
+        "teacher_free": true,
+        "factual_inputs": 2672,
+        "changed_inputs": 46,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.001124784571197351,
+        "brier": [
+          0.04300959715562506,
+          0.14138476053873697
+        ],
+        "event_windows": [
+          2769,
+          2712
+        ]
+      },
+      "native-development/9761007": {
+        "teacher_free": true,
+        "factual_inputs": 1649,
+        "changed_inputs": 35,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.009180256842944799,
+        "brier": [
+          0.08168953598613067,
+          0.24484140905422033
+        ],
+        "event_windows": [
+          1731,
+          1689
+        ]
+      },
+      "native-development/9761013": {
+        "teacher_free": true,
+        "factual_inputs": 3024,
+        "changed_inputs": 60,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0040147727071609615,
+        "brier": [
+          0.03538288515080851,
+          0.14183304801819815
+        ],
+        "event_windows": [
+          3024,
+          3024
+        ]
+      },
+      "native-development/9761019": {
+        "teacher_free": true,
+        "factual_inputs": 1686,
+        "changed_inputs": 33,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.010582048496904901,
+        "brier": [
+          0.08070085275227128,
+          0.2254531701221665
+        ],
+        "event_windows": [
+          1768,
+          1726
+        ]
+      }
+    },
+    "encoded": {
+      "native-development/9526007": {
+        "teacher_free": false,
+        "factual_inputs": 3000,
+        "changed_inputs": 61,
+        "issued_teacher_inputs": 3000,
+        "correct_teacher_direction": 2577,
+        "base_correct_teacher_direction": 2568,
+        "matched_teacher_key": 2395,
+        "base_matched_teacher_key": 2383,
+        "return_weighted_shift": -0.0008316515035150594,
+        "brier": [
+          0.029618705397237335,
+          0.15306427309210327
+        ],
+        "event_windows": [
+          3162,
+          3079
+        ]
+      },
+      "native-development/9526013": {
+        "teacher_free": false,
+        "factual_inputs": 1415,
+        "changed_inputs": 25,
+        "issued_teacher_inputs": 1415,
+        "correct_teacher_direction": 1187,
+        "base_correct_teacher_direction": 1183,
+        "matched_teacher_key": 1082,
+        "base_matched_teacher_key": 1076,
+        "return_weighted_shift": 0.003446420811437504,
+        "brier": [
+          0.03479174368093907,
+          0.11312310291807644
+        ],
+        "event_windows": [
+          2143,
+          1718
+        ]
+      },
+      "native-development/9558001": {
+        "teacher_free": false,
+        "factual_inputs": 2,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 2,
+        "correct_teacher_direction": 2,
+        "base_correct_teacher_direction": 2,
+        "matched_teacher_key": 2,
+        "base_matched_teacher_key": 2,
+        "return_weighted_shift": -0.0012614330553333275,
+        "brier": [
+          0.007785045328628586,
+          0.10398803408264268
+        ],
+        "event_windows": [
+          332,
+          141
+        ]
+      },
+      "native-development/9558007": {
+        "teacher_free": false,
+        "factual_inputs": 147,
+        "changed_inputs": 1,
+        "issued_teacher_inputs": 147,
+        "correct_teacher_direction": 125,
+        "base_correct_teacher_direction": 124,
+        "matched_teacher_key": 109,
+        "base_matched_teacher_key": 108,
+        "return_weighted_shift": 0.01933210252512557,
+        "brier": [
+          0.023749323810043507,
+          0.07403551369178586
+        ],
+        "event_windows": [
+          1283,
+          451
+        ]
+      },
+      "native-development/9558013": {
+        "teacher_free": false,
+        "factual_inputs": 1622,
+        "changed_inputs": 29,
+        "issued_teacher_inputs": 1622,
+        "correct_teacher_direction": 1403,
+        "base_correct_teacher_direction": 1397,
+        "matched_teacher_key": 1298,
+        "base_matched_teacher_key": 1293,
+        "return_weighted_shift": 0.007575865580703101,
+        "brier": [
+          0.006163960593807265,
+          0.11288173038168739
+        ],
+        "event_windows": [
+          2673,
+          2005
+        ]
+      },
+      "native-development/9567001": {
+        "teacher_free": false,
+        "factual_inputs": 862,
+        "changed_inputs": 20,
+        "issued_teacher_inputs": 377,
+        "correct_teacher_direction": 317,
+        "base_correct_teacher_direction": 317,
+        "matched_teacher_key": 288,
+        "base_matched_teacher_key": 290,
+        "return_weighted_shift": 0.011161965034780872,
+        "brier": [
+          0.04749210654232,
+          0.10039177302968615
+        ],
+        "event_windows": [
+          1677,
+          1159
+        ]
+      },
+      "native-development/9567007": {
+        "teacher_free": false,
+        "factual_inputs": 1846,
+        "changed_inputs": 31,
+        "issued_teacher_inputs": 1004,
+        "correct_teacher_direction": 835,
+        "base_correct_teacher_direction": 834,
+        "matched_teacher_key": 769,
+        "base_matched_teacher_key": 767,
+        "return_weighted_shift": -0.008248256616271599,
+        "brier": [
+          0.04194317209408797,
+          0.16635656290368817
+        ],
+        "event_windows": [
+          2485,
+          2153
+        ]
+      },
+      "native-development/9586001": {
+        "teacher_free": false,
+        "factual_inputs": 59,
+        "changed_inputs": 1,
+        "issued_teacher_inputs": 25,
+        "correct_teacher_direction": 15,
+        "base_correct_teacher_direction": 15,
+        "matched_teacher_key": 13,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": -0.15842256162847793,
+        "brier": [
+          0.03964609894704987,
+          0.4469424269920172
+        ],
+        "event_windows": [
+          853,
+          215
+        ]
+      },
+      "native-development/9586007": {
+        "teacher_free": false,
+        "factual_inputs": 14,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 14,
+        "correct_teacher_direction": 13,
+        "base_correct_teacher_direction": 13,
+        "matched_teacher_key": 13,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": -0.0023055646166280246,
+        "brier": [
+          0.0492288347865854,
+          0.13534256755089275
+        ],
+        "event_windows": [
+          224,
+          49
+        ]
+      },
+      "native-development/9587001": {
+        "teacher_free": false,
+        "factual_inputs": 1394,
+        "changed_inputs": 16,
+        "issued_teacher_inputs": 461,
+        "correct_teacher_direction": 389,
+        "base_correct_teacher_direction": 389,
+        "matched_teacher_key": 365,
+        "base_matched_teacher_key": 366,
+        "return_weighted_shift": -0.001258995126027032,
+        "brier": [
+          0.0291815051604743,
+          0.15302202691157313
+        ],
+        "event_windows": [
+          2709,
+          1832
+        ]
+      },
+      "native-development/9587007": {
+        "teacher_free": false,
+        "factual_inputs": 55,
+        "changed_inputs": 2,
+        "issued_teacher_inputs": 19,
+        "correct_teacher_direction": 16,
+        "base_correct_teacher_direction": 16,
+        "matched_teacher_key": 12,
+        "base_matched_teacher_key": 13,
+        "return_weighted_shift": 0.12729384682395242,
+        "brier": [
+          0.1771256314264819,
+          0.4689748323880709
+        ],
+        "event_windows": [
+          223,
+          65
+        ]
+      },
+      "native-development/9587013": {
+        "teacher_free": false,
+        "factual_inputs": 2,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.01281072199344635,
+        "brier": [
+          0.09249423570273553,
+          0.03946928679943085
+        ],
+        "event_windows": [
+          204,
+          2
+        ]
+      },
+      "native-development/9589901": {
+        "teacher_free": false,
+        "factual_inputs": 3,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.3168631819232057,
+        "brier": [
+          0.08671895581848767,
+          0.23262306675314903
+        ],
+        "event_windows": [
+          392,
+          64
+        ]
+      },
+      "native-development/9589907": {
+        "teacher_free": false,
+        "factual_inputs": 1992,
+        "changed_inputs": 43,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0009262409031231346,
+        "brier": [
+          0.057418957961979405,
+          0.1808440013281627
+        ],
+        "event_windows": [
+          2152,
+          2072
+        ]
+      },
+      "native-development/9590103": {
+        "teacher_free": false,
+        "factual_inputs": 1,
+        "changed_inputs": 0,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.24660015106201172,
+        "brier": [
+          0.17624077376197367,
+          0.5769366025924683
+        ],
+        "event_windows": [
+          68,
+          1
+        ]
+      },
+      "native-development/9592001": {
+        "teacher_free": false,
+        "factual_inputs": 3588,
+        "changed_inputs": 48,
+        "issued_teacher_inputs": 3588,
+        "correct_teacher_direction": 3165,
+        "base_correct_teacher_direction": 3162,
+        "matched_teacher_key": 2986,
+        "base_matched_teacher_key": 2980,
+        "return_weighted_shift": 0.0017674708009184185,
+        "brier": [
+          0.010525259551661734,
+          0.12701524885468923
+        ],
+        "event_windows": [
+          3588,
+          3588
+        ]
+      },
+      "native-development/9592007": {
+        "teacher_free": false,
+        "factual_inputs": 3617,
+        "changed_inputs": 61,
+        "issued_teacher_inputs": 3617,
+        "correct_teacher_direction": 3189,
+        "base_correct_teacher_direction": 3186,
+        "matched_teacher_key": 3018,
+        "base_matched_teacher_key": 3012,
+        "return_weighted_shift": -0.000981672883112128,
+        "brier": [
+          0.01593756365914486,
+          0.15226252447481078
+        ],
+        "event_windows": [
+          3617,
+          3617
+        ]
+      },
+      "native-development/9593001": {
+        "teacher_free": false,
+        "factual_inputs": 2510,
+        "changed_inputs": 30,
+        "issued_teacher_inputs": 1579,
+        "correct_teacher_direction": 1318,
+        "base_correct_teacher_direction": 1313,
+        "matched_teacher_key": 1219,
+        "base_matched_teacher_key": 1213,
+        "return_weighted_shift": 0.002334618936161149,
+        "brier": [
+          0.031446977287475815,
+          0.1427762949158445
+        ],
+        "event_windows": [
+          2705,
+          2591
+        ]
+      },
+      "native-development/9593007": {
+        "teacher_free": false,
+        "factual_inputs": 1161,
+        "changed_inputs": 35,
+        "issued_teacher_inputs": 744,
+        "correct_teacher_direction": 602,
+        "base_correct_teacher_direction": 603,
+        "matched_teacher_key": 546,
+        "base_matched_teacher_key": 543,
+        "return_weighted_shift": 0.0049843888856381646,
+        "brier": [
+          0.0658328857421875,
+          0.128338037109375
+        ],
+        "event_windows": [
+          1375,
+          1250
+        ]
+      },
+      "native-development/9631001": {
+        "teacher_free": true,
+        "factual_inputs": 2746,
+        "changed_inputs": 53,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.0001663577477663558,
+        "brier": [
+          0.04612224881011661,
+          0.1831965176047649
+        ],
+        "event_windows": [
+          2828,
+          2786
+        ]
+      },
+      "native-development/9631007": {
+        "teacher_free": true,
+        "factual_inputs": 2767,
+        "changed_inputs": 52,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.0011540245896023043,
+        "brier": [
+          0.054454473971803564,
+          0.16871858134267992
+        ],
+        "event_windows": [
+          2767,
+          2767
+        ]
+      },
+      "native-development/9632001": {
+        "teacher_free": true,
+        "factual_inputs": 3446,
+        "changed_inputs": 52,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.0003574893832887058,
+        "brier": [
+          0.02015590829914119,
+          0.17618274086860836
+        ],
+        "event_windows": [
+          3528,
+          3486
+        ]
+      },
+      "native-development/9632007": {
+        "teacher_free": true,
+        "factual_inputs": 2577,
+        "changed_inputs": 42,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0027557674523264694,
+        "brier": [
+          0.029137126840833166,
+          0.12292353360763159
+        ],
+        "event_windows": [
+          2659,
+          2617
+        ]
+      },
+      "native-development/9691001": {
+        "teacher_free": false,
+        "factual_inputs": 309,
+        "changed_inputs": 3,
+        "issued_teacher_inputs": 173,
+        "correct_teacher_direction": 154,
+        "base_correct_teacher_direction": 154,
+        "matched_teacher_key": 150,
+        "base_matched_teacher_key": 150,
+        "return_weighted_shift": -0.0095023114788491,
+        "brier": [
+          0.03446928797189993,
+          0.19084790173698873
+        ],
+        "event_windows": [
+          691,
+          425
+        ]
+      },
+      "native-development/9691005": {
+        "teacher_free": false,
+        "factual_inputs": 1585,
+        "changed_inputs": 22,
+        "issued_teacher_inputs": 774,
+        "correct_teacher_direction": 654,
+        "base_correct_teacher_direction": 656,
+        "matched_teacher_key": 593,
+        "base_matched_teacher_key": 589,
+        "return_weighted_shift": 0.006264514337151738,
+        "brier": [
+          0.013660462534197037,
+          0.11064323346639417
+        ],
+        "event_windows": [
+          2533,
+          1940
+        ]
+      },
+      "native-development/9691009": {
+        "teacher_free": false,
+        "factual_inputs": 2831,
+        "changed_inputs": 44,
+        "issued_teacher_inputs": 1499,
+        "correct_teacher_direction": 1309,
+        "base_correct_teacher_direction": 1311,
+        "matched_teacher_key": 1207,
+        "base_matched_teacher_key": 1207,
+        "return_weighted_shift": -0.0013200497816479395,
+        "brier": [
+          0.026541356011346412,
+          0.12000580092170315
+        ],
+        "event_windows": [
+          3188,
+          2955
+        ]
+      },
+      "native-development/9691013": {
+        "teacher_free": false,
+        "factual_inputs": 1447,
+        "changed_inputs": 24,
+        "issued_teacher_inputs": 692,
+        "correct_teacher_direction": 612,
+        "base_correct_teacher_direction": 611,
+        "matched_teacher_key": 562,
+        "base_matched_teacher_key": 559,
+        "return_weighted_shift": -0.003183073901011976,
+        "brier": [
+          0.010008067878585162,
+          0.08383187336595534
+        ],
+        "event_windows": [
+          2267,
+          1769
+        ]
+      },
+      "native-development/9713001": {
+        "teacher_free": true,
+        "factual_inputs": 2459,
+        "changed_inputs": 44,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.00377198152763899,
+        "brier": [
+          0.04584589427251455,
+          0.17957376958684934
+        ],
+        "event_windows": [
+          2459,
+          2459
+        ]
+      },
+      "native-development/9713005": {
+        "teacher_free": true,
+        "factual_inputs": 2747,
+        "changed_inputs": 40,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.00023594800976739413,
+        "brier": [
+          0.04063327485186254,
+          0.17853835265246745
+        ],
+        "event_windows": [
+          2747,
+          2747
+        ]
+      },
+      "native-development/9713009": {
+        "teacher_free": true,
+        "factual_inputs": 3133,
+        "changed_inputs": 55,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0026506707729739517,
+        "brier": [
+          0.03370443929166334,
+          0.10766751082073642
+        ],
+        "event_windows": [
+          3133,
+          3133
+        ]
+      },
+      "native-development/9756001": {
+        "teacher_free": false,
+        "factual_inputs": 3276,
+        "changed_inputs": 40,
+        "issued_teacher_inputs": 3276,
+        "correct_teacher_direction": 2881,
+        "base_correct_teacher_direction": 2877,
+        "matched_teacher_key": 2692,
+        "base_matched_teacher_key": 2684,
+        "return_weighted_shift": -0.0003751961789044288,
+        "brier": [
+          0.004365144427432571,
+          0.12937165670656334
+        ],
+        "event_windows": [
+          3440,
+          3356
+        ]
+      },
+      "native-development/9761001": {
+        "teacher_free": true,
+        "factual_inputs": 2672,
+        "changed_inputs": 35,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0005096151774341124,
+        "brier": [
+          0.034452080855777695,
+          0.13687855655816453
+        ],
+        "event_windows": [
+          2769,
+          2712
+        ]
+      },
+      "native-development/9761007": {
+        "teacher_free": true,
+        "factual_inputs": 1649,
+        "changed_inputs": 31,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.009692292235213328,
+        "brier": [
+          0.07875052220142349,
+          0.2519293830830928
+        ],
+        "event_windows": [
+          1731,
+          1689
+        ]
+      },
+      "native-development/9761013": {
+        "teacher_free": true,
+        "factual_inputs": 3024,
+        "changed_inputs": 62,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": 0.0029011683406513383,
+        "brier": [
+          0.03433380429706876,
+          0.14726235122276993
+        ],
+        "event_windows": [
+          3024,
+          3024
+        ]
+      },
+      "native-development/9761019": {
+        "teacher_free": true,
+        "factual_inputs": 1686,
+        "changed_inputs": 25,
+        "issued_teacher_inputs": 0,
+        "correct_teacher_direction": 0,
+        "base_correct_teacher_direction": 0,
+        "matched_teacher_key": 0,
+        "base_matched_teacher_key": 0,
+        "return_weighted_shift": -0.010952721511890523,
+        "brier": [
+          0.0823055975038002,
+          0.2488481117151289
+        ],
+        "event_windows": [
+          1768,
+          1726
+        ]
+      }
+    }
+  },
+  "batch": 24,
+  "seed": 71964,
+  "hidden": 24,
+  "span_seconds": 3.2,
+  "input_sha256": "a26094a69d5216c07196dd3873d0aeb3f59864dfe4aab88f3d28990cd3719b7f",
+  "parent_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+  "learner_input_sha256": "037b4c3f83fb68ed95d158c60bcd8d692d1db9eaad7b573a517b1a122331fc4a",
+  "policy_sha256": "76687813ffc539458dc5aa0cff99f95d2e05af2f7f3109de3598b9cbdc088ffb",
+  "teacher_free_held_fights": [
+    "native-development/9631001",
+    "native-development/9631007",
+    "native-development/9632001",
+    "native-development/9632007",
+    "native-development/9713001",
+    "native-development/9713005",
+    "native-development/9713009",
+    "native-development/9761001",
+    "native-development/9761007",
+    "native-development/9761013",
+    "native-development/9761019"
+  ],
+  "raw_vs_instant_mean_brier_reduction": [
+    0.00031308947955840873,
+    -0.0023819462844376802
+  ],
+  "changed_native_action_rate": 0.016935954837453766,
+  "issued_teacher_direction_accuracy_change": 0.00166472448809718,
+  "trial_eligible": false
+}

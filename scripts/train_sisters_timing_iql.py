@@ -582,6 +582,24 @@ def option_components(component: bytes) -> tuple[bytes, bytes, np.ndarray]:
 COMPOUND_MAGIC = 0x364C5149
 FOCUS_MAGIC = 0x374C5149
 FOCUS_FEATURES = 16
+MEMORY_MAGIC = 0x384C5149
+
+
+def memory_components(component: bytes) -> tuple[bytes, np.ndarray]:
+    if len(component) < 28:
+        raise ValueError("Truncated recurrent controller")
+    magic, size = struct.unpack_from("<2i", component)
+    leaf = component[8:8 + size]
+    if magic != MEMORY_MAGIC or not _timing_component(leaf) or struct.unpack_from("<i", leaf)[0] != 0x344C5149:
+        raise ValueError("Invalid recurrent control base")
+    actions = struct.unpack_from("<i", leaf, 16)[0]
+    count = 3 * 24 * (WIDTH + 24 + 2) + (24 + 1) * actions
+    if size < 20 or not 1 <= actions <= 4096 or len(component) != 8 + size + 4 * count:
+        raise ValueError("Invalid recurrent control weight count")
+    parameters = np.frombuffer(component, "<f4", offset=8 + size)
+    if not np.isfinite(parameters).all():
+        raise ValueError("Non-finite recurrent control parameters")
+    return leaf, parameters
 
 
 def focus_components(component: bytes) -> tuple[bytes, np.ndarray]:
@@ -616,7 +634,9 @@ def compound_components(component: bytes) -> tuple[bytes, np.ndarray, np.ndarray
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     if not _timing_component(opener):
         raise ValueError("Expected a timing actor for the opening")
-    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == FOCUS_MAGIC:
+    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == MEMORY_MAGIC:
+        memory_components(trio)
+    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == FOCUS_MAGIC:
         focus_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == COMPOUND_MAGIC:
         compound_components(trio)

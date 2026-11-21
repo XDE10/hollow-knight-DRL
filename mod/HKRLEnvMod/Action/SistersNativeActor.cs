@@ -132,6 +132,8 @@ namespace HKRLEnvMod.Action
         private int _best;
         internal SistersCompoundOption? Compound { get; set; }
         internal SistersFocusOption? Focus { get; set; }
+        internal SistersMemoryResidual? Memory { get; set; }
+        internal int ActionCount => _actions.Length;
         internal int BestIndex => _best;
         internal float Score(int index) => _scores[index];
         internal float[] Embedding => _z;
@@ -220,6 +222,7 @@ namespace HKRLEnvMod.Action
                 Dense(_h,_w[2],_w[3],_z,true);
             }
             Dense(_z,_w[4],_w[5],_scores,false);
+            Memory?.Adjust(raw, time, _scores);
             int best=0;
             for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
             _best = best;
@@ -354,7 +357,7 @@ namespace HKRLEnvMod.Action
             _previous=action.Buttons;
         }
 
-        private static void Dense(float[] x,float[] w,float[] bias,float[] result,bool relu)
+        internal static void Dense(float[] x,float[] w,float[] bias,float[] result,bool relu)
         {
             int k=0;
             for(int j=0;j<result.Length;j++)
