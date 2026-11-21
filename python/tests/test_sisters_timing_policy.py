@@ -11,6 +11,32 @@ import pytest
 import torch
 
 
+def test_drop_replay_uses_present_vulnerable_nearby_boss_and_all_three_slots(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    s = torch.zeros(7, 192)
+    s[:, 23] = 1
+    for i, (slot, phase) in enumerate(
+        ((0, 20), (1, 21), (2, 22), (1, 20), (0, 20), (0, 20), (0, 20))
+    ):
+        k = 24 + 36 * slot
+        s[i, k] = s[i, k + phase] = 1
+        s[i, k + 1] = -0.19
+    s[3, 60] = 0
+    s[4, 25] = 0.21
+    s[5, 9] = 1
+    s[6, 23] = 0
+    assert mod.nearby_descending_sister(s).tolist() == [
+        True,
+        True,
+        True,
+        False,
+        False,
+        False,
+        False,
+    ]
+
+
 def test_measured_returns_bootstrap_before_a_controller_handoff(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     measured = importlib.import_module("train_sisters_timing_iql").measured_returns

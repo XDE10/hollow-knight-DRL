@@ -107,3 +107,14 @@ selected network supplies primitive inputs while both networks retain the
 observed history. The replay records the draw times, both checkpoint hashes
 and the executed controls. The independent evaluator rejects this recording
 mode. [Native comparison](../../mod/HKRLEnvMod/Action/SistersNeuralBlockTrial.cs)
+
+An optional replay setting reserves a fraction of each dynamics and IQL batch
+for vulnerable trio states with a boss dropping, falling or landing within
+two horizontal game units of the Knight. The rest of the batch samples the
+full eligible replay. Every update still uses the action actually executed
+and the original reward. In 118 development training fights, this condition
+occurred in 59,051 of 242,894 vulnerable decisions. It appeared within the
+0.32 seconds before the recording intervals for 289 of the 416 eligible
+masks lost to body contact. The same
+counts in 27 held-out fights were 13,633 of 56,543 decisions and 66 of 97
+masks lost. Model selection uses independent full fights.

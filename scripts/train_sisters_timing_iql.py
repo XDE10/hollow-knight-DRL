@@ -564,6 +564,14 @@ def initialize_actor(actor: TimingPolicy, commands: np.ndarray, path: Path) -> i
     return matched
 
 
+def nearby_descending_sister(states: Tensor) -> Tensor:
+    """Observed vulnerable trio rows within two horizontal units of a dropping or landing boss."""
+    bosses = states[:, FOES:DISCS].reshape(-1, 3, 36)
+    descending = bosses[:, :, 20:23].amax(2) > 0.5
+    near = (bosses[:, :, 0] > 0.5) & (bosses[:, :, 1].abs() <= 0.2)
+    return (states[:, 23] > 0.5) & (states[:, 9] < 0.5) & (near & descending).any(1)
+
+
 def train(
     data_dir: Path,
     output: Path,
@@ -586,6 +594,7 @@ def train(
     teacher_win_min_hz: float = 0.0,
     future_key_weight: float = 0.0,
     terminal_advantage_weight: float = 0.0,
+    drop_replay_fraction: float = 0.0,
 ) -> None:
     torch.manual_seed(seed)
     torch.set_num_threads(2)
@@ -623,6 +632,14 @@ def train(
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
+    if not 0 <= drop_replay_fraction < 1:
+        raise ValueError("The drop replay fraction must be in [0, 1)")
+    drop_count = int(batch * drop_replay_fraction)
+    drop_mask = nearby_descending_sister(s) if drop_count else torch.zeros_like(good)
+    drop_valid = valid[drop_mask[valid]]
+    drop_dynamics = dynamics_rows[drop_mask[dynamics_rows]]
+    if drop_count and (not len(drop_valid) or not len(drop_dynamics)):
+        raise ValueError("No eligible descent or landing transitions for targeted replay")
     actor = TimingPolicy(cat, history).to(device)
     groups = movement_groups(cat)
     membership = F.one_hot(groups, 12).T.bool()
@@ -664,6 +681,8 @@ def train(
         "batch": batch,
         "actions": len(cat),
         "mirrored_training": mirror,
+        "drop_replay_fraction": drop_replay_fraction,
+        "drop_replay_training_rows": len(drop_valid),
         "teacher_switch_weight": switch_weight,
         "teacher_agreement_seconds": agreement_seconds,
         "future_box_loss_weight": forecast_weight,
@@ -704,6 +723,12 @@ def train(
 
     def indices(n: int) -> Tensor:
         return torch.randint(n, (batch,), device=device)
+
+    def replay_rows(pool: Tensor, drops: Tensor) -> Tensor:
+        selected = pool[indices(len(pool))]
+        if drop_count:
+            selected[:drop_count] = drops[torch.randint(len(drops), (drop_count,), device=device)]
+        return selected
 
     def factor_loss(factor: Tensor, label: Tensor) -> Tensor:
         return (
@@ -803,7 +828,7 @@ def train(
     world = mlp(width + 11, len(PHYSICAL)).to(device)
     wopt = torch.optim.AdamW(world.parameters(), lr=0.0008)
     for _ in range(world_steps):
-        i = dynamics_rows[indices(len(dynamics_rows))]
+        i = replay_rows(dynamics_rows, drop_dynamics)
         delta = world(torch.cat((s[i], action_encoding[y[i]]), 1))
         update(
             wopt,
@@ -824,6 +849,12 @@ def train(
             world_mae=(delta - actual).abs().mean().item(),
             persistence_mae=actual.abs().mean().item(),
         )
+        if drop_count:
+            subset = nearby_descending_sister(hs[vi])
+            report["heldout_drop_dynamics_rows"] = int(subset.sum())
+            if subset.any():
+                report["heldout_drop_world_mae"] = (delta[subset] - actual[subset]).abs().mean().item()
+                report["heldout_drop_persistence_mae"] = actual[subset].abs().mean().item()
     q1, q2 = mlp(width, len(cat)).to(device), mlp(width, len(cat)).to(device)
     t1, t2 = (
         copy.deepcopy(q1).requires_grad_(False),
@@ -834,7 +865,7 @@ def train(
     vopt = torch.optim.AdamW(val.parameters(), lr=0.00035)
     aopt = torch.optim.AdamW(parameters, lr=0.00009)
     for step in range(rl_steps):
-        i = valid[indices(len(valid))]
+        i = replay_rows(valid, drop_valid)
         x, u, observed = s[i], y[i], ns[i]
         with torch.no_grad():
             key = u[:, None]
@@ -1050,6 +1081,8 @@ if __name__ == "__main__":
         type=Path,
         help="Initialize the learned actor from a prior timing checkpoint.",
     )
+    parser.add_argument("--drop-replay-fraction", type=float, default=0.0,
+                        help="Reserve a share of world-model and IQL minibatches for observed nearby boss drops.")
     args = parser.parse_args()
     if min(args.bc_steps, args.world_steps, args.rl_steps, args.batch) < 1:
         parser.error("Positive budgets required")
@@ -1096,4 +1129,5 @@ if __name__ == "__main__":
         args.teacher_win_min_hz,
         args.future_key_weight,
         args.terminal_advantage_weight,
+        args.drop_replay_fraction,
     )
