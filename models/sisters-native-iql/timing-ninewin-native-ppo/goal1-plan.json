@@ -1,0 +1,7 @@
+{
+  "goal": 1,
+  "first_seed": 10183000,
+  "policy_sha256": "d839a81448fe470acebe2a34deb6d346088883f297091258987d2e51ee07f0c3",
+  "mod_sha256": "6c62934d913587b82bc6771f8389037a26a8974af6ee9773b327ac25bbac0c12",
+  "verify_unity_seed": true
+}

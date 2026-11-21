@@ -37,7 +37,17 @@ def onsets(clock, state):
     return np.asarray(rows, dtype="i4")
 
 
-def read_keys(path: Path, episode, behavior_hash, seed, temperature, clock, state, *, smooth=False):
+def read_keys(
+    path: Path,
+    episode: int,
+    behavior_hash: str,
+    seed: int,
+    temperature: float,
+    clock: np.ndarray,
+    state: np.ndarray,
+    *,
+    smooth: bool = False,
+) -> dict[str, np.ndarray]:
     packet = path.read_bytes()
     if len(packet) < HEADER.size or HEADER.unpack_from(packet) != (
         0x32534B50 if smooth else 0x31534B50,

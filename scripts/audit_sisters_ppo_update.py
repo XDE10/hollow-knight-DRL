@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Sequence
 from functools import partial
 from pathlib import Path
 
@@ -14,17 +15,36 @@ from torch.optim.optimizer import register_optimizer_step_post_hook
 from train_sisters_champion_router import digest
 from train_sisters_primitive_heads import Outcome
 from train_sisters_primitive_ppo import distribution, optimize, read_games
-from train_sisters_timing_iql import option_components, phase_components
+from train_sisters_timing_iql import TimingPolicy, option_components, phase_components
 
 
-def capture_actor_step(rollout, ordinary, net, temperature, smooth, trial, optimizer, args, kwargs):
+def capture_actor_step(
+    rollout: Sequence[torch.Tensor],
+    ordinary: torch.Tensor,
+    net: TimingPolicy,
+    temperature: float,
+    smooth: bool,
+    trial: list[dict[str, int | float]],
+    optimizer: torch.optim.Optimizer,
+    args: tuple[object, ...],
+    kwargs: dict[str, object],
+) -> None:
     if type(optimizer) is torch.optim.Adam:
         weight, bias = optimizer.param_groups[0]["params"]
         trial.append(measure(rollout, ordinary, net, weight, bias, temperature, smooth=smooth))
 
 
 @torch.no_grad()
-def measure(rollout, ordinary, net, weight, bias, temperature, *, smooth=False):
+def measure(
+    rollout: Sequence[torch.Tensor],
+    ordinary: torch.Tensor,
+    net: TimingPolicy,
+    weight: torch.Tensor,
+    bias: torch.Tensor,
+    temperature: float,
+    *,
+    smooth: bool = False,
+) -> dict[str, int | float]:
     x, allowed, chosen, initial_p, taken_p, advantage, _ = rollout
     logits = net.out(x)
     greedy = logits.argmax(1)

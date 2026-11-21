@@ -30,7 +30,9 @@ from train_sisters_timing_iql import (
 )
 
 
-def distribution(logits, available, temperature, *, smooth=False):
+def distribution(
+    logits: torch.Tensor, available: torch.Tensor, temperature: float, *, smooth: bool = False
+) -> torch.Tensor:
     if smooth:
         return 0.98 * (logits / temperature).softmax(1) + 0.02 / logits.shape[1]
     greedy = F.one_hot(logits.argmax(1), logits.shape[1]).bool()

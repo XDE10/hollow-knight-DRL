@@ -356,6 +356,187 @@
       "teacher_labels": false,
       "sampled_alternatives": 2,
       "worker_wall_seconds": 139.079000000027
+    },
+    {
+      "seed": 10171016,
+      "unity_reset_seed": 10171016,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 535305608,
+      "game_speed": 2.0,
+      "native_inputs": 1979,
+      "control_game_seconds": 91.5,
+      "play_wall_seconds": 68.54700000002049,
+      "randomized_choices": 39,
+      "first_cleared": true,
+      "win": false,
+      "damage": 1031.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 2,
+        "BOSS_BODY": 8,
+        "SPIKES": 1
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 3,
+      "worker_wall_seconds": 109.29599999997299
+    },
+    {
+      "seed": 10171017,
+      "unity_reset_seed": 10171017,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 1620557371,
+      "game_speed": 2.0,
+      "native_inputs": 3419,
+      "control_game_seconds": 148.0,
+      "play_wall_seconds": 94.07799999997951,
+      "randomized_choices": 117,
+      "first_cleared": true,
+      "win": false,
+      "damage": 1817.0,
+      "damage_taken": {
+        "BOSS_BODY": 5,
+        "ENEMY_PROJECTILE": 5
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 16,
+      "worker_wall_seconds": 129.21899999992456
+    },
+    {
+      "seed": 10171018,
+      "unity_reset_seed": 10171018,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 114733877,
+      "game_speed": 2.0,
+      "native_inputs": 3353,
+      "control_game_seconds": 153.33999633789062,
+      "play_wall_seconds": 93.95300000009593,
+      "randomized_choices": 152,
+      "first_cleared": true,
+      "win": false,
+      "damage": 2302.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 5,
+        "SPIKES": 1,
+        "BOSS_BODY": 3
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 20,
+      "worker_wall_seconds": 140.73499999998603
+    },
+    {
+      "seed": 10171019,
+      "unity_reset_seed": 10171019,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 1330574257,
+      "game_speed": 2.0,
+      "native_inputs": 3739,
+      "control_game_seconds": 155.0,
+      "play_wall_seconds": 94.31299999996554,
+      "randomized_choices": 159,
+      "first_cleared": true,
+      "win": false,
+      "damage": 2435.0,
+      "damage_taken": {
+        "BOSS_BODY": 8,
+        "ENEMY_PROJECTILE": 1
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 17,
+      "worker_wall_seconds": 132.51599999994505
+    },
+    {
+      "seed": 10171020,
+      "unity_reset_seed": 10171020,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 1202194247,
+      "game_speed": 2.0,
+      "native_inputs": 4004,
+      "control_game_seconds": 162.05999755859375,
+      "play_wall_seconds": 97.48400000005495,
+      "randomized_choices": 166,
+      "first_cleared": true,
+      "win": true,
+      "damage": 2695.0,
+      "damage_taken": {
+        "BOSS_BODY": 7,
+        "ENEMY_PROJECTILE": 1
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 20,
+      "worker_wall_seconds": 129.5470000000205
+    },
+    {
+      "seed": 10171021,
+      "unity_reset_seed": 10171021,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 477040080,
+      "game_speed": 2.0,
+      "native_inputs": 2406,
+      "control_game_seconds": 97.22000122070312,
+      "play_wall_seconds": 64.28200000000652,
+      "randomized_choices": 64,
+      "first_cleared": true,
+      "win": false,
+      "damage": 1714.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 3,
+        "SPIKES": 2,
+        "BOSS_BODY": 6
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 11,
+      "worker_wall_seconds": 94.68700000003446
+    },
+    {
+      "seed": 10171022,
+      "unity_reset_seed": 10171022,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 1268880907,
+      "game_speed": 2.0,
+      "native_inputs": 3204,
+      "control_game_seconds": 132.33999633789062,
+      "play_wall_seconds": 82.40599999995902,
+      "randomized_choices": 103,
+      "first_cleared": true,
+      "win": false,
+      "damage": 1457.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 5,
+        "BOSS_BODY": 3,
+        "SPIKES": 3
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 16,
+      "worker_wall_seconds": 120.625
+    },
+    {
+      "seed": 10171023,
+      "unity_reset_seed": 10171023,
+      "behavior_policy_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+      "sampler_draw_seed": 400533298,
+      "game_speed": 2.0,
+      "native_inputs": 3785,
+      "control_game_seconds": 163.45999145507812,
+      "play_wall_seconds": 107.23499999998603,
+      "randomized_choices": 172,
+      "first_cleared": true,
+      "win": false,
+      "damage": 2599.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "SPIKES": 1,
+        "BOSS_BODY": 4
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 18,
+      "worker_wall_seconds": 145.7029999999795
     }
   ]
 }

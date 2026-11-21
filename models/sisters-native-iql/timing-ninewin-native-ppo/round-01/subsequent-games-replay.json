@@ -1,0 +1,81 @@
+{
+  "scope": "Change in greedy decisions on subsequent stochastic development games. No replayed key changes the historical outcomes.",
+  "earlier_seconds": 0.72,
+  "old_sha256": "5649ebbe1d7ded78806eea2b14ea360e442a20d3c1a34da75bfa078d2f1eaf4d",
+  "updated_sha256": "e957ed65c479f143332903188c4759e74e04a79e765dc4e1e42917b50916eaf0",
+  "data_sha256": "d03f4d08d1a960d7e1ec90682a6672eab27e28a1b5a25d1208630e8706558290",
+  "games": [
+    {
+      "seed": 10171016,
+      "trio_inputs": 800,
+      "changed_keys": 15,
+      "opportunities": 39,
+      "changed_at_opportunities": 0,
+      "trio_debits": 7,
+      "debits_with_changed_earlier_keys": 3
+    },
+    {
+      "seed": 10171017,
+      "trio_inputs": 1832,
+      "changed_keys": 23,
+      "opportunities": 117,
+      "changed_at_opportunities": 1,
+      "trio_debits": 9,
+      "debits_with_changed_earlier_keys": 3
+    },
+    {
+      "seed": 10171018,
+      "trio_inputs": 1972,
+      "changed_keys": 37,
+      "opportunities": 152,
+      "changed_at_opportunities": 4,
+      "trio_debits": 6,
+      "debits_with_changed_earlier_keys": 3
+    },
+    {
+      "seed": 10171019,
+      "trio_inputs": 2434,
+      "changed_keys": 53,
+      "opportunities": 159,
+      "changed_at_opportunities": 5,
+      "trio_debits": 9,
+      "debits_with_changed_earlier_keys": 3
+    },
+    {
+      "seed": 10171020,
+      "trio_inputs": 2642,
+      "changed_keys": 41,
+      "opportunities": 166,
+      "changed_at_opportunities": 6,
+      "trio_debits": 8,
+      "debits_with_changed_earlier_keys": 4
+    },
+    {
+      "seed": 10171021,
+      "trio_inputs": 1133,
+      "changed_keys": 18,
+      "opportunities": 64,
+      "changed_at_opportunities": 2,
+      "trio_debits": 9,
+      "debits_with_changed_earlier_keys": 1
+    },
+    {
+      "seed": 10171022,
+      "trio_inputs": 1741,
+      "changed_keys": 39,
+      "opportunities": 103,
+      "changed_at_opportunities": 4,
+      "trio_debits": 9,
+      "debits_with_changed_earlier_keys": 2
+    },
+    {
+      "seed": 10171023,
+      "trio_inputs": 2569,
+      "changed_keys": 36,
+      "opportunities": 172,
+      "changed_at_opportunities": 7,
+      "trio_debits": 7,
+      "debits_with_changed_earlier_keys": 3
+    }
+  ]
+}
