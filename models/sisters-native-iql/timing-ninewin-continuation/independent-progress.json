@@ -1,10 +1,11 @@
 {
-  "finished": 8,
-  "wins": 6,
+  "finished": 10,
+  "wins": 8,
   "no_hit_wins": 0,
   "damage_taken": {
-    "ENEMY_PROJECTILE": 21,
-    "BOSS_BODY": 30
+    "ENEMY_PROJECTILE": 28,
+    "BOSS_BODY": 38,
+    "SPIKES": 1
   },
   "complete": false,
   "passed": false,
@@ -135,6 +136,37 @@
       "hp": 6,
       "minimum_hp": 6,
       "physics_ticks": 8452
+    },
+    {
+      "seed": 10091008,
+      "unity_reset_seed": 10091008,
+      "win": true,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2698.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "BOSS_BODY": 4,
+        "SPIKES": 1
+      },
+      "hp": 1,
+      "minimum_hp": 1,
+      "physics_ticks": 10624
+    },
+    {
+      "seed": 10091009,
+      "unity_reset_seed": 10091009,
+      "win": true,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2705.0,
+      "damage_taken": {
+        "BOSS_BODY": 4,
+        "ENEMY_PROJECTILE": 3
+      },
+      "hp": 2,
+      "minimum_hp": 2,
+      "physics_ticks": 8378
     }
   ]
 }
