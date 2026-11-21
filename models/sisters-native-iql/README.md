@@ -117,3 +117,17 @@ NVIDIA L4 在 36 场开发对局中用 29 场训练、7 场留出。训练加入
 在实际由教师操作的下落片段中，新策略学习保持或切换走位；每个动作的训练权重取决于随后实际发生的奖励和 IQL 价值估计。留出数据中 1265 个需要切换的动作比父策略多对 24 个（改对 67 个、改错 43 个），4564 个保持动作多对 37 个（改对 137 个、改错 100 个）。游戏中仍由网络直接选取原生按键。[冻结权重和留出结果](timing-executed-movement/)
 
 另外两场完整教师示范均通关，第二场全程 9 血、零受伤，按预设拆分保留为留出对局。逐帧记录包含实际原生按键和移动方案评分，可供后续模仿训练与对照。[两场示范与实际受伤记录](timing-descent-demonstrations/)
+
+### 从公开仓库复现 157 场训练数据
+
+在仓库根目录用 PowerShell 运行下列命令。每份对局保留原定的训练或留出身份。补齐操作者后，157 份逐场文件和清单都与本次 Colab 所用的解压内容逐字节相同。清单的 SHA-256 为 `767f030b8eca4ff3dbbcf058a9eab7dd61dc6dc3c6678a5cd9d2b8bce1cf0ecc`。
+
+~~~powershell
+$models = 'models/sisters-native-iql'
+$job = 'runs/reproduce-executed-movement'
+$archives = @('timing-winning-guidance','timing-randomized','timing-recovery-blocks','timing-neural-blocks') | ForEach-Object { "$models/$_/development.zip" }
+python scripts/merge_sisters_development.py --archives $archives --output "$job/combined.zip"
+python scripts/restore_sisters_assignments.py "$job/combined.zip" "$models/timing-issued-controls/assignments.zip" "$job/assigned.zip"
+Expand-Archive -LiteralPath "$job/assigned.zip" -DestinationPath "$job/data"
+python scripts/train_sisters_timing_iql.py --data "$job/data" --output "$job/weights" --bc-steps 1500 --world-steps 2000 --rl-steps 16000 --no-mirror --motion-history --switch-weight 2.5 --teacher-agreement-seconds 1.6 --forecast-weight 4 --return-seconds .8 --plan-weight .35 --drop-replay-fraction .25 --initial-world "$models/timing-drop-dynamics/world.pt" --initial-learner "$models/timing-preferences/learner.pt" --opener-policy "$models/timing-preferences/world_iql.bin" --executed-teacher-advantage
+~~~
