@@ -157,3 +157,5 @@ python scripts/train_sisters_timing_iql.py --data "$job/data" --output "$job/wei
 24 场落地走位随机实验一共取得 723 次实际操作。两份模型在同一块 Colab L4 上各训练 350 次。普通事件计分版在四场留出对局的 118 次可计分选择中改变了 5 次走位，按局平均的估计收益为负。加入原生血量时钟、按整局交叉拟合的版本改变了 6 次，校正后的四场平均收益也为负。两份权重都保留，依照采集前登记的条件淘汰。这里的收益衡量接下来 0.6 游戏秒的动作及其价值估计，完整胜负另以实机为准。[开发逐场记录及原始轨迹](timing-randomized-descent/) · [普通事件计分版](timing-randomized-descent/event-returns/training.json) · [原生血量计分版](timing-randomized-descent/native-health-returns/training.json)
 
 冻结选择器的前十场全部过首只，整场通关 8 次，全程无伤 0 次，场均输出 2651.9。十场合计被本体打掉 35 格、飞镖打掉 30 格、踩刺 0 格。此前走位版自己的前十场同为 8 次完整通关，场均输出 2631.1。两组各自独立开局。[选择器的十场实机记录](timing-learned-options/first-ten.json) · [走位版逐场记录](timing-executed-movement/evaluation.json)
+
+这组选择器评估在第 12 场出现第三场败局。12 场全部过首只，9 场完整通关，0 场全程无伤，场均打出 2647.92 点伤害。本体和飞镖共造成 47、37 格伤害，踩刺为 0。三场败局都以 9 格血进入三姐妹阶段，进场灵魂分别为 99、69 和 57。按游戏观测实际增加的生命合计 5 格，原始治疗事件的金额也包含未改变血量的请求。九场胜局均实际运行至战斗结束；这组百场最多只能获得 97 胜。[冻结模型逐场完整记录](timing-learned-options/evaluation.json)

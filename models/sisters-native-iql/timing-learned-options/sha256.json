@@ -1,0 +1,11 @@
+{
+  "evaluation.json": "4dd730eb23e534890a02121788bad0986ebb2c660eaaf6cd42b8d14aada8faf8",
+  "first-ten.json": "581fd96976d38294467b131149a958ccd29e3a5af72e92a2db8564b8931e488f",
+  "goal1-plan.json": "f207a8d107e0105cbda30e37a51acd715b39f84b631bb0cc875a548ddb414425",
+  "learner.pt": "964cb71a8b862abc496f3534b423961c1e59903c868e73b08c0281443bc386ed",
+  "realized-horizons.json": "457416c918911cc93d4fd16bd2c13537c0b5dc911edffa5518e2402cb1a65e3b",
+  "runtime-parity.json": "a32e8bc3f08c12e559ade5f0d41275a461d2c35bb001fd33236c4226fc4fe9aa",
+  "study.json": "98fc136353d8947e52cc440bb9d9dec2fe4f6dec16edbdf7544cff3bceb45789",
+  "training.json": "c36ed3e3cd2f258a5a9d8b5ea05f3dace60f0fa9af6663e0a9b1e4d6c9dea825",
+  "world_iql.bin": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25"
+}
