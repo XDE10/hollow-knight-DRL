@@ -49,9 +49,11 @@ def read_choices(
 ) -> dict[str, np.ndarray]:
     with path.open("rb") as f:
         magic, recorded_episode = struct.unpack("<IQ", f.read(12))
-        if magic not in (0x31434B48, 0x32434B48) or recorded_episode != episode:
+        if magic not in (0x31434B48, 0x32434B48, 0x33434B48) or recorded_episode != episode:
             raise ValueError("Wrong online episode")
-        raw = np.frombuffer(f.read(), dtype=ROW)
+        compound = magic == 0x33434B48
+        dtype = np.dtype(ROW.descr + [("scores","<f4",(2,)),("risk","<f4")]) if compound else ROW
+        raw = np.frombuffer(f.read(), dtype=dtype)
     trial_time, pairs, draw, prob, gap = (
         raw[k] for k in ("time", "pair", "draw", "p", "gap")
     )
@@ -59,7 +61,7 @@ def read_choices(
     rows = np.searchsorted(times, trial_time)
     if (
         not np.isfinite(trial_time).all()
-        or (np.diff(trial_time) < (1.499 if descent else 0.719)).any()
+        or (np.diff(trial_time) < (8.399 if compound else 1.499 if descent else 0.719)).any()
         or (rows >= len(times)).any()
         or not np.array_equal(times[rows], trial_time)
         or (state[rows, 23] <= 0.5).any()
@@ -68,12 +70,25 @@ def read_choices(
         or ((draw != 0) & (draw != 1)).any()
         or (prob != 0.5).any()
         or not np.isfinite(gap).all()
-        or ((gap < 0) | (gap > 3)).any()
+        or (gap < 0).any() or (not compound and (gap > 3).any())
     ):
         raise ValueError("Invalid randomized action record")
     if not np.array_equal(catalogue[pairs[np.arange(len(draw)), draw]], applied[rows]):
         raise ValueError("Randomized control differs from the input actually issued")
     result = dict(zip(CHOICE_KEYS, (rows.astype("i4"), pairs, draw, prob, gap), strict=True))
+    if compound:
+        scores, risk = raw["scores"], raw["risk"]
+        if (not np.isfinite(scores).all() or not np.isfinite(risk).all() or (risk < 0).any()
+            or not np.allclose(scores[:,0]-scores[:,1], gap, rtol=0, atol=1e-5)
+            or (state[rows,9] > .5).any()):
+            raise ValueError("Invalid prospective risk or option scores")
+        primitive = catalogue[pairs]
+        bits = primitive[:,:,2]
+        group = ((bits & 3) != 0).astype(int) + 2*((bits & 4) != 0) + 4*((bits & 16 != 0) & (primitive[:,:,1] < 0))
+        if (group[:,0] == group[:,1]).any():
+            raise ValueError("The two neural options have the same maneuver")
+        result.update(choice_hold_stop=np.searchsorted(times, trial_time + np.float32(.32)).astype("i4"),
+                      choice_scores=scores, choice_risk=risk)
     if descent:
         bosses = state[rows, 24:132].reshape(-1, 3, 36)
         near = (bosses[:, :, 0] > .5) & (np.abs(bosses[:, :, 1]) <= .4) & (bosses[:, :, 20:23] > .5).any(2)

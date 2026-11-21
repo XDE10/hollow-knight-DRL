@@ -30,6 +30,13 @@ namespace HKRLEnvMod.Action
             int magic = reader.ReadInt32();
             reader.BaseStream.Position = 0;
             router = null;
+            if (magic == SistersCompoundOption.Magic)
+            {
+                reader.ReadInt32();
+                var net = SistersCompoundOption.Read(reader, out var option);
+                net.Compound = option;
+                return net;
+            }
             if (magic != Magic) return new NativeSistersNetwork(reader);
             reader.ReadInt32();
             int first = reader.ReadInt32(), second = reader.ReadInt32();

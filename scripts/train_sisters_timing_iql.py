@@ -579,10 +579,31 @@ def option_components(component: bytes) -> tuple[bytes, bytes, np.ndarray]:
     return primary, alternate, weights
 
 
+COMPOUND_MAGIC = 0x364C5149
+
+
+def compound_components(component: bytes) -> tuple[bytes, np.ndarray, np.ndarray]:
+    """Unpack the frozen neural actor, prospective risk readout, and option selector."""
+    if len(component) < 8:
+        raise ValueError("Truncated compound policy")
+    magic, size = struct.unpack_from("<2i", component)
+    if magic != COMPOUND_MAGIC or size < 20 or len(component) != size + 8 + (WIDTH + 1)*8:
+        raise ValueError("Invalid compound policy sizes")
+    actor = component[8:8 + size]
+    if not _timing_component(actor) or struct.unpack_from("<i", actor)[0] != 0x344C5149:
+        raise ValueError("Expected a history policy for compound controls")
+    weights = np.frombuffer(component, "<f4", offset=8+size).reshape(2, WIDTH+1)
+    if not np.isfinite(weights).all():
+        raise ValueError("Invalid compound readout weights")
+    return actor, weights[0], weights[1]
+
+
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     if not _timing_component(opener):
         raise ValueError("Expected a timing actor for the opening")
-    if not _timing_component(trio):
+    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == COMPOUND_MAGIC:
+        compound_components(trio)
+    elif not _timing_component(trio):
         option_components(trio)
     return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
 

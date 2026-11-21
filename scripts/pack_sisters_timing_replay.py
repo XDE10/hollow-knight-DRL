@@ -24,6 +24,7 @@ def pack(
     output: Path,
     original_speed_only: bool = False,
     block_experiment: Path | None = None,
+    compound_experiment: Path | None = None,
 ) -> None:
     games: dict[int, tuple[Path, dict]] = {}
     seen = set()
@@ -52,6 +53,17 @@ def pack(
     split_by_seed = {}
     spec = None
     neural_trial = False
+    if compound_experiment is not None:
+        if block_experiment is not None:
+            raise ValueError("Choose one experiment per archive")
+        spec = json.loads(compound_experiment.read_bytes())
+        train, held = spec["train_seeds"], spec["heldout_seeds"]
+        if (not train or not held or len(set(train + held)) != len(train) + len(held)
+            or set(train + held) != set(games) or any(
+                game.get("behavior_policy_sha256") != spec["actor_sha256"]
+                for _, game in games.values())):
+            raise ValueError("Unexpected compound trial population")
+        split_by_seed = {seed: "train" for seed in train} | {seed: "holdout" for seed in held}
     if block_experiment is not None:
         spec = json.loads(block_experiment.read_bytes())
         train, held = spec["train_seeds"], spec["heldout_seeds"]
@@ -131,6 +143,14 @@ def pack(
                         ):
                             raise ValueError(f"Invalid duration of randomized movement in {path}")
                         online_keys += ("choice_hold_stop",)
+                    if "choice_scores" in raw or "choice_risk" in raw:
+                        if ("choice_hold_stop" not in raw or "choice_scores" not in raw
+                            or "choice_risk" not in raw or raw["choice_risk"].shape != raw["choice_rows"].shape
+                            or raw["choice_scores"].shape != (len(raw["choice_rows"]), 2)):
+                            raise ValueError(f"Incomplete compound option in {path}")
+                        online_keys += ("choice_scores","choice_risk")
+                    if compound_experiment is not None and "choice_risk" not in raw:
+                        raise ValueError("Missing compound risk record")
                     if not all(k in raw for k in online_keys):
                         raise ValueError(f"Incomplete online behavior record in {path}")
                 labeled = game.get("teacher_labels", True)
@@ -187,7 +207,7 @@ def pack(
                         raise ValueError(
                             f"Controller assignment differs from applied keys in {path}"
                         )
-                if spec is not None and not (
+                if block_experiment is not None and not (
                     trial_keys if neural_trial else assignment_keys
                 ):
                     raise ValueError(f"No recorded controller assignments in {path}")
@@ -249,5 +269,6 @@ if __name__ == "__main__":
         type=Path,
         help="Preassigned policy hashes and complete fight splits.",
     )
+    parser.add_argument("--compound-experiment", type=Path)
     args = parser.parse_args()
-    pack(args.manifests, args.output, args.original_speed_only, args.block_experiment)
+    pack(args.manifests, args.output, args.original_speed_only, args.block_experiment, args.compound_experiment)

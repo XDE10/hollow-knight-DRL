@@ -129,6 +129,10 @@ namespace HKRLEnvMod.Action
         private uint _previous;
         private int _index;
         private int _best;
+        internal SistersCompoundOption? Compound { get; set; }
+        internal int BestIndex => _best;
+        internal float Score(int index) => _scores[index];
+        internal float[] Embedding => _z;
 
         internal static NativeSistersNetwork Load(byte[] bytes, out NativeSistersNetwork? trio)
         {
@@ -218,10 +222,36 @@ namespace HKRLEnvMod.Action
             for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
             _best = best;
             _index++;
-            return _actions[best];
+            return Compound == null ? _actions[best] : Compound.Choose(this, raw, time);
         }
 
         internal PrimitiveInput Command(int index) => _actions[index];
+
+        internal int CompoundAlternative(float[] state)
+        {
+            int best = -1;
+            int original = SistersCompoundOption.Maneuver(_actions[_best]);
+            for (int i = 0; i < _actions.Length; i++)
+                if (SistersCompoundOption.Maneuver(_actions[i]) != original &&
+                    SistersCompoundOption.Available(_actions[i], state) && (best < 0 || _scores[i] > _scores[best])) best = i;
+            return best;
+        }
+
+        internal PrimitiveInput ContinueOption(PrimitiveInput onset, PrimitiveInput greedy)
+        {
+            int best = -1;
+            // Hold lateral intent and jump hold. Fresh jump/dash/cast pulses after
+            // the onset are available only when the underlying network requests them.
+            const uint fresh = 1u | 4u | 16u;
+            for (int i = 0; i < _actions.Length; i++)
+            {
+                var candidate = _actions[i];
+                if (candidate.MovementX != onset.MovementX || ((candidate.Buttons ^ onset.Buttons) & 2u) != 0 ||
+                    (candidate.Buttons & fresh & ~greedy.Buttons) != 0) continue;
+                if (best < 0 || _scores[i] > _scores[best]) best = i;
+            }
+            return best >= 0 ? _actions[best] : greedy;
+        }
 
         internal PrimitiveInput BestHorizontal(int movement)
         {

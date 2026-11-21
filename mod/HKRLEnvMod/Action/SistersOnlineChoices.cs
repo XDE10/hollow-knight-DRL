@@ -12,12 +12,19 @@ namespace HKRLEnvMod.Action
         private BinaryWriter? _writer;
         private float _next, _release;
         private int _movement;
+        private readonly SistersCompoundOption? _compound;
         private readonly bool _descent = Environment.GetEnvironmentVariable("HKRL_NATIVE_DESCENT_TRIAL") == "1";
 
         internal SistersOnlineChoices(string directory, int seed)
         {
             _directory = directory;
             _random = new Random(seed);
+            var riskPath = Environment.GetEnvironmentVariable("HKRL_NATIVE_COMPOUND_RISK");
+            if (!string.IsNullOrEmpty(riskPath))
+            {
+                if (_descent) throw new InvalidOperationException("Choose one randomized experiment");
+                _compound = SistersCompoundOption.Training(riskPath!);
+            }
         }
 
         internal void Reset(ulong episode)
@@ -25,7 +32,8 @@ namespace HKRLEnvMod.Action
             _writer?.Dispose();
             _writer = new BinaryWriter(new FileStream(Path.Combine(_directory, episode + ".choices"),
                 FileMode.CreateNew, FileAccess.Write, FileShare.Read));
-            _writer.Write(_descent ? 0x32434B48 : 0x31434B48);
+            _compound?.Reset();
+            _writer.Write(_compound != null ? 0x33434B48 : _descent ? 0x32434B48 : 0x31434B48);
             _writer.Write(episode);
             _next = _release = 0;
         }
@@ -41,6 +49,7 @@ namespace HKRLEnvMod.Action
 
         internal PrimitiveInput Choose(float time, NativeSistersNetwork policy, PrimitiveInput greedy, float[] state)
         {
+            if (_compound != null) return _compound.Choose(policy, state, time, _random, _writer);
             if (_descent && time < _release) return policy.BestHorizontal(_movement);
             if (time < _next) return greedy;
             if (_descent && !NearDescent(state)) return greedy;

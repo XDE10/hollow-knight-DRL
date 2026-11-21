@@ -86,6 +86,7 @@ def read_decisions(
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--verify-unity-seed", action="store_true")
     ap.add_argument("--output", required=True, type=Path)
     ap.add_argument("--port", required=True, type=int)
     ap.add_argument("--seed", required=True, type=int)
@@ -177,6 +178,12 @@ def main() -> None:
                     controller.update(alternate_policy_sha256=alternate_sha, candidate_probability=0.5)
                 if has_teacher and envs.get("HKRL_NATIVE_DEMO_RATIO"):
                     controller["teacher_probability"] = float(envs["HKRL_NATIVE_DEMO_RATIO"])
+                if args.verify_unity_seed:
+                    seed_file = Path(envs["HKRL_ARENA_SEED_RECEIPT"])
+                    ids = list(map(int, seed_file.read_text(encoding="utf-8-sig").splitlines()))
+                    if ids != [eid, args.seed + i]:
+                        raise RuntimeError("Development Unity seed differs from this assigned fight")
+                    result["unity_reset_seed"] = ids[1]
                 file = f"dev-{i:03d}.npz"
                 plans = {}
                 if envs.get("HKRL_NATIVE_PLAN_TRACE") == "1":
