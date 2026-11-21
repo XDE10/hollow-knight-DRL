@@ -1,0 +1,50 @@
+{
+  "fights": 157,
+  "bc": 1500,
+  "world": 2000,
+  "rl": 16000,
+  "world_first_stage_updates": 4000,
+  "original_speed_only": true,
+  "parts": 19,
+  "sha256": "20b9213ecda48c5db4d8b3b00ec4df717df8ff51ceea747299e78fe55189be70",
+  "original_replay_sha256": "31287845620891aa986062e19506bd9b3a4822a8036dc5d37130df8dfda4199f",
+  "controller_supplement_sha256": "0897288048c36366fc8faa9b2fddd2c9a221f29405ddca96b9fc2a0a390751a1",
+  "initialization": "plans98h",
+  "changed": "Restore 105 explicit native teacher/student assignments. Honor randomized action intervention boundaries. Fit a greedy movement-key margin on both changed and held movements near descending/landed sisters, weighting issued teacher examples by actual short-horizon returns and the learned value. The actor and the world-assisted IQL objectives still use the complete development replay.",
+  "additional_training_flags": [
+    "--no-mirror",
+    "--motion-history",
+    "--switch-weight",
+    "2.5",
+    "--teacher-agreement-seconds",
+    "1.6",
+    "--forecast-weight",
+    "4",
+    "--return-seconds",
+    ".8",
+    "--plan-weight",
+    ".35",
+    "--drop-replay-fraction",
+    ".25",
+    "--initial-world",
+    "/content/pretrained-world.pt",
+    "--initial-learner",
+    "/content/warmstart.pt",
+    "--opener-policy",
+    "/content/opener.bin",
+    "--executed-teacher-advantage"
+  ],
+  "assets": {
+    "warmstart.pt": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+    "opener.bin": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+    "pretrained-world.pt": "fc1cb3f9a2948b9068f03f2a733f516ece4a83077444249f62e2669b96b63a14"
+  },
+  "scripts": {
+    "train_sisters_timing_iql.py": "4a508a9b2156897d5ef55d192bd09facad637f041ea30b9b9ed7ee28eb5c86d0",
+    "train_sisters_native_iql.py": "5ab7448cfdd4c54c9efedf4219cdf89b2dd193c1fd01adb362c0b80746d7fe69",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22",
+    "sisters_plan_labels.py": "d5f259f21468bc78d37b59fffb89dd514b0a083c88817582758d9244768be794",
+    "sisters_episode_returns.py": "f99a02ef29c4f9a3f661ebed08d26c0149ff94f6cb4bdd78f83fcbf2c5fa5fd3"
+  },
+  "prospective_holdout_screen": "Require more restored than lost correct movement changes and no net loss across changed and held movements. Only a fresh 100-fight native cohort can meet the course goals."
+}
