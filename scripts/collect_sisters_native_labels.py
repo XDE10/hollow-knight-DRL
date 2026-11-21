@@ -114,6 +114,12 @@ def main() -> None:
     has_teacher = bool(envs.get("HKRL_TACTICS_POLICY"))
     sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
     candidate = envs.get("HKRL_NATIVE_TRIAL_CANDIDATE")
+    sampler_path = envs.get("HKRL_NATIVE_OPTION_SAMPLER")
+    sampler = Path(sampler_path).read_bytes() if sampler_path else None
+    if sampler is not None and (has_teacher or not sampling or candidate):
+        raise ValueError(
+            "A sampled neural option requires a teacher-free development worker"
+        )
     if (
         proc.name().lower() != "hollow_knight.exe"
         or not (has_teacher or sampling or candidate)
@@ -195,12 +201,29 @@ def main() -> None:
                     from sisters_online_choices import late_catalogue, read_choices
 
                     if not timing or scale != 1 or control_stats["teacher_fraction"] != 0:
-                        raise ValueError("Randomized training requires original-speed student control")
+                        raise ValueError(
+                            "Randomized training requires original-speed student control"
+                        )
                     online = read_choices(
-                        tape_dir / f"{eid}.choices", eid, clock, decisions["timing_state"],
-                        decisions["controls"], late_catalogue(args.checkpoint.read_bytes()),
+                        tape_dir / f"{eid}.choices",
+                        eid,
+                        clock,
+                        decisions["timing_state"],
+                        decisions["controls"],
+                        late_catalogue(args.checkpoint.read_bytes()),
+                        sampler,
                     )
-                    result.update(behavior_policy_sha256=sha, randomized_choices=len(online["choice_rows"]))
+                    result.update(
+                        behavior_policy_sha256=sha,
+                        randomized_choices=len(online["choice_rows"]),
+                    )
+                    if sampler is not None:
+                        controller["sampler_sha256"] = hashlib.sha256(
+                            sampler
+                        ).hexdigest()
+                        controller["sampler_draw_seed"] = int(
+                            envs["HKRL_NATIVE_DEMO_SEED"]
+                        )
                 np.savez_compressed(
                     args.output / file,
                     **decisions,

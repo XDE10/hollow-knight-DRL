@@ -30,6 +30,8 @@ def main() -> None:
                    help="Track observed quake starts, health gain and net SOUL decreases in live samples.")
     p.add_argument("--record-memory-changes", action="store_true",
                    help="Require the executed trio actor's per-game count of changed native decisions.")
+    p.add_argument("--record-options", action="store_true",
+                   help="Read the native actor's option choices and changed inputs for this fight.")
     p.add_argument(
         "--expected-mod-sha256", help="Verify the staged game mod before this cohort."
     )
@@ -122,11 +124,30 @@ def main() -> None:
                         raise RuntimeError("Unity RNG receipt differs from the assigned fight")
                     result["unity_reset_seed"] = ids[1]
                 if args.record_memory_changes:
-                    source, total, changed = map(int, Path(str(ledger) + ".memory")
-                                                 .read_text(encoding="utf-8-sig").splitlines())
+                    source, total, changed = map(
+                        int,
+                        Path(str(ledger) + ".memory")
+                        .read_text(encoding="utf-8-sig")
+                        .splitlines(),
+                    )
                     if source != int(episode) or not 0 <= changed <= total <= int(n):
                         raise ValueError("Invalid native recurrent decision receipt")
                     result["recurrent_trio_decisions"] = total
+                    result["changed_native_decisions"] = changed
+                if args.record_options:
+                    source, choices, alternatives, changed = map(
+                        int,
+                        Path(str(ledger) + ".options")
+                        .read_text(encoding="utf-8-sig")
+                        .splitlines(),
+                    )
+                    if source != int(episode) or not (
+                        0 <= alternatives <= choices <= int(n)
+                        and alternatives <= changed <= int(n)
+                    ):
+                        raise ValueError("Invalid native option receipt")
+                    result["option_choices"] = choices
+                    result["alternative_choices"] = alternatives
                     result["changed_native_decisions"] = changed
                 speeds = result["speed_counts"]
                 if max(speeds, key=speeds.get) != 1.0 or max(speeds) > 1.001:

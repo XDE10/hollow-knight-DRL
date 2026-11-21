@@ -32,10 +32,10 @@ namespace HKRLEnvMod.Action
             router = null;
             if (magic == SistersMemoryResidual.Magic) return SistersMemoryResidual.Read(reader);
             if (magic == SistersFocusOption.Magic) return SistersFocusOption.Read(reader);
-            if (magic == SistersCompoundOption.Magic)
+            if (magic == SistersCompoundOption.Magic || magic == SistersCompoundOption.PolicyGradientMagic)
             {
                 reader.ReadInt32();
-                var net = SistersCompoundOption.Read(reader, out var option);
+                var net = SistersCompoundOption.Read(reader, out var option, magic == SistersCompoundOption.PolicyGradientMagic);
                 net.Compound = option;
                 return net;
             }

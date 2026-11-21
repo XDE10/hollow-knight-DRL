@@ -16,6 +16,8 @@ CONTROLLER_FIELDS = (
     "teacher_probability",
     "alternate_policy_sha256",
     "candidate_probability",
+    "sampler_sha256",
+    "sampler_draw_seed",
 )
 
 

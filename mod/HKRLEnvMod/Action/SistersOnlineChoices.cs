@@ -20,7 +20,13 @@ namespace HKRLEnvMod.Action
             _directory = directory;
             _random = new Random(seed);
             var riskPath = Environment.GetEnvironmentVariable("HKRL_NATIVE_COMPOUND_RISK");
-            if (!string.IsNullOrEmpty(riskPath))
+            var sampledHead = Environment.GetEnvironmentVariable("HKRL_NATIVE_OPTION_SAMPLER");
+            if (!string.IsNullOrEmpty(sampledHead))
+            {
+                if (_descent || !string.IsNullOrEmpty(riskPath)) throw new InvalidOperationException("Choose one option sampler");
+                _compound = SistersCompoundOption.SamplePolicy(sampledHead!);
+            }
+            else if (!string.IsNullOrEmpty(riskPath))
             {
                 if (_descent) throw new InvalidOperationException("Choose one randomized experiment");
                 _compound = SistersCompoundOption.Training(riskPath!);
@@ -33,8 +39,13 @@ namespace HKRLEnvMod.Action
             _writer = new BinaryWriter(new FileStream(Path.Combine(_directory, episode + ".choices"),
                 FileMode.CreateNew, FileAccess.Write, FileShare.Read));
             _compound?.Reset();
-            _writer.Write(_compound != null ? 0x33434B48 : _descent ? 0x32434B48 : 0x31434B48);
+            _writer.Write(_compound?.LearnedSampling == true ? 0x34434B48 : _compound != null ? 0x33434B48 : _descent ? 0x32434B48 : 0x31434B48);
             _writer.Write(episode);
+            if (_compound?.LearnedSampling == true)
+            {
+                _writer.Write(_compound.Interval);
+                _writer.Write(_compound.SamplingDigest!);
+            }
             _next = _release = 0;
         }
 

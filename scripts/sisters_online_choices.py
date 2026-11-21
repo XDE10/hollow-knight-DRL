@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import struct
 from pathlib import Path
 
@@ -46,13 +47,36 @@ def read_choices(
     state: np.ndarray,
     applied: np.ndarray,
     catalogue: np.ndarray,
+    sampling_policy: bytes | None = None,
 ) -> dict[str, np.ndarray]:
     with path.open("rb") as f:
         magic, recorded_episode = struct.unpack("<IQ", f.read(12))
-        if magic not in (0x31434B48, 0x32434B48, 0x33434B48) or recorded_episode != episode:
+        learned = magic == 0x34434B48
+        if (
+            magic not in (0x31434B48, 0x32434B48, 0x33434B48, 0x34434B48)
+            or recorded_episode != episode
+        ):
             raise ValueError("Wrong online episode")
-        compound = magic == 0x33434B48
-        dtype = np.dtype(ROW.descr + [("scores","<f4",(2,)),("risk","<f4")]) if compound else ROW
+        if learned != (sampling_policy is not None):
+            raise ValueError("Missing or unexpected sampled policy")
+        interval = 8.4
+        if sampling_policy is not None:
+            (interval,) = struct.unpack("<f", f.read(4))
+            head_magic, head_interval = struct.unpack_from("<if", sampling_policy)
+            if (
+                len(sampling_policy) != 8 + 386 * 4
+                or head_magic != 0x31504753
+                or interval != head_interval
+                or not 0.31999 <= interval <= 8.40001
+                or f.read(32) != hashlib.sha256(sampling_policy).digest()
+            ):
+                raise ValueError("Option sampler differed from the recorded behavior")
+        compound = magic == 0x33434B48 or learned
+        dtype = (
+            np.dtype(ROW.descr + [("scores", "<f4", (2,)), ("risk", "<f4")])
+            if compound
+            else ROW
+        )
         raw = np.frombuffer(f.read(), dtype=dtype)
     trial_time, pairs, draw, prob, gap = (
         raw[k] for k in ("time", "pair", "draw", "p", "gap")
@@ -61,16 +85,22 @@ def read_choices(
     rows = np.searchsorted(times, trial_time)
     if (
         not np.isfinite(trial_time).all()
-        or (np.diff(trial_time) < (8.399 if compound else 1.499 if descent else 0.719)).any()
+        or (
+            np.diff(trial_time)
+            < (interval - 0.001 if compound else 1.499 if descent else 0.719)
+        ).any()
         or (rows >= len(times)).any()
         or not np.array_equal(times[rows], trial_time)
         or (state[rows, 23] <= 0.5).any()
         or ((pairs < 0) | (pairs >= len(catalogue))).any()
         or (pairs[:, 0] == pairs[:, 1]).any()
         or ((draw != 0) & (draw != 1)).any()
-        or (prob != 0.5).any()
+        or not np.isfinite(prob).all()
+        or ((prob < 0.05) | (prob > 0.95)).any()
+        or (not learned and (prob != 0.5).any())
         or not np.isfinite(gap).all()
-        or (gap < 0).any() or (not compound and (gap > 3).any())
+        or (gap < 0).any()
+        or (not compound and (gap > 3).any())
     ):
         raise ValueError("Invalid randomized action record")
     if not np.array_equal(catalogue[pairs[np.arange(len(draw)), draw]], applied[rows]):
