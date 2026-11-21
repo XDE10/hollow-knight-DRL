@@ -72,8 +72,16 @@ namespace HKRLEnvMod.Action
                 var bytes = File.ReadAllBytes(_path);
                 using (var sha = SHA256.Create())
                     _digest = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+                _router?.Sampler?.Dispose();
                 _net = NativeSistersNetwork.Load(bytes, out _trioNet, out _router);
                 _episode = obs.Global.EpisodeId;
+                if (Environment.GetEnvironmentVariable("HKRL_NATIVE_ROUTER_ROLLOUT") == "1")
+                {
+                    if (_demonstrator == null || _router == null) throw new InvalidOperationException("Missing teacher-free router rollout");
+                    var folder=Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_DIR")!;
+                    using var sha=SHA256.Create();
+                    _router.Sampler=new SistersRouterSampler(folder,_episode,sha.ComputeHash(bytes));
+                }
                 _count = _attack = _cast = _dash = _art = 0;
                 _demonstrator?.Reset(_episode);
                 _demonstrator?.NeuralTrial?.Reset(_episode, bytes);
@@ -105,6 +113,7 @@ namespace HKRLEnvMod.Action
         public void Flush()
         {
             _demonstrator?.Flush();
+            _router?.Sampler?.Flush();
             if (_count == 0) return;
             _trioNet?.Focus?.WriteReceipt(_ledger + ".focus", _episode);
             _trioNet?.Memory?.WriteReceipt(_ledger + ".memory", _episode);
@@ -114,7 +123,7 @@ namespace HKRLEnvMod.Action
                 _digest, _count, _attack, _cast, _dash, _art));
         }
 
-        public void Dispose() { _demonstrator?.Dispose(); }
+        public void Dispose() { _router?.Sampler?.Dispose(); _demonstrator?.Dispose(); }
     }
 
     internal sealed class NativeSistersNetwork

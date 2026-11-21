@@ -1,0 +1,33 @@
+{
+  "window_seconds": 0.72,
+  "scope": "Sensitivity on three previously examined fixed development state tapes. Visible HP drops only. Changing a key in a preceding window does not establish that the change would avert that debit.",
+  "games": [
+    {
+      "seed": 9713001,
+      "observed_trio_health_debits": 8,
+      "debits_with_a_changed_prior_key": 0,
+      "changed_keys": 24,
+      "changed_directions": 13,
+      "changed_jump": 6,
+      "changed_dash": 0
+    },
+    {
+      "seed": 9713005,
+      "observed_trio_health_debits": 7,
+      "debits_with_a_changed_prior_key": 0,
+      "changed_keys": 18,
+      "changed_directions": 12,
+      "changed_jump": 3,
+      "changed_dash": 0
+    },
+    {
+      "seed": 9713009,
+      "observed_trio_health_debits": 7,
+      "debits_with_a_changed_prior_key": 2,
+      "changed_keys": 18,
+      "changed_directions": 15,
+      "changed_jump": 8,
+      "changed_dash": 0
+    }
+  ]
+}

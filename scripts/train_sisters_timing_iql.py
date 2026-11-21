@@ -582,6 +582,7 @@ def option_components(component: bytes) -> tuple[bytes, bytes, np.ndarray]:
 COMPOUND_MAGIC = 0x364C5149
 POLICY_GRADIENT_MAGIC = 0x394C5149
 DIRECTIONAL_MAGIC = 0x3A4C5149
+ROUTER_RESIDUAL_MAGIC = 0x3B4C5149
 FOCUS_MAGIC = 0x374C5149
 FOCUS_FEATURES = 16
 MEMORY_MAGIC = 0x384C5149
@@ -636,7 +637,9 @@ def compound_components(component: bytes) -> tuple[bytes, np.ndarray, np.ndarray
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     if not _timing_component(opener):
         raise ValueError("Expected a timing actor for the opening")
-    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (POLICY_GRADIENT_MAGIC, DIRECTIONAL_MAGIC):
+    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == ROUTER_RESIDUAL_MAGIC:
+        router_residual_components(trio)
+    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (POLICY_GRADIENT_MAGIC, DIRECTIONAL_MAGIC):
         policy_gradient_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == MEMORY_MAGIC:
         memory_components(trio)
@@ -647,6 +650,21 @@ def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     elif not _timing_component(trio):
         option_components(trio)
     return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
+
+
+def router_residual_components(component: bytes) -> tuple[bytes, np.ndarray]:
+    if len(component) < 12:
+        raise ValueError("Truncated router residual")
+    magic, size = struct.unpack_from("<2i", component)
+    n = 1 + 40*32 + 32 + 32*16 + 16 + 16 + 1
+    if magic != ROUTER_RESIDUAL_MAGIC or size < 12 or len(component) != 8 + size + 4*n:
+        raise ValueError("Invalid router residual layout")
+    original = component[8:8+size]
+    option_components(original)
+    parameters = np.frombuffer(component, "<f4", offset=8+size)
+    if not np.isfinite(parameters).all() or not 0 < parameters[0] < 1000:
+        raise ValueError("Invalid router residual parameters")
+    return original, parameters
 
 
 def policy_gradient_components(component: bytes) -> tuple[bytes, bytes]:

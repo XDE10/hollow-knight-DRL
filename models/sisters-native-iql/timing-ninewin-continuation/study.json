@@ -1,0 +1,25 @@
+{
+  "sha256": "a9669d60560ff5cbbe439fe0aaad4f6005740dfd16382294fc852e9802b4d61b",
+  "assets": {
+    "warmstart.pt": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+    "parent.bin": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+    "experiment.json": "88efde0d34f993e3263b006b16aeb6512d9619209801ad1efd18aaa24abc7f97"
+  },
+  "scripts": {
+    "train_sisters_champion_router.py": "8ff5f1cbc1a9b52a88bbe21620cd94a6ef43f4bff616a19369190beb7acb33ed",
+    "train_sisters_timing_iql.py": "d2586f2f534389295d1a630c151ac23ac649d449dc14096a084639ed578d51bb",
+    "train_sisters_native_iql.py": "5ab7448cfdd4c54c9efedf4219cdf89b2dd193c1fd01adb362c0b80746d7fe69",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22",
+    "sisters_control_blocks.py": "e9553a22137b57e262e763ab6c2c12298ea908f00f3e5914705fb9f21324a94f",
+    "train_sisters_option_ppo.py": "eebde36ea1d0e2178a86059809e6484e6f1f71a2074ad457fa22d5b61ffd4222"
+  },
+  "parts": 3,
+  "updates_per_critic_fit": 900,
+  "independent_seed_start": 10091000,
+  "scope": "Nine-win parent continued without replacing its opening, old router or native actors. Offline actor-critic trains only on the nine historical randomized training fights. The three previously examined development holdouts are descriptive; new arena results decide acceptance.",
+  "expected_initial_masks": 9,
+  "expected_initial_soul": 0,
+  "original_damage": 1,
+  "original_speed": 1,
+  "max_fraction_changed_training_blocks": 0.12
+}

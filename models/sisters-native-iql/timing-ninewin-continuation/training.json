@@ -1,0 +1,107 @@
+{
+  "method": "Offline neural actor-critic from the exact nine-win two-policy selector. Real 0.8-second returns, twin Q, expectile V, auxiliary action-conditioned motion and cross-fitted actor improvement.",
+  "device": "cuda",
+  "critic_updates_per_fit": 900,
+  "folds": 3,
+  "actor_steps": 180,
+  "actor_parameters": 1857,
+  "training_fights": 9,
+  "training_blocks": 1242,
+  "historical_holdout_blocks": 408,
+  "training_changes": 149,
+  "historical_holdout_changes": 58,
+  "raw_bound": 0.07383641600608826,
+  "applied_fraction": 0.6499999999999999,
+  "episodes": [
+    {
+      "seed": 9713000,
+      "train": true,
+      "blocks": 122,
+      "changed": 22,
+      "immediate_reward_ips_change": 0.004168778657913208
+    },
+    {
+      "seed": 9713001,
+      "train": false,
+      "blocks": 120,
+      "changed": 16,
+      "immediate_reward_ips_change": -0.01892722547054291
+    },
+    {
+      "seed": 9713002,
+      "train": true,
+      "blocks": 143,
+      "changed": 13,
+      "immediate_reward_ips_change": -0.031967669517010244
+    },
+    {
+      "seed": 9713003,
+      "train": true,
+      "blocks": 69,
+      "changed": 7,
+      "immediate_reward_ips_change": -0.02040127740390059
+    },
+    {
+      "seed": 9713004,
+      "train": true,
+      "blocks": 153,
+      "changed": 14,
+      "immediate_reward_ips_change": 0.05797316435894935
+    },
+    {
+      "seed": 9713005,
+      "train": false,
+      "blocks": 135,
+      "changed": 19,
+      "immediate_reward_ips_change": 0.023351407051086424
+    },
+    {
+      "seed": 9713006,
+      "train": true,
+      "blocks": 163,
+      "changed": 19,
+      "immediate_reward_ips_change": -1.9974138107767866e-05
+    },
+    {
+      "seed": 9713007,
+      "train": true,
+      "blocks": 159,
+      "changed": 17,
+      "immediate_reward_ips_change": 0.047799623237465914
+    },
+    {
+      "seed": 9713008,
+      "train": true,
+      "blocks": 166,
+      "changed": 30,
+      "immediate_reward_ips_change": 0.06635172324008252
+    },
+    {
+      "seed": 9713009,
+      "train": false,
+      "blocks": 153,
+      "changed": 23,
+      "immediate_reward_ips_change": 0.06335991932675729
+    },
+    {
+      "seed": 9713010,
+      "train": true,
+      "blocks": 147,
+      "changed": 13,
+      "immediate_reward_ips_change": 0.005638891742342994
+    },
+    {
+      "seed": 9713011,
+      "train": true,
+      "blocks": 120,
+      "changed": 14,
+      "immediate_reward_ips_change": 0.07786809206008911
+    }
+  ],
+  "clean_cost": 0.0,
+  "parent_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+  "initial_equivalent_sha256": "f435a08b7d628da3e8b7448cc3eb3959570f5c793afa51c746f88d10f9843d22",
+  "policy_sha256": "ce5b46bf416e647c5dd45956833f5c19b8e484a369eecd6f37801eb59a069a9c",
+  "archive_sha256": "a9669d60560ff5cbbe439fe0aaad4f6005740dfd16382294fc852e9802b4d61b",
+  "source_learner_sha256": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e"
+}

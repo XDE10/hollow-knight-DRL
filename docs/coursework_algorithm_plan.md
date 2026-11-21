@@ -6,6 +6,8 @@
 
 11 月 21 日的实机路线先保留能稳定打过第一只的神经策略，再针对三姐妹同时出招时的走位训练。Colab 上的世界模型预测改变按键后骑士会到哪里，以及螳螂和飞镖会出现在哪里。本机的在线 PPO 策略用这些运动特征选择走法，根据真实对敌伤害、骑士失血和整场胜负更新。模型最终按全新的原速原伤百场成绩验收。已结束的两组纯神经对照中，延长回血版 6 场 3 胜，循环记忆版 4 场 1 胜，两组均为 0 场无伤，均在第三场失利时结束该组验收。[世界模型实测](adr/0026-sisters-action-conditioned-motion.md) · [在线 PPO](adr/0027-sisters-online-option-ppo.md) · [回血版逐场记录](../models/sisters-native-iql/timing-focus-continuation/evaluation.json) · [循环记忆版逐场记录](../models/sisters-native-iql/timing-handoff-memory/evaluation.json)
 
+已从 12 场实战通关 9 场的纯神经策略继续训练。Colab 完成了这版的离线深度 actor–critic 更新，新旧权重均已保存。新权重的训练结果和历史按键重放单独记录，胜率以全新原速实战为准。[9 胜版续训与实验证据](adr/0030-sisters-nine-win-continuation.md)
+
 下文保留早期方案和 Double DQN 实验，供比较不同方法的演进过程。
 
 更新：2026-11-18。用户要求：方法尽量前沿，优先实际胜率；本机只有

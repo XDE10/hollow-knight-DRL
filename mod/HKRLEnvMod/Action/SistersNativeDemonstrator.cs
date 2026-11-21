@@ -53,7 +53,10 @@ namespace HKRLEnvMod.Action
                     throw new InvalidOperationException("Neural block comparisons require exclusive teacher-free timing recording");
                 NeuralTrial = new SistersNeuralBlockTrial(folder, candidate!, seed);
             }
-            if (teacher == null && ((_online == null && NeuralTrial == null) || _recordPlans))
+            bool routing = Environment.GetEnvironmentVariable("HKRL_NATIVE_ROUTER_ROLLOUT") == "1";
+            if (routing && (teacher != null || _online != null || NeuralTrial != null || _recordPlans || !_recordTiming || _teacherRatio != 0))
+                throw new InvalidOperationException("A router rollout must use its own neural actors exclusively");
+            if (teacher == null && ((_online == null && NeuralTrial == null && !routing) || _recordPlans))
                 throw new InvalidOperationException("Teacher-free recording requires an online trial without plan labels");
         }
 
