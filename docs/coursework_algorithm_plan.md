@@ -1,6 +1,12 @@
 # 战斗姐妹：课程项目算法与硬件方案
 
-2026-11-20 的课程主线已接入世界模型内的 PPO 与实机 PPO。Actor 直接输出普通按键，critic 估计长期回报。实际执行的训练步骤、权重和独立评估见 [ADR-0019](adr/0019-sisters-model-based-ppo.md) 与 [课程模型](../models/sisters-course-ac/README.md)。下面保留最初方案供对照。
+99 胜版在 100 场原速原伤对局中通关 99 场，其中 7 场无伤。这版用游戏内的规划器和学习到的模型共同控制骑士，在课程项目里用作教师和工程对照。[混合控制器、权重和原始成绩](../models/sisters-world-v2/README.md)
+
+课程的强化学习策略要独立发出按键。11 月 20 日完成的实验先用三个动力学网络在 Colab 生成五步想象轨迹，做 150 轮 PPO，然后用策略自己打的 24 场实机数据再更新 6 次。Actor 输出按键，critic 估计后续回报。每版成绩对应各自冻结的权重。[训练记录及独立评估](../models/sisters-course-ac/README.md)
+
+11 月 21 日的实机路线先保留能稳定打过第一只的神经策略，再针对三姐妹同时出招时的走位训练。Colab 上的世界模型预测改变按键后骑士会到哪里，以及螳螂和飞镖会出现在哪里。本机的在线 PPO 策略用这些运动特征选择走法，根据真实对敌伤害、骑士失血和整场胜负更新。模型最终按全新的原速原伤百场成绩验收。已结束的两组纯神经对照中，延长回血版 6 场 3 胜，循环记忆版 4 场 1 胜，两组均为 0 场无伤，均在第三场失利时结束该组验收。[世界模型实测](adr/0026-sisters-action-conditioned-motion.md) · [在线 PPO](adr/0027-sisters-online-option-ppo.md) · [回血版逐场记录](../models/sisters-native-iql/timing-focus-continuation/evaluation.json) · [循环记忆版逐场记录](../models/sisters-native-iql/timing-handoff-memory/evaluation.json)
+
+下文保留早期方案和 Double DQN 实验，供比较不同方法的演进过程。
 
 更新：2026-11-18。用户要求：方法尽量前沿，优先实际胜率；本机只有
 i5-1135G7、16 GB 内存和 Iris Xe，可通过 Colab CLI 使用 RTX PRO 6000。
