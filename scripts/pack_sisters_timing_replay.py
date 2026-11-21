@@ -27,6 +27,7 @@ def pack(
     original_speed_only: bool = False,
     block_experiment: Path | None = None,
     compound_experiment: Path | None = None,
+    on_policy_batch: bool = False,
 ) -> None:
     games: dict[int, tuple[Path, dict]] = {}
     seen = set()
@@ -55,6 +56,26 @@ def pack(
     split_by_seed = {}
     spec = None
     neural_trial = False
+    if on_policy_batch:
+        controllers = {
+            (g.get("behavior_policy_sha256"), g.get("sampler_sha256"))
+            for _, g in games.values()
+        }
+        draw_seeds = {g.get("sampler_draw_seed") for _, g in games.values()}
+        if (
+            not original_speed_only
+            or block_experiment
+            or compound_experiment
+            or len(controllers) != 1
+            or not all(next(iter(controllers)))
+            or None in draw_seeds
+            or len(draw_seeds) != len(games)
+            or any(g.get("teacher_labels", True) for _, g in games.values())
+        ):
+            raise ValueError(
+                "An on-policy batch requires one sampled controller and independent original-speed student rolls"
+            )
+        split_by_seed = dict.fromkeys(games, "train")
     if compound_experiment is not None:
         if block_experiment is not None:
             raise ValueError("Choose one experiment per archive")
@@ -253,7 +274,7 @@ def pack(
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
-        if {g["split"] for g in entries} != {"train", "holdout"}:
+        if {g["split"] for g in entries} != ({"train"} if on_policy_batch else {"train", "holdout"}):
             raise ValueError("Missing fight split")
         archive.writestr("manifest.json", json.dumps(entries, indent=2) + "\n")
         if spec is not None:
@@ -272,5 +293,7 @@ if __name__ == "__main__":
         help="Preassigned policy hashes and complete fight splits.",
     )
     parser.add_argument("--compound-experiment", type=Path)
+    parser.add_argument("--on-policy-batch", action="store_true")
     args = parser.parse_args()
-    pack(args.manifests, args.output, args.original_speed_only, args.block_experiment, args.compound_experiment)
+    pack(args.manifests, args.output, args.original_speed_only, args.block_experiment, args.compound_experiment,
+         on_policy_batch=args.on_policy_batch)

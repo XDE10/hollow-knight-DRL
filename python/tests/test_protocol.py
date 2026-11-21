@@ -437,7 +437,10 @@ def test_mod_step_controller_rejects_non_poll_step_before_running() -> None:
     assert "HKRL.StatusCode.NotRunning" in controller
     assert "IsNoopPollStep(request)" in controller
     assert "DecodedAction.Noop" in controller
-    assert controller.index("HKRL.StatusCode.NotRunning") < controller.index("_actions.Apply")
+    step = controller.split("case HKRL.Command.Step:", 1)[1].split("case HKRL.Command.Pause:", 1)[0]
+    assert step.index("HKRL.StatusCode.NotRunning") < step.index("_actions.Apply(")
+    local = controller.split("FixedTickCore();", 1)[1].split("_actions.ApplyLocalInput(", 1)[0]
+    assert "_lifecycle.IsRunning" in local
 
 
 def test_mod_control_commands_do_not_advance_episode_lifecycle() -> None:

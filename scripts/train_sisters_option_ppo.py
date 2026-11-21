@@ -197,6 +197,7 @@ def train(
             source = g["source"]
             if (
                 source in seen
+                or g.get("split") != "train"
                 or not source.startswith("native-development/")
                 or g["teacher_labels"]
                 or g["sampler_sha256"] != digest

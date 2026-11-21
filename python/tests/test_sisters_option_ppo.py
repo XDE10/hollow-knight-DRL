@@ -154,6 +154,7 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
             manifest.append(
                 {
                     "source": f"native-development/{seed}",
+                    "split": "train",
                     "teacher_labels": False,
                     "sampler_sha256": ppo.sha(sampler),
                     "behavior_policy_sha256": ppo.sha(base),
@@ -174,3 +175,49 @@ def test_update_and_export_with_synthetic_on_policy_fights(tmp_path: Path, ppo):
     _, trio = timing.phase_components((output / "world_iql.bin").read_bytes())
     leaf, head = timing.policy_gradient_components(trio)
     assert leaf == template.read_bytes() and head == (output / "sampler.bin").read_bytes()
+
+
+def test_on_policy_pack_preserves_training_role_and_rejects_mixed_heads(tmp_path, ppo):
+    pack = importlib.import_module("pack_sisters_timing_replay").pack
+    entries = []
+    for i, seed in enumerate((1000, 1001)):
+        meta = dict(
+            behavior_policy_sha256="b" * 64,
+            sampler_sha256="c" * 64,
+            sampler_draw_seed=seed + 30,
+            teacher_labels=False,
+        )
+        observation = np.zeros((3, 192), "f4")
+        observation[:, 24] = 1
+        np.savez(
+            tmp_path / f"g{i}.npz",
+            timing_state=observation,
+            control_time=np.arange(3) * 0.04,
+            controls=np.zeros((3, 3), "i2"),
+            events=np.zeros((1, 8)),
+            elapsed_ticks=[6],
+            time=[0.0],
+            choice_rows=np.array([], dtype="i4"),
+            choice_pairs=np.empty((0, 2), "i4"),
+            choice_draw=np.array([], dtype="i4"),
+            choice_probability=[],
+            choice_gap=[],
+        )
+        entries.append(
+            {**meta, "source": f"native-development/{seed}", "won": True, "file": f"g{i}.npz"}
+        )
+        (tmp_path / f"episode-{i:03d}.json").write_text(
+            json.dumps({**meta, "seed": seed, "win": True, "speed_counts": {"1": 3}})
+        )
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps(entries))
+    archive = tmp_path / "same.zip"
+    pack([manifest], archive, True, on_policy_batch=True)
+    with zipfile.ZipFile(archive) as z:
+        assert [g["split"] for g in json.loads(z.read("manifest.json"))] == ["train", "train"]
+    entries[1]["sampler_sha256"] = "d" * 64
+    info = tmp_path / "episode-001.json"
+    info.write_text(json.dumps({**json.loads(info.read_bytes()), "sampler_sha256": "d" * 64}))
+    manifest.write_text(json.dumps(entries))
+    with pytest.raises(ValueError, match="one sampled controller"):
+        pack([manifest], tmp_path / "mixed.zip", True, on_policy_batch=True)
