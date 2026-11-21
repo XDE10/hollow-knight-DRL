@@ -595,7 +595,11 @@ def train(
     future_key_weight: float = 0.0,
     terminal_advantage_weight: float = 0.0,
     drop_replay_fraction: float = 0.0,
+    world_only: bool = False,
+    initial_world: Path | None = None,
 ) -> None:
+    if world_only and (bc_steps or rl_steps):
+        raise ValueError("World pretraining requires zero actor and IQL steps")
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -822,11 +826,22 @@ def train(
         )
         if (step + 1) % 2000 == 0:
             print("teacher", step + 1, flush=True)
-    save("bc")
+    if not world_only:
+        save("bc")
     ref = copy.deepcopy(actor).requires_grad_(False)
     width = s.shape[1]
     world = mlp(width + 11, len(PHYSICAL)).to(device)
     wopt = torch.optim.AdamW(world.parameters(), lr=0.0008)
+    prior_updates = 0
+    if initial_world is not None:
+        saved_world = torch.load(initial_world, weights_only=True, map_location=device)
+        if saved_world["physical"] != PHYSICAL or saved_world["state_width"] != width:
+            raise ValueError("Pretrained world model uses different state coordinates")
+        world.load_state_dict(saved_world["world"])
+        wopt.load_state_dict(saved_world["optimizer"])
+        prior_updates = saved_world["updates"]
+        report["initial_world_sha256"] = hashlib.sha256(initial_world.read_bytes()).hexdigest()
+    report["total_world_updates"] = prior_updates + world_steps
     for _ in range(world_steps):
         i = replay_rows(dynamics_rows, drop_dynamics)
         delta = world(torch.cat((s[i], action_encoding[y[i]]), 1))
@@ -855,6 +870,13 @@ def train(
             if subset.any():
                 report["heldout_drop_world_mae"] = (delta[subset] - actual[subset]).abs().mean().item()
                 report["heldout_drop_persistence_mae"] = actual[subset].abs().mean().item()
+    if world_only:
+        target = output / "world.pt"
+        torch.save({"physical": PHYSICAL, "state_width": width, "updates": prior_updates + world_steps,
+                    "world": world.state_dict(), "optimizer": wopt.state_dict()}, target)
+        report["world_sha256"] = hashlib.sha256(target.read_bytes()).hexdigest()
+        (output / "training.json").write_text(json.dumps(report, indent=2) + "\n")
+        return
     q1, q2 = mlp(width, len(cat)).to(device), mlp(width, len(cat)).to(device)
     t1, t2 = (
         copy.deepcopy(q1).requires_grad_(False),
@@ -1083,8 +1105,12 @@ if __name__ == "__main__":
     )
     parser.add_argument("--drop-replay-fraction", type=float, default=0.0,
                         help="Reserve a share of world-model and IQL minibatches for observed nearby boss drops.")
+    parser.add_argument("--world-only", action="store_true",
+                        help="Save only the trained dynamics model and optimizer.")
+    parser.add_argument("--initial-world", type=Path,
+                        help="Resume dynamics training from a verified world-only checkpoint.")
     args = parser.parse_args()
-    if min(args.bc_steps, args.world_steps, args.rl_steps, args.batch) < 1:
+    if min(args.world_steps, args.batch) < 1 or (not args.world_only and min(args.bc_steps, args.rl_steps) < 1):
         parser.error("Positive budgets required")
     if not np.isfinite(args.switch_weight) or args.switch_weight < 1:
         parser.error("Switch weight must be finite and at least one")
@@ -1130,4 +1156,6 @@ if __name__ == "__main__":
         args.future_key_weight,
         args.terminal_advantage_weight,
         args.drop_replay_fraction,
+        args.world_only,
+        args.initial_world,
     )

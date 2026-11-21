@@ -1,0 +1,30 @@
+{
+  "fights": 145,
+  "parts": 17,
+  "sha256": "4f692a57ddd3bff47ce14359f588e4cc29f847baa25967d2ec40dec06b2e1740",
+  "source_sha256": [
+    "f534b4d3d2da80bcf15deae83686732657b4951dc6be23417c3e676069666306",
+    "4c5d0472913f332da6a627030c79a4da1f1275cc8a7ebe2a1d72b1ac4f603cee"
+  ],
+  "bc": 0,
+  "world": 4000,
+  "rl": 0,
+  "original_speed_only": true,
+  "additional_training_flags": [
+    "--no-mirror",
+    "--motion-history",
+    "--opener-policy",
+    "/content/opener.bin",
+    "--drop-replay-fraction",
+    ".25",
+    "--world-only"
+  ],
+  "scripts": {
+    "train_sisters_timing_iql.py": "691fb1d9789633cda3eef27078afd206b877b2622cd480e655d085a7fc37fe11",
+    "train_sisters_native_iql.py": "5ab7448cfdd4c54c9efedf4219cdf89b2dd193c1fd01adb362c0b80746d7fe69",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22"
+  },
+  "assets": {
+    "opener.bin": "fd51ea7a18e2313850bb936f639212edcf1296211f7d8a8820e740535ed210c8"
+  }
+}

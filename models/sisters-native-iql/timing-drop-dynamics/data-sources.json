@@ -1,0 +1,11 @@
+{
+  "ordered_inputs": [
+    "../timing-mixed-selfplay/data-sources.json",
+    "../timing-recovery-blocks/development.zip"
+  ],
+  "source_sha256": [
+    "f534b4d3d2da80bcf15deae83686732657b4951dc6be23417c3e676069666306",
+    "4c5d0472913f332da6a627030c79a4da1f1275cc8a7ebe2a1d72b1ac4f603cee"
+  ],
+  "packing": "Read each source archive manifest in order, use fight-NNN.npz for consecutive NNN starting at 000, and preserve each source split and episode hash."
+}

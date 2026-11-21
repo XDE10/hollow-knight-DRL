@@ -11,6 +11,64 @@ import pytest
 import torch
 
 
+def test_world_pretraining_continues_optimizer_without_exporting_an_actor(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    rows = []
+    for i, split in enumerate(("train", "holdout")):
+        t = np.arange(16, dtype="f4") * 0.04
+        s = np.zeros((len(t), mod.WIDTH), "f4")
+        s[:, 0] = t / 5
+        s[:, 23] = s[:, 24] = s[:, 44] = 1
+        s[:, 2] = 0.2
+        keys = np.zeros((len(t), 3), "i2")
+        keys[:, 0] = 1
+        file = tmp_path / f"game-{i}.npz"
+        np.savez(
+            file,
+            timing_state=s,
+            control_time=t,
+            controls=keys,
+            teacher_controls=keys,
+            time=t,
+            elapsed_ticks=np.full(len(t), 2),
+            events=np.zeros((len(t), 8), "f4"),
+        )
+        rows.append(
+            dict(
+                source=f"native-development/{i}",
+                won=False,
+                file=file.name,
+                split=split,
+                sha256=hashlib.sha256(file.read_bytes()).hexdigest(),
+            )
+        )
+    (tmp_path / "manifest.json").write_text(json.dumps(rows))
+    first, second = tmp_path / "first", tmp_path / "second"
+    mod.train(
+        tmp_path, first, 0, 2, 0, 4, 3, mirror=False, world_only=True, drop_replay_fraction=0.25
+    )
+    mod.train(
+        tmp_path,
+        second,
+        0,
+        1,
+        0,
+        4,
+        3,
+        mirror=False,
+        world_only=True,
+        initial_world=first / "world.pt",
+        drop_replay_fraction=0.25,
+    )
+    assert {f.name for f in second.iterdir()} == {"world.pt", "training.json"}
+    result = torch.load(second / "world.pt", map_location="cpu", weights_only=True)
+    assert result["updates"] == 3
+    assert {int(v["step"]) for v in result["optimizer"]["state"].values()} == {3}
+    report = json.loads((second / "training.json").read_bytes())
+    assert report["total_world_updates"] == 3 and report["heldout_drop_dynamics_rows"] > 0
+
+
 def test_drop_replay_uses_present_vulnerable_nearby_boss_and_all_three_slots(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

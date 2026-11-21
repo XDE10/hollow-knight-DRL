@@ -1,0 +1,51 @@
+{
+  "counts": {
+    "train": {
+      "fights": 116,
+      "decisions": 263051
+    },
+    "holdout": {
+      "fights": 27,
+      "decisions": 61389
+    }
+  },
+  "seed": 521,
+  "batch": 512,
+  "actions": 79,
+  "mirrored_training": false,
+  "drop_replay_fraction": 0.25,
+  "drop_replay_training_rows": 58935,
+  "teacher_switch_weight": 1.0,
+  "teacher_agreement_seconds": 0.0,
+  "future_box_loss_weight": 0.0,
+  "opener_sha256": "2c8cf39b99c0e9bc0689df3bbe40047a614913f4b61883d36b9da843eaea85ad",
+  "initial_learner_sha256": null,
+  "inherited_action_rows": 0,
+  "supervised_fraction": 0.7889914883425647,
+  "train_switch_fraction": 0.3362258970737457,
+  "bc_steps": 0,
+  "world_steps": 4000,
+  "rl_steps": 0,
+  "measured_return_seconds": 0.0,
+  "motion_history_lags": [
+    0.16,
+    0.48
+  ],
+  "teacher_plan_loss_weight": 0.0,
+  "no_hit_cost": 0.0,
+  "future_key_loss_weight": 0.0,
+  "terminal_advantage_weight": 0.0,
+  "future_key_seconds": [],
+  "teacher_win_min_hz": 0.0,
+  "late_sha256": null,
+  "teacher_plan_train_rows": 0,
+  "hardware": "NVIDIA L4",
+  "manifest_sha256": "03ef115283d0992112fa83f10ad694057b18f95585c18f26ddb1ad7ad0a19da8",
+  "total_world_updates": 4000,
+  "world_mae": 0.026066942140460014,
+  "persistence_mae": 0.03070276603102684,
+  "heldout_drop_dynamics_rows": 3388,
+  "heldout_drop_world_mae": 0.025736263021826744,
+  "heldout_drop_persistence_mae": 0.030122505500912666,
+  "world_sha256": "fc1cb3f9a2948b9068f03f2a733f516ece4a83077444249f62e2669b96b63a14"
+}
