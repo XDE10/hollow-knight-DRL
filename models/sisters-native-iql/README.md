@@ -131,3 +131,7 @@ python scripts/restore_sisters_assignments.py "$job/combined.zip" "$models/timin
 Expand-Archive -LiteralPath "$job/assigned.zip" -DestinationPath "$job/data"
 python scripts/train_sisters_timing_iql.py --data "$job/data" --output "$job/weights" --bc-steps 1500 --world-steps 2000 --rl-steps 16000 --no-mirror --motion-history --switch-weight 2.5 --teacher-agreement-seconds 1.6 --forecast-weight 4 --return-seconds .8 --plan-weight .35 --drop-replay-fraction .25 --initial-world "$models/timing-drop-dynamics/world.pt" --initial-learner "$models/timing-preferences/learner.pt" --opener-policy "$models/timing-preferences/world_iql.bin" --executed-teacher-advantage
 ~~~
+
+下落走位版正式验收前 10 场实际通关 8 场。第 11 场落败，冻结组最终为 11 场过首只、8 场完整通关、0 场无伤，场均伤害 2549.73。本体、飞镖、地刺累计造成 44、29、4 格伤害。本体伤害全部发生在三姐妹阶段，37 格的伤害来源实体在事件前后显示为下落或落地。在这 11 场共 1301.22 个三姐妹游戏秒里，这类接触每 100 秒约掉 2.84 格；上一版的独立 4 场是 4.18 格。两组种子与场数不同。三场败局都以 9 血进入三姐妹，携带灵魂分别为 75、69、99。[全部逐场验收记录](timing-executed-movement/evaluation.json) · [最先完成的十场](timing-executed-movement/first-ten.json)
+
+灵魂储备版单独训练开局，将 33 灵魂计为一次施法资源，保留实际造成的伤害、扣血及阶段完成奖励。训练选用 159 场开发记录，三姐妹阶段使用上述走位版的同一份权重。第一只的世界模型和 IQL 分别完成 4500、12000 次更新。独立评估使用新的整场对局。[两阶段冻结模型](timing-soul-reserve/)
