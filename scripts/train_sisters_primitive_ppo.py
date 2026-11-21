@@ -29,6 +29,8 @@ from train_sisters_timing_iql import (
     phase_components,
 )
 
+ACTOR_LEARNING_RATE = 0.0008
+
 
 def distribution(
     logits: torch.Tensor, available: torch.Tensor, temperature: float, *, smooth: bool = False
@@ -202,7 +204,8 @@ def read_games(
 
 
 def optimize(
-    raw, net, parent_net, critic, rollout, ordinary, temperature, *, smooth=False
+    raw, net, parent_net, critic, rollout, ordinary, temperature, *,
+    smooth=False, learning_rate: float = ACTOR_LEARNING_RATE,
 ):
     x, allowed, index, p0, taken, adv, target = rollout
     old = net.out(x).detach()
@@ -216,7 +219,7 @@ def optimize(
     delta = nn.Linear(192, old.shape[1])
     nn.init.zeros_(delta.weight)
     nn.init.zeros_(delta.bias)
-    optim = torch.optim.Adam(delta.parameters(), lr=0.0008)
+    optim = torch.optim.Adam(delta.parameters(), lr=learning_rate)
     ix = torch.arange(len(x))
     old_safe = net.out(ordinary).detach()
     anchor = parent_net.out(ordinary).detach().softmax(1)
@@ -292,9 +295,12 @@ def train(
     temperature: float,
     clean_cost: float = 0.0,
     smooth: bool = False,
+    alternate_learning_rate: float = ACTOR_LEARNING_RATE,
 ):
     if output.exists() or not 0 < temperature < 1000 or not 0 <= clean_cost < 1000:
         raise ValueError("Invalid new PPO update")
+    if not np.isfinite(alternate_learning_rate) or alternate_learning_rate <= 0:
+        raise ValueError("The alternate action head learning rate must be finite and positive")
     torch.set_num_threads(1)
     torch.manual_seed(23670)
     base = parent.read_bytes()
@@ -318,9 +324,13 @@ def train(
         smooth=smooth,
     )
     fits = [
-        optimize(raw, net, original, v, rows, safe, temperature, smooth=smooth)
-        for raw, net, original, v, rows, safe in zip(
-            (h, r), nets, baseline, values, games, ordinary, strict=True
+        optimize(
+            raw, net, original, v, rows, safe, temperature,
+            smooth=smooth, learning_rate=rate,
+        )
+        for raw, net, original, v, rows, safe, rate in zip(
+            (h, r), nets, baseline, values, games, ordinary,
+            (ACTOR_LEARNING_RATE, alternate_learning_rate), strict=True,
         )
     ]
     leaves = [f[0] for f in fits]
@@ -350,6 +360,7 @@ def train(
             "policy_sha256": digest(native),
             "temperature": temperature,
             "clean_cost": clean_cost,
+            "alternate_learning_rate": alternate_learning_rate,
             "primary": fits[0][2],
             "alternate": fits[1][2],
             "episodes": episodes,
@@ -367,4 +378,8 @@ if __name__ == "__main__":
     p.add_argument("--temperature", type=float, required=True)
     p.add_argument("--clean-cost", type=float, default=0.0)
     p.add_argument("--smooth", action="store_true")
+    p.add_argument(
+        "--alternate-learning-rate", type=float, default=ACTOR_LEARNING_RATE,
+        help="Adam step size for the alternate action head; the primary head keeps its default.",
+    )
     train(**vars(p.parse_args()))

@@ -12,6 +12,18 @@ import torch
 ROOT = Path(__file__).resolve().parents[2]
 
 
+@pytest.mark.parametrize("rate", [0.0, float("inf"), float("nan")])
+def test_ppo_rejects_invalid_alternate_learning_rate(tmp_path, monkeypatch, rate):
+    monkeypatch.syspath_prepend(str(ROOT / "scripts"))
+    api = importlib.import_module("train_sisters_primitive_ppo")
+    source = tmp_path / "unused"
+    with pytest.raises(ValueError, match="learning rate"):
+        api.train(
+            source, source, source, source, tmp_path / "output",
+            temperature=1.0, alternate_learning_rate=rate,
+        )
+
+
 def test_update_changes_only_native_output_head(monkeypatch):
     monkeypatch.syspath_prepend(str(ROOT / "scripts"))
     api = importlib.import_module("train_sisters_primitive_heads")
