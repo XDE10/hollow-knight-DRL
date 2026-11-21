@@ -1,0 +1,94 @@
+{
+  "scope": "All stochastic development fights, including speed probes. Training membership is given by each completed batch's manifest.",
+  "episodes": [
+    {
+      "seed": 10171000,
+      "unity_reset_seed": 10171000,
+      "behavior_policy_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+      "sampler_draw_seed": 1283881507,
+      "game_speed": 1.0,
+      "native_inputs": 3561,
+      "control_game_seconds": 143.86000061035156,
+      "play_wall_seconds": 162.34299999999348,
+      "randomized_choices": 141,
+      "first_cleared": true,
+      "win": false,
+      "damage": 2321.0,
+      "damage_taken": {
+        "BOSS_BODY": 6,
+        "ENEMY_PROJECTILE": 3
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 13,
+      "worker_wall_seconds": 203.9529999999795
+    },
+    {
+      "seed": 10171001,
+      "unity_reset_seed": 10171001,
+      "behavior_policy_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+      "sampler_draw_seed": 1238828129,
+      "game_speed": 2.0,
+      "native_inputs": 2617,
+      "control_game_seconds": 108.68000030517578,
+      "play_wall_seconds": 73.71900000004098,
+      "randomized_choices": 81,
+      "first_cleared": true,
+      "win": false,
+      "damage": 1583.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 5,
+        "BOSS_BODY": 4
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 8,
+      "worker_wall_seconds": 115.5
+    },
+    {
+      "seed": 10171002,
+      "unity_reset_seed": 10171002,
+      "behavior_policy_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+      "sampler_draw_seed": 497457341,
+      "game_speed": 1.0,
+      "native_inputs": 4201,
+      "control_game_seconds": 171.77999877929688,
+      "play_wall_seconds": 196.03099999995902,
+      "randomized_choices": 161,
+      "first_cleared": true,
+      "win": true,
+      "damage": 2713.0,
+      "damage_taken": {
+        "BOSS_BODY": 5,
+        "ENEMY_PROJECTILE": 2,
+        "SPIKES": 1
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 18,
+      "worker_wall_seconds": 239.75
+    },
+    {
+      "seed": 10171003,
+      "unity_reset_seed": 10171003,
+      "behavior_policy_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+      "sampler_draw_seed": 1486837143,
+      "game_speed": 2.0,
+      "native_inputs": 2899,
+      "control_game_seconds": 121.6199951171875,
+      "play_wall_seconds": 80.81300000008196,
+      "randomized_choices": 79,
+      "first_cleared": true,
+      "win": false,
+      "damage": 1405.0,
+      "damage_taken": {
+        "BOSS_BODY": 8,
+        "ENEMY_PROJECTILE": 1
+      },
+      "teacher_fraction": 0.0,
+      "teacher_labels": false,
+      "sampled_alternatives": 11,
+      "worker_wall_seconds": 123.90700000000652
+    }
+  ]
+}
