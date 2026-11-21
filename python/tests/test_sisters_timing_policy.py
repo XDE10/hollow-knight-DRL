@@ -11,6 +11,20 @@ import pytest
 import torch
 
 
+def test_measured_returns_bootstrap_before_a_controller_handoff(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    measured = importlib.import_module("train_sisters_timing_iql").measured_returns
+    t = np.arange(5) * 0.04
+    rewards = np.array([1, 2, 20, -5, 100], dtype="f4")
+    discounts = np.array([0.5, 0.5, 0.5, 0, 0.5], dtype="f4")
+    sums, continuation, last = measured(
+        t, rewards, discounts, np.ones(5, bool), 1, np.array([0, 2])
+    )
+    np.testing.assert_allclose(sums[:4], [2, 2, 17.5, -5])
+    np.testing.assert_allclose(continuation[:4], [0.25, 0.5, 0, 0])
+    np.testing.assert_array_equal(last[:4], [1, 1, 3, 3])
+
+
 def test_measured_returns_use_game_seconds_gaps_and_terminal(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

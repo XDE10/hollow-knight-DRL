@@ -187,6 +187,7 @@ def measured_returns(
     discounts: np.ndarray,
     valid: np.ndarray,
     seconds: float,
+    controller_boundaries: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Accumulate observed rewards on one tape. Stop at death, gaps or the horizon.
 
@@ -199,6 +200,19 @@ def measured_returns(
     end = np.minimum(
         np.searchsorted(times.astype("f8"), times.astype("f8") + seconds), first_missing
     )
+    if controller_boundaries is not None:
+        # Bootstrap the state reached at handoff before counting any rewards
+        # obtained by the newly drawn controller.
+        cuts = np.asarray(controller_boundaries)
+        if (
+            cuts.ndim != 1
+            or cuts.dtype.kind not in "iu"
+            or (np.diff(cuts.astype("i8")) <= 0).any()
+        ):
+            raise ValueError("Invalid controller boundaries")
+        if len(cuts) and (cuts[0] < 0 or cuts[-1] >= n):
+            raise ValueError("Controller boundary outside trajectory")
+        end = np.minimum(end, np.r_[cuts, n][np.searchsorted(cuts, rows, side="right")])
     total = np.zeros(n, dtype="f4")
     remaining = np.ones(n, dtype="f4")
     last = rows.copy()
@@ -313,6 +327,11 @@ def build_data(
                 )
             ):
                 raise ValueError(f"Inconsistent teacher labels in {game['source']}")
+            boundaries = None
+            if neural_trial:
+                boundaries = f["block_starts"]
+            elif "teacher_acted" in f:
+                boundaries = np.flatnonzero(np.diff(f["teacher_acted"])) + 1
             teacher = (
                 f["teacher_controls"] if labeled else np.full_like(act, -1, dtype="i2")
             )
@@ -377,7 +396,8 @@ def build_data(
             movements[game["split"]].append(targets[selected])
         if return_seconds:
             total, remaining, last = measured_returns(
-                t, reward, d, good, return_seconds
+                t, reward, d, good, return_seconds,
+                boundaries[boundaries < n] if boundaries is not None else None,
             )
             windows[game["split"]].append(
                 (total[selected], remaining[selected], next_state[last[selected]])
