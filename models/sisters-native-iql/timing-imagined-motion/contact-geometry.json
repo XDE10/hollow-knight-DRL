@@ -1,0 +1,35 @@
+{
+  "training_archive_sha256": "a26094a69d5216c07196dd3873d0aeb3f59864dfe4aab88f3d28990cd3719b7f",
+  "scope": "Development training fights only. One native mask debit, a unique attributed source and a vulnerable trio input with the next decision within 0.081 seconds. Compare the Knight point with the nearest observed root collider of that family; select same-fight vulnerable controls matched on the nearest boss FSM or disc presence. An absent box counts as infinite distance.",
+  "matching_seed": 71823,
+  "results": {
+    "body": {
+      "events": 449,
+      "games": 139,
+      "no_observed_box_before": 0,
+      "before_gt_1_5": 123,
+      "before_gt_3": 33,
+      "before_and_after_gt_1_5": 14,
+      "matched_gt_1_5": 359,
+      "median_before_after_matched": [
+        0.5481777191162109,
+        0.1163787841796875,
+        3.072490692138672
+      ]
+    },
+    "disc": {
+      "events": 319,
+      "games": 129,
+      "no_observed_box_before": 6,
+      "before_gt_1_5": 50,
+      "before_gt_3": 10,
+      "before_and_after_gt_1_5": 5,
+      "matched_gt_1_5": 304,
+      "median_before_after_matched": [
+        0.658210039138794,
+        0.24172687530517578,
+        11.969356536865234
+      ]
+    }
+  }
+}

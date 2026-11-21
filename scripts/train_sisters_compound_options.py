@@ -73,6 +73,7 @@ def study(
     risk: Path,
     output: Path,
     extra_mask_cost: float = 0.0,
+    action_world: Path | None = None,
 ) -> None:
     risk_bytes = risk.read_bytes()
     if (
@@ -210,6 +211,16 @@ def study(
     projection = np.random.default_rng(2781).standard_normal((WIDTH, 12)) / np.sqrt(
         WIDTH
     )
+    if action_world is not None:
+        world_report = json.loads((action_world / "training.json").read_bytes())
+        file = action_world / "risk-projection.npy"
+        if world_report["learner_sha256"] != sha(learner.read_bytes()) or world_report[
+            "projection_sha256"
+        ] != sha(file.read_bytes()):
+            raise ValueError("World projection or policy encoder differs from training")
+        projection = np.load(file, allow_pickle=False)
+        if projection.shape != (WIDTH, 10) or not np.isfinite(projection).all():
+            raise ValueError("Invalid imagined option projection")
     selector = fit_gate(
         x, arms, y[:, 0] - extra_mask_cost * y[:, 1], groups, projection
     )
@@ -230,6 +241,9 @@ def study(
             here[name] = paired_screen(games, decisions, ah, yh[:, col], nuisance)
         metrics[str(horizon)] = here
     eligible = passes_screen(metrics, spec["heldout_seeds"])
+    if action_world is not None:
+        physical = list(world_report["randomized_descent"].values())
+        eligible = bool(eligible and world_screen(physical, metrics))
     compound = (
         struct.pack("<2i", COMPOUND_MAGIC, len(late))
         + late
@@ -260,6 +274,11 @@ def study(
         "critic_scope": "The two frozen one-step action values compare the onset keys. The measured contrasts compare the full randomized 0.32-second options followed by T. No critic output selects the candidate or labels its rewards.",
         "trial_eligible": bool(eligible),
     }
+    if action_world is not None:
+        report["action_world_projection_sha256"] = world_report["projection_sha256"]
+        report["action_world_training_sha256"] = sha(
+            (action_world / "training.json").read_bytes()
+        )
     (output / "training.json").write_bytes(
         (json.dumps(report, indent=2) + "\n").encode()
     )
@@ -269,10 +288,28 @@ def study(
     )
 
 
+def world_screen(physical: list[dict], metrics: dict) -> bool:
+    """Check randomized movement sensitivity, then use real health and output to shortlist."""
+    if len(physical) < 4:
+        return False
+    x_gain = np.array([g["swapped_x_error"] - g["assigned_x_error"] for g in physical])
+    health = np.array([g["vs_H"] for g in metrics["4.0"]["native_masks_lost"]])
+    return bool(
+        x_gain.mean() > 0
+        and (x_gain > 0).sum() > len(x_gain) / 2
+        and (health < 0).sum() > len(health) / 2
+        and all(
+            np.mean([x["vs_H"] for x in metrics[h]["boss_damage"]]) >= 0
+            for h in ("4.0", "8.0")
+        )
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for arg in ("data", "parent", "learner", "risk", "output"):
         parser.add_argument("--" + arg, required=True, type=Path)
     parser.add_argument("--extra-mask-cost", type=float, default=0.0)
+    parser.add_argument("--action-world", type=Path)
     torch.set_num_threads(1)
     study(**vars(parser.parse_args()))
