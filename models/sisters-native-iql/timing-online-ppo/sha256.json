@@ -8,5 +8,13 @@
   "round-00/training.json": "9e5f63843b3d9a57fcb4b5e4d5e890c615e8d0a4d3d3ed6a14f4607e7cfa3489",
   "round-00/updated-sampler.bin": "a2e87c555febf55accf8194f12bcfff0fe1c77772b9bd842ce63a0bae5198ff3",
   "round-00/world_iql.bin": "430f82c50425e141d77ce7e327b25e38c41ae4098fc2d2b2e1be15b528ef73d7",
+  "round-01/batch.json": "62d13428731dc8c063dd58a5630c06cc2241fada930ef51a184ccae0c4b3707a",
+  "round-01/development-games.json": "1f2fd6304f352c5d98eeb10873bad3fe2f6d349d7b57acf90491f699e8b5c46b",
+  "round-01/learner.pt": "d6337d474c3ef0acba5bd52a0a9d231ecdf0fc803bdec1a648e7a592b013dc8a",
+  "round-01/rollout.zip": "0023468110146d3199ec147b1772f206b172fd442c9ca704b8e2675e8237cd28",
+  "round-01/sampler.bin": "a2e87c555febf55accf8194f12bcfff0fe1c77772b9bd842ce63a0bae5198ff3",
+  "round-01/training.json": "cb7bcdd68cb8a3b0142c1e2bb3f96ad3cb675ea26730ec3e531d6b2cb0127004",
+  "round-01/updated-sampler.bin": "1eeac34cb9a98da4ee55bf09cb5ef7eea391ea15d90be247ff43a337b64a6c88",
+  "round-01/world_iql.bin": "685d5e1cf567df8f6a935ac633fe72bf657a99b1981199c6025ef789020f5f99",
   "study.json": "7d963fdb2dd6bc469946cd12183937f783890bcce249ba9625088734495b288c"
 }
