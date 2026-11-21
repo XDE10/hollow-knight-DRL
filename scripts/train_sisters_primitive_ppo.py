@@ -30,7 +30,9 @@ from train_sisters_timing_iql import (
 )
 
 
-def distribution(logits, available, temperature):
+def distribution(logits, available, temperature, *, smooth=False):
+    if smooth:
+        return 0.98 * (logits / temperature).softmax(1) + 0.02 / logits.shape[1]
     greedy = F.one_hot(logits.argmax(1), logits.shape[1]).bool()
     allowed = available | greedy
     weights = ((logits - logits.max(1, keepdim=True).values) / temperature).clamp_min(
@@ -53,7 +55,9 @@ def distribution(logits, available, temperature):
     return torch.where(other.any(1, keepdim=True), mass, greedy.float())
 
 
-def read_games(data, behavior, nets, cats, gating, values, temperature, clean_cost):
+def read_games(
+    data, behavior, nets, cats, gating, values, temperature, clean_cost, *, smooth=False
+):
     groups = [[], []]
     anchors = [[], []]
     outcomes = []
@@ -63,6 +67,7 @@ def read_games(data, behavior, nets, cats, gating, values, temperature, clean_co
         if (
             spec["actor_sha256"] != behavior
             or spec["temperature"] != temperature
+            or spec.get("smooth_key_sampling", False) != smooth
             or [g["unity_reset_seed"] for g in entries] != spec["seeds"]
             or len(set(spec["seeds"])) != len(entries)
         ):
@@ -76,6 +81,7 @@ def read_games(data, behavior, nets, cats, gating, values, temperature, clean_co
                 or game["split"] != "train"
                 or game["source"] != f"native-development/{seed}"
                 or game["router_temperature"] != temperature
+                or game.get("smooth_key_sampling", False) != smooth
                 or game["sampler_draw_seed"] != spec["draw_seeds"][str(seed)]
             ):
                 raise ValueError(
@@ -125,7 +131,10 @@ def read_games(data, behavior, nets, cats, gating, values, temperature, clean_co
                     eligible = available_keys(cats[a], s[native])
                     logits = nets[a].out(x)
                     p = distribution(
-                        logits.double(), torch.from_numpy(eligible), temperature
+                        logits.double(),
+                        torch.from_numpy(eligible),
+                        temperature,
+                        smooth=smooth,
                     ).numpy()
                     greedy = logits.argmax(1).numpy()
                     index = draws[chosen]
@@ -190,7 +199,9 @@ def read_games(data, behavior, nets, cats, gating, values, temperature, clean_co
     return tensors, [torch.from_numpy(np.concatenate(a)) for a in anchors], outcomes
 
 
-def optimize(raw, net, parent_net, critic, rollout, ordinary, temperature):
+def optimize(
+    raw, net, parent_net, critic, rollout, ordinary, temperature, *, smooth=False
+):
     x, allowed, index, p0, taken, adv, target = rollout
     old = net.out(x).detach()
     p0 = p0.float()
@@ -210,7 +221,7 @@ def optimize(raw, net, parent_net, critic, rollout, ordinary, temperature):
     steps = 0
 
     def prob():
-        return distribution(old + delta(x), allowed, temperature)
+        return distribution(old + delta(x), allowed, temperature, smooth=smooth)
 
     def kl(p):
         return (
@@ -278,6 +289,7 @@ def train(
     output: Path,
     temperature: float,
     clean_cost: float = 0.0,
+    smooth: bool = False,
 ):
     if output.exists() or not 0 < temperature < 1000 or not 0 <= clean_cost < 1000:
         raise ValueError("Invalid new PPO update")
@@ -293,10 +305,18 @@ def train(
     for v, key in zip(values, ("primary", "alternate"), strict=True):
         v.load_state_dict(ck[key]["critic"])
     games, ordinary, episodes = read_games(
-        data, digest(deployed), nets, cats, gate, values, temperature, clean_cost
+        data,
+        digest(deployed),
+        nets,
+        cats,
+        gate,
+        values,
+        temperature,
+        clean_cost,
+        smooth=smooth,
     )
     fits = [
-        optimize(raw, net, original, v, rows, safe, temperature)
+        optimize(raw, net, original, v, rows, safe, temperature, smooth=smooth)
         for raw, net, original, v, rows, safe in zip(
             (h, r), nets, baseline, values, games, ordinary, strict=True
         )
@@ -317,7 +337,10 @@ def train(
             {"primary": fits[0][1], "alternate": fits[1][1]}, stage / "learner.pt"
         )
         report = {
-            "method": "Clipped on-policy PPO on the two actual primitive action heads with greedy deployment and elapsed-time GAE.",
+            "method": (
+                "Clipped on-policy PPO on the two actual primitive action heads "
+                "with greedy deployment and elapsed-time GAE."
+            ),
             "parent_sha256": digest(base),
             "behavior_sha256": digest(deployed),
             "rollout_sha256": digest(data.read_bytes()),
@@ -329,6 +352,8 @@ def train(
             "alternate": fits[1][2],
             "episodes": episodes,
         }
+        if smooth:
+            report["smooth_key_sampling"] = True
         (stage / "training.json").write_text(json.dumps(report, indent=2) + "\n")
         stage.rename(output)
 
@@ -339,4 +364,5 @@ if __name__ == "__main__":
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--temperature", type=float, required=True)
     p.add_argument("--clean-cost", type=float, default=0.0)
+    p.add_argument("--smooth", action="store_true")
     train(**vars(p.parse_args()))

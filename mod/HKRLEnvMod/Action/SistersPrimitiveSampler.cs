@@ -10,6 +10,7 @@ namespace HKRLEnvMod.Action
         private readonly BinaryWriter _writer;
         private readonly Random _random;
         private readonly double _temperature;
+        private readonly bool _smooth;
         private double[] _mass = Array.Empty<double>();
         private float _next;
 
@@ -20,8 +21,9 @@ namespace HKRLEnvMod.Action
                     NumberStyles.Float, CultureInfo.InvariantCulture, out _temperature) || !(_temperature > 0 && _temperature < 1000))
                 throw new InvalidOperationException("Missing primitive rollout parameters");
             _random = new Random(seed);
+            _smooth = Environment.GetEnvironmentVariable("HKRL_NATIVE_SMOOTH_KEYS") == "1";
             _writer = new BinaryWriter(new FileStream(Path.Combine(folder, episode + ".keys"), FileMode.CreateNew, FileAccess.Write, FileShare.Read));
-            _writer.Write(0x31534B50);
+            _writer.Write(_smooth ? 0x32534B50 : 0x31534B50);
             _writer.Write(episode);
             _writer.Write(hash);
             _writer.Write(seed);
@@ -44,6 +46,7 @@ namespace HKRLEnvMod.Action
             _next = now + .4f;
             int n = actor.ActionCount, best = actor.BestIndex, count = 0;
             if (_mass.Length != n) _mass = new double[n];
+            if (_smooth) return ChooseSmooth(actor, best, now);
             double sum = 0, alternativeMax = double.NegativeInfinity;
             for (int i = 0; i < n; i++)
             {
@@ -66,6 +69,28 @@ namespace HKRLEnvMod.Action
                 _mass[i] = count == 1 ? 1 : .12*_mass[i]/sum + (i == best ? .78 : .08*alternative/alternativeSum + .02/(count-1));
                 end += _mass[i];
                 if (uniform < end) { choice = i; break; }
+            }
+            _writer.Write(now); _writer.Write(best); _writer.Write(choice);
+            _writer.Write(uniform); _writer.Write(_mass[choice]);
+            return actor.Command(choice);
+        }
+
+        private PrimitiveInput ChooseSmooth(NativeSistersNetwork actor, int best, float now)
+        {
+            int n = actor.ActionCount;
+            double sum = 0;
+            for (int i = 0; i < n; i++)
+            {
+                _mass[i] = Math.Exp(((double)actor.Score(i) - actor.Score(best)) / _temperature);
+                sum += _mass[i];
+            }
+            double uniform = _random.NextDouble(), cumulative = 0;
+            int choice = n - 1;
+            for (int i = 0; i < n; i++)
+            {
+                _mass[i] = .98 * _mass[i] / sum + .02 / n;
+                cumulative += _mass[i];
+                if (uniform < cumulative) { choice = i; break; }
             }
             _writer.Write(now); _writer.Write(best); _writer.Write(choice);
             _writer.Write(uniform); _writer.Write(_mass[choice]);

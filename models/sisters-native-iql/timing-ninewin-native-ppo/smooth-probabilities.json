@@ -1,0 +1,47 @@
+{
+  "scope": "Same recorded development states and frozen before/after scores, different sampling distributions. No simulated or observed victory attributed to this comparison.",
+  "batch_sha256": "d2583c2f2341bb42f9ea760d5c8d4bd4fc77cb53a1cc7461da2aad4ea08e95fa",
+  "parent_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+  "updated_sha256": "5649ebbe1d7ded78806eea2b14ea360e442a20d3c1a34da75bfa078d2f1eaf4d",
+  "uniform_fraction": 0.02,
+  "temperature": 0.888,
+  "original_mean_greedy_probability": 0.8876782348978789,
+  "heads": {
+    "primary": {
+      "inputs": 364,
+      "greedy_key_changes": 7,
+      "current": {
+        "mean_greedy_probability": 0.8896401452942972,
+        "greedy_order_mismatches": 0,
+        "mean_kl": 0.030086015191657555,
+        "mean_mass_on_unavailable_alternatives": 0.0,
+        "changed_inputs_share_of_kl": 0.9649735885826124
+      },
+      "smooth": {
+        "mean_greedy_probability": 0.9043026395072069,
+        "greedy_order_mismatches": 0,
+        "mean_kl": 0.007837980750357652,
+        "mean_mass_on_unavailable_alternatives": 0.010884675888776287,
+        "changed_inputs_share_of_kl": 0.14542931818430427
+      }
+    },
+    "alternate": {
+      "inputs": 669,
+      "greedy_key_changes": 16,
+      "current": {
+        "mean_greedy_probability": 0.886610767955732,
+        "greedy_order_mismatches": 0,
+        "mean_kl": 0.03410150133305812,
+        "mean_mass_on_unavailable_alternatives": 0.0,
+        "changed_inputs_share_of_kl": 0.9884755444404238
+      },
+      "smooth": {
+        "mean_greedy_probability": 0.8786310085319315,
+        "greedy_order_mismatches": 0,
+        "mean_kl": 0.004075705822409463,
+        "mean_mass_on_unavailable_alternatives": 0.012754490322271095,
+        "changed_inputs_share_of_kl": 0.1302664304610327
+      }
+    }
+  }
+}

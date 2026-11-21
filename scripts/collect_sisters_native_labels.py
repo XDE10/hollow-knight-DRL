@@ -215,8 +215,17 @@ def main() -> None:
 
                     seed = int(envs["HKRL_NATIVE_DEMO_SEED"])
                     temperature = float(envs["HKRL_NATIVE_ROUTER_TEMPERATURE"])
-                    reader, suffix, index = (read_keys, "keys", "key_rows") if primitive else (read_routes, "routes", "route_rows")
-                    online = reader(tape_dir / f"{eid}.{suffix}", eid, sha, seed, temperature, clock, decisions["timing_state"])
+                    if primitive:
+                        smooth = envs.get("HKRL_NATIVE_SMOOTH_KEYS") == "1"
+                        online = read_keys(tape_dir / f"{eid}.keys", eid, sha, seed, temperature,
+                                           clock, decisions["timing_state"], smooth=smooth)
+                        if smooth:
+                            controller["smooth_key_sampling"] = True
+                        index = "key_rows"
+                    else:
+                        online = read_routes(tape_dir / f"{eid}.routes", eid, sha, seed, temperature,
+                                             clock, decisions["timing_state"])
+                        index = "route_rows"
                     controller.update(router_temperature=temperature, sampler_draw_seed=seed)
                     result.update(game_speed=scale, play_wall_seconds=play_wall_seconds,
                                   native_inputs=len(clock), control_game_seconds=float(clock[-1]-clock[0]))

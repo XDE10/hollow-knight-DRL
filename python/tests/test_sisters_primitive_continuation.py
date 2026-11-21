@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import struct
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -61,6 +62,8 @@ def test_native_primitive_receipt_rejects_a_clock_shift(tmp_path, monkeypatch):
     np.testing.assert_array_equal(
         api.read_keys(p, 1, "00" * 32, 674, 1.0, clock, states)["key_rows"], rows
     )
+    with pytest.raises(ValueError, match="behavior"):
+        api.read_keys(p, 1, "00" * 32, 674, 1.0, clock, states, smooth=True)
     values["time"][0] += 0.04
     p.write_bytes(header + values.tobytes())
     with pytest.raises(ValueError, match="decision"):
@@ -81,3 +84,42 @@ def test_true_ppo_distribution_keeps_feasible_exploration_and_native_greedy(monk
     torch.testing.assert_close(solo, torch.tensor([[1.0, 0.0, 0.0, 0.0]]))
     (-p[0, 1].log()).backward()
     assert logits.grad[0, 1] < 0 and logits.grad[0, 2] == 0
+
+
+def test_audit_distinguishes_sampled_actions_from_generalization(monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / "scripts"))
+    audit = importlib.import_module("audit_sisters_ppo_update")
+    logits = torch.tensor([[1.0, 0.0]]).repeat(3, 1)
+    legal = torch.ones_like(logits, dtype=torch.bool)
+    chosen = torch.tensor([0, 1, 1])
+    initial = audit.distribution(logits, legal, 1.0)
+    advantage = torch.tensor([-1.0, 1.0, 0.0])
+    row = (logits, legal, chosen, initial, initial[torch.arange(3), chosen], advantage, advantage)
+    result = audit.measure(
+        row,
+        logits,
+        SimpleNamespace(out=torch.nn.Identity()),
+        torch.zeros(2, 2),
+        torch.tensor([0.0, 2.0]),
+        1.0,
+    )
+    assert result["flipped"] == 3
+    assert result["new_key_sampled_positive_advantage"] == 1
+    assert result["new_key_sampled_nonpositive_advantage"] == 1
+    assert result["new_key_not_sampled_at_this_state"] == 1
+    assert result["old_key_sampled_negative_advantage"] == 1
+    assert result["clipped_exploratory_inputs"] == 1
+
+
+def test_smooth_key_probabilities_are_continuous_across_a_greedy_flip(monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / "scripts"))
+    api = importlib.import_module("train_sisters_primitive_ppo")
+    scores = torch.tensor([[0.0, 0.0001, -4.0], [0.0001, 0.0, -4.0]], requires_grad=True)
+    feasible = torch.tensor([[True, False, True], [True, False, True]])
+    p = api.distribution(scores, feasible, 0.888, smooth=True)
+    assert torch.equal(p.argmax(1), scores.argmax(1))
+    assert (p[0] - p[1]).abs().max().item() < 0.001
+    assert (p >= 0.02 / 3).all()
+    torch.testing.assert_close(p.sum(1), torch.ones(2))
+    (-p[0, 0].log()).backward()
+    assert scores.grad[0, 0] < 0 and scores.grad[0, 1] > 0
