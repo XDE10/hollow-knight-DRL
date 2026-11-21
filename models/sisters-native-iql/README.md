@@ -155,3 +155,5 @@ python scripts/train_sisters_timing_iql.py --data "$job/data" --output "$job/wei
 此前的随机对照让两个纯神经策略每 0.8 游戏秒轮流获得控制机会。用其中 9 场的实战奖励训练一个选择器，三姐妹阶段由它决定接下来短短一段交给哪个网络按键。另 3 场共有 408 个可计分片段。按整局分别估计，三场中的短期实测奖励都优于随机切换，其中一场低于始终选第二个网络。对这三场逐次重放时，游戏 DLL 与 Python 参考实现的 12448 次选网和按键完全一致。完整通关率以单独冻结的百场实机评估为准。[训练方法和复现命令](../../docs/adr/0023-sisters-learned-options.md) · [冻结权重、留出指标和验收设置](timing-learned-options/)
 
 24 场落地走位随机实验一共取得 723 次实际操作。两份模型在同一块 Colab L4 上各训练 350 次。普通事件计分版在四场留出对局的 118 次可计分选择中改变了 5 次走位，按局平均的估计收益为负。加入原生血量时钟、按整局交叉拟合的版本改变了 6 次，校正后的四场平均收益也为负。两份权重都保留，依照采集前登记的条件淘汰。这里的收益衡量接下来 0.6 游戏秒的动作及其价值估计，完整胜负另以实机为准。[开发逐场记录及原始轨迹](timing-randomized-descent/) · [普通事件计分版](timing-randomized-descent/event-returns/training.json) · [原生血量计分版](timing-randomized-descent/native-health-returns/training.json)
+
+冻结选择器的前十场全部过首只，整场通关 8 次，全程无伤 0 次，场均输出 2651.9。十场合计被本体打掉 35 格、飞镖打掉 30 格、踩刺 0 格。此前走位版自己的前十场同为 8 次完整通关，场均输出 2631.1。两组各自独立开局。[选择器的十场实机记录](timing-learned-options/first-ten.json) · [走位版逐场记录](timing-executed-movement/evaluation.json)
