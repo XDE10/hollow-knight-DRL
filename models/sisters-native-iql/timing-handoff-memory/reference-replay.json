@@ -1,0 +1,20 @@
+[
+  {
+    "source": "native-development/9713001",
+    "decisions": 2459,
+    "recurrent_blocks": 31,
+    "changed_greedy_inputs": 34
+  },
+  {
+    "source": "native-development/9761001",
+    "decisions": 2804,
+    "recurrent_blocks": 37,
+    "changed_greedy_inputs": 44
+  },
+  {
+    "source": "native-development/9761007",
+    "decisions": 1750,
+    "recurrent_blocks": 23,
+    "changed_greedy_inputs": 35
+  }
+]

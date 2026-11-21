@@ -1,0 +1,26 @@
+{
+  "training_fights": 148,
+  "heldout_fights": 35,
+  "parts": 22,
+  "sha256": "a26094a69d5216c07196dd3873d0aeb3f59864dfe4aab88f3d28990cd3719b7f",
+  "updates": 1500,
+  "batch": 24,
+  "seed": 71964,
+  "variants": [
+    "raw",
+    "instant",
+    "encoded"
+  ],
+  "method": "Recurrent native actor-critic with observed returns until next external assignment or four game seconds, verified terminal without bootstrap; otherwise frozen V at actual cutoff state. Retain own option release. Mask auxiliary targets across intervention. Use elapsed-time discounts. Keep fixed variants, seed, data and optimizer.",
+  "selection": "Only raw recurrent policy; at least three teacher-free held fights with observable targets; 0.1%-25% inclusive changed native decisions separately on all and teacher-free eligible held states; teacher-issued horizontal accuracy at worst -3 percentage points, both auxiliary diagnostics finite. Require exact executable parity on three complete trio tapes and at least one actual changed key. Score independent original-condition fights starting Unity 9926000. Log actual recurrent decisions/changes. Retire on third loss.",
+  "scripts": {
+    "train_sisters_memory_residual.py": "d10545a9e3a9a65bd44b6bda8ce305e5044c933cde303ab938102a278cde6931",
+    "train_sisters_timing_iql.py": "7132ec85b5e2874fa09c452c3b728b90d7032171e0d5515a50af31fa899f1c54",
+    "train_sisters_native_iql.py": "5ab7448cfdd4c54c9efedf4219cdf89b2dd193c1fd01adb362c0b80746d7fe69",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22"
+  },
+  "assets": {
+    "warmstart.pt": "037b4c3f83fb68ed95d158c60bcd8d692d1db9eaad7b573a517b1a122331fc4a",
+    "opener.bin": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c"
+  }
+}

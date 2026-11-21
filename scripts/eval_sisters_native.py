@@ -28,6 +28,8 @@ def main() -> None:
                    help="Require the reset-time Unity RNG receipt from the dedicated game process.")
     p.add_argument("--record-skills", action="store_true",
                    help="Track observed quake starts, health gain and net SOUL decreases in live samples.")
+    p.add_argument("--record-memory-changes", action="store_true",
+                   help="Require the executed trio actor's per-game count of changed native decisions.")
     p.add_argument(
         "--expected-mod-sha256", help="Verify the staged game mod before this cohort."
     )
@@ -119,6 +121,13 @@ def main() -> None:
                     if ids != [result["episode_id"], args.seed + i]:
                         raise RuntimeError("Unity RNG receipt differs from the assigned fight")
                     result["unity_reset_seed"] = ids[1]
+                if args.record_memory_changes:
+                    source, total, changed = map(int, Path(str(ledger) + ".memory")
+                                                 .read_text(encoding="utf-8-sig").splitlines())
+                    if source != int(episode) or not 0 <= changed <= total <= int(n):
+                        raise ValueError("Invalid native recurrent decision receipt")
+                    result["recurrent_trio_decisions"] = total
+                    result["changed_native_decisions"] = changed
                 speeds = result["speed_counts"]
                 if max(speeds, key=speeds.get) != 1.0 or max(speeds) > 1.001:
                     raise RuntimeError("Expected normal speed")

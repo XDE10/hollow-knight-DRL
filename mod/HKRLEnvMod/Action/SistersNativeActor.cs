@@ -107,6 +107,7 @@ namespace HKRLEnvMod.Action
             _demonstrator?.Flush();
             if (_count == 0) return;
             _trioNet?.Focus?.WriteReceipt(_ledger + ".focus", _episode);
+            _trioNet?.Memory?.WriteReceipt(_ledger + ".memory", _episode);
             File.WriteAllText(_ledger, string.Join("\n", _episode.ToString(CultureInfo.InvariantCulture),
                 _digest, _count, _attack, _cast, _dash, _art));
         }

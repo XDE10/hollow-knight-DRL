@@ -25,3 +25,13 @@ python scripts/train_sisters_memory_residual.py --archive runs/sequence-replay.z
   --parent "$m/timing-executed-movement/learner.pt" \
   --deployed "$m/timing-executed-movement/world_iql.bin" --output runs/reproduced-memory
 ```
+
+## Assigning returns when control changes
+
+The development recorder sometimes lets another controller choose the next input. Its teacher/student coin is redrawn every 0.8 game seconds. The neural block experiment also uses a clock. In the descent experiment both arms commit horizontal movement for 0.16 seconds. Other single-key draws override the original input only when the alternate wins. These onsets matter because a four-second reward can otherwise include several controllers' actions.
+
+Run the same trainer with `--handoff-returns` in a fresh output directory to fit the second checkpoint. A return includes rewards up to the next external change or four seconds, whichever comes first. A handoff bootstraps with the frozen value at the actual successor observation before the new controller acts. A terminal transition includes the recorded outcome and stops the bootstrap. The planned release of a movement key allows the original return to continue. Discounting uses elapsed game time. Auxiliary outcome labels require an observed horizon with no intervening change of control.
+
+Of 148 training fights, 146 reached the trio. Of 277,016 eligible trio input windows, 180,710 used a shorter return at an assignment. Health fell within 0.32 seconds after 105 of 4,150 distinct observed cutoff states with follow-up. Shortening the return places responsibility for such later consequences on the accuracy of the frozen value estimate. Recorded outcomes around risk-triggered movement draws also depend on which states qualified for those experiments.
+
+On the 11 teacher-free held fights, the new recurrent actor changed 1.68% of eligible inputs. Its mean prediction errors for incoming damage and safe outgoing damage improved over the matched instantaneous control by 0.001318 and 0.000044 respectively. Its shift toward actions with higher observed returns was positive in five of the 11 fights. The executable agreed with the Python policy on all 7,013 decisions of three held trio trajectories, including 113 decisions where the trained actor chose a different native input than its parent. Each fresh arena fight records its own count of changed inputs alongside health and victory. [Frozen weights, training report and replay evidence](../../models/sisters-native-iql/timing-handoff-memory/)

@@ -12,6 +12,12 @@ namespace HKRLEnvMod.Action
         private readonly float[] _h = new float[Hidden], _xGates = new float[Gates], _hGates = new float[Gates];
         private readonly float[] _delta;
         private float _start = -1, _previous = -1;
+        private int _decisions, _changed;
+
+        internal void WriteReceipt(string path, ulong episode)
+        {
+            File.WriteAllText(path, string.Join("\n", episode, _decisions, _changed));
+        }
 
         private SistersMemoryResidual(BinaryReader reader, int actions)
         {
@@ -60,7 +66,16 @@ namespace HKRLEnvMod.Action
                 _h[i] = update * _h[i] + (1 - update) * next;
             }
             NativeSistersNetwork.Dense(_h, _head, _headBias, _delta, false);
-            for (int i = 0; i < scores.Length; i++) scores[i] += 3f * (float)Math.Tanh(_delta[i]);
+            int original = 0, adjusted = 0;
+            float originalMax = scores[0];
+            for (int i = 0; i < scores.Length; i++)
+            {
+                if (scores[i] > originalMax) { original = i; originalMax = scores[i]; }
+                scores[i] += 3f * (float)Math.Tanh(_delta[i]);
+                if (scores[i] > scores[adjusted]) adjusted = i;
+            }
+            _decisions++;
+            if (original != adjusted) _changed++;
         }
     }
 }

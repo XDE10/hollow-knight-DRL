@@ -69,7 +69,21 @@ def segments(time, state):
     return blocks
 
 
-def measured_targets(t, s, ev, value, one_step):
+def external_assignments(tape):
+    """First input under a new external assignment. Natural key releases stay in the return."""
+    if "candidate_draw" in tape:
+        return np.flatnonzero(np.diff(tape["candidate_draw"].reshape(-1))) + 1
+    if "teacher_acted" in tape:
+        return np.flatnonzero(np.diff(tape["teacher_acted"].reshape(-1))) + 1
+    if "choice_rows" in tape:
+        if "choice_hold_stop" in tape and "choice_scores" not in tape:
+            # The descent experiment locks horizontal movement on BOTH arms.
+            return tape["choice_rows"]
+        return tape["choice_rows"][tape["choice_draw"].astype(bool)]
+    return np.empty(0, dtype=np.int64)
+
+
+def measured_targets(t, s, ev, value, one_step, assignments=None, audit=None):
     n = len(t)
     ix = np.arange(n)
     boundary = np.r_[True, (np.diff(t) > 0.081) | (s[:-1, 23] != s[1:, 23])]
@@ -80,7 +94,6 @@ def measured_targets(t, s, ev, value, one_step):
     terminal_end = terminal[0] + 1 if len(terminal) else n + 1
     reward = ev @ REWARD_WEIGHTS
     discount = np.exp(np.log(0.995) * (t - t[0]) / 0.04)
-    prefix = np.r_[0, np.cumsum(reward * discount)]
     hp = np.rint(s[:, 4] * 9)
     debit = np.r_[np.maximum(-np.diff(hp), 0), 0]
     losses = np.r_[0, np.cumsum((debit > 0) | ev[:, 1:5].any(1))]
@@ -106,15 +119,58 @@ def measured_targets(t, s, ev, value, one_step):
         return end, complete
 
     end, valid = end_at(4.0)
-    k = end.clip(0, n - 1)
-    g = (prefix[end] - prefix[ix]) / discount + np.where(
-        end == terminal_end, 0, discount[k] / discount * value[k]
-    )
+    step_discount = 0.995
+    if assignments is None:
+        k = end.clip(0, n - 1)
+        prefix = np.r_[0, np.cumsum(reward * discount)]
+        g = (prefix[end] - prefix[ix]) / discount + np.where(
+            end == terminal_end, 0, discount[k] / discount * value[k]
+        )
+    else:
+        if np.any(np.diff(assignments) <= 0) or np.any(
+            (assignments < 0) | (assignments >= n)
+        ):
+            raise ValueError("Invalid external assignment rows")
+        boundaries = np.r_[assignments, n]
+        next_assignment = boundaries[np.searchsorted(assignments, ix, side="right")]
+        k = next_assignment.clip(max=n - 1)
+        cut = (next_assignment < end) & (segment[k] == segment) & (ix < terminal_end)
+        end = np.where(cut, next_assignment, end)
+        valid |= cut
+        k = end.clip(max=n - 1)
+        # Relative-time discounting avoids subtracting nearly identical global
+        # prefixes late in long fights. The actual successor precedes its next key.
+        step_discount = np.exp(np.log(0.995) * np.r_[np.diff(t), 0.04] / 0.04)
+        tail = np.zeros(n + 1)
+        for i in range(n - 1, -1, -1):
+            tail[i] = reward[i] + step_discount[i] * tail[i + 1]
+        gamma = np.exp(np.log(0.995) * (t[k] - t) / 0.04)
+        g = tail[ix] + gamma * (np.where(end == terminal_end, 0, value[k]) - tail[end])
+        if audit is not None:
+            rows = np.unique(end[cut & (s[:, 23] > 0.5)])
+            stop = np.searchsorted(t, t[rows] + 0.32 - 1e-5).clip(max=n)
+            known = (stop > rows) & (segment[(stop - 1).clip(min=0)] == segment[rows])
+            known &= (stop == terminal_end) | (
+                (stop < n) & (t[stop.clip(max=n - 1)] >= t[rows] + 0.32 - 1e-4)
+            )
+            trio = valid & (s[:, 23] > 0.5)
+            audit.update(
+                trio_inputs=int(trio.sum()),
+                shortened=int((trio & cut).sum()),
+                observed_seconds=float((t[k] - t)[trio].sum()),
+                cutoff_states_with_followup=int(known.sum()),
+                cutoff_states_then_hurt=int(
+                    (known & (losses[stop] > losses[rows])).sum()
+                ),
+            )
     residual = 0.75 * (g - value) + 0.25 * (
-        reward + 0.995 * one_step * (~ev[:, 6:].any(1)) - value
+        reward + step_discount * one_step * (~ev[:, 6:].any(1)) - value
     )
     e0, m0 = end_at(0.72)
     e1, m1 = end_at(2.4)
+    if assignments is not None:
+        m0 &= next_assignment >= e0
+        m1 &= next_assignment >= e1
     targets = np.column_stack(
         [
             losses[e0] > losses[ix],
@@ -124,7 +180,7 @@ def measured_targets(t, s, ev, value, one_step):
     return residual.astype("f4"), valid, targets.astype("f4"), np.column_stack([m0, m1])
 
 
-def load_replay(path, ck, device):
+def load_replay(path, ck, device, handoff_returns=False, audits=None):
     cat = ck["catalogue"].long()
     actor = TimingPolicy(cat, True).to(device).eval()
     actor.load_state_dict(ck["actor"])
@@ -191,6 +247,10 @@ def load_replay(path, ck, device):
                     ev,
                     v,
                     0.75 * np.r_[v[1:], v[-1]] + 0.25 * v_model,
+                    external_assignments(d) if handoff_returns else None,
+                    audits.setdefault(source, {"split": m["split"]})
+                    if audits is not None
+                    else None,
                 )
                 teacher = (
                     d["teacher_acted"].astype(bool).reshape(-1)
@@ -319,13 +379,16 @@ def heldout(net, cached, cat):
     return per
 
 
-def train(archive, parent, deployed, output, updates, batch, seed):
+def train(
+    archive, parent, deployed, output, updates, batch, seed, handoff_returns=False
+):
     torch.manual_seed(seed)
     torch.set_num_threads(1)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ck = torch.load(parent, weights_only=True, map_location="cpu")
     cat = ck["catalogue"].long().to(device)
-    games = load_replay(archive, ck, device)
+    audits = {} if handoff_returns else None
+    games = load_replay(archive, ck, device, handoff_returns, audits)
     train_ids, _, train_data = games["train"]
     print(
         "REPLAY",
@@ -403,6 +466,15 @@ def train(archive, parent, deployed, output, updates, batch, seed):
         and 0.001 <= changed <= 0.25
         and direction_change >= -0.03
     )
+    if handoff_returns:
+        free_drift = mismatch({s: a[s] for s in neural})
+        eligible = bool(
+            len(neural) >= 3
+            and 0.001 <= free_drift <= 0.25
+            and 0.001 <= changed <= 0.25
+            and direction_change >= -0.03
+            and np.isfinite(delta).all()
+        )
     result = {
         "method": "Recurrent advantage-weighted offline actor-critic on native actions, with real four-second returns and a frozen world-assisted one-step target. Whole continuous blocks are replayed from zero state. Only the raw-state actor is eligible for deployment.",
         "hardware": torch.cuda.get_device_name() if device.type == "cuda" else "CPU",
@@ -422,6 +494,13 @@ def train(archive, parent, deployed, output, updates, batch, seed):
         "issued_teacher_direction_accuracy_change": direction_change,
         "trial_eligible": eligible,
     }
+    if handoff_returns:
+        result.update(
+            handoff_returns=True,
+            credit_by_fight=audits,
+            teacher_free_changed_native_action_rate=free_drift,
+            selection="Action drift on all held fights and teacher-free fights, issued teacher direction retention, then compiled native parity. Independent full fights score wins and hitless wins.",
+        )
     (output / "training.json").write_text(json.dumps(result, indent=2) + "\n")
     print("FIT", eligible, delta.mean(0), changed, direction_change, flush=True)
 
@@ -433,4 +512,5 @@ if __name__ == "__main__":
     p.add_argument("--updates", type=int, default=1500)
     p.add_argument("--batch", type=int, default=24)
     p.add_argument("--seed", type=int, default=71964)
+    p.add_argument("--handoff-returns", action="store_true")
     train(**vars(p.parse_args()))

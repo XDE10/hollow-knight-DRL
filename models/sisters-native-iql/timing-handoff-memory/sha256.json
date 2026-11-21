@@ -1,0 +1,9 @@
+{
+  "goal1-plan.json": "2c0678b6e106e050ea13814de7c736c71738e420c26597c134ebc57fcd811095",
+  "learner.pt": "62ba018819e1e567f96789b4a7252b6989a3dae0444f4b2762ccfae24e4f0f50",
+  "reference-replay.json": "00c0ccebd0b032cb367c10139e9a83524b8a6fb7ff2fa19b9aca5b48449a2a0d",
+  "runtime-parity.json": "1812c194c4ebad142594eb2dabb5e2bd0d0f16ac67badfc951635af5afc0be42",
+  "study.json": "4b95d3a4cca6b574fcaae8ebd8675c7011f6554b50391490fe057e47f4e25ce2",
+  "training.json": "63ed61a2b0ce91f49f0fd99b4cea68fb513295231c2d095a904fa3618eb6f00d",
+  "world_iql.bin": "1767a2a24071e5c8917813f463252f67c9c4c7648873151d480d4377b6364318"
+}

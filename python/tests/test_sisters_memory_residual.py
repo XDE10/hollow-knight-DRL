@@ -68,3 +68,52 @@ def test_recurrent_payload_matches_pytorch_layout(model, tmp_path):
     assert memory_components(branch)[0] == leaf
     with pytest.raises(ValueError):
         memory_components(branch[:-4])
+
+
+def test_external_assignments_distinguish_enforced_holds_from_releases(model):
+    draw = np.array([False, False, True, True, False])
+    assert list(model.external_assignments({"candidate_draw": draw})) == [2, 4]
+    assert list(model.external_assignments({"teacher_acted": draw[:, None]})) == [2, 4]
+    tape = dict(choice_rows=np.array([15, 40]), choice_draw=np.array([0, 1]))
+    assert list(model.external_assignments(tape)) == [40]
+    tape["choice_hold_stop"] = np.array([19, 44])
+    assert list(model.external_assignments(tape)) == [15, 40]
+    tape["choice_scores"] = np.ones((2, 2))
+    assert list(model.external_assignments(tape)) == [40]
+    assert not len(model.external_assignments({"controls": draw}))
+
+
+def test_intervention_cuts_real_reward_and_retains_successor_value(model):
+    n = 140
+    t = np.arange(n) * 0.04
+    s = np.zeros((n, 192))
+    s[:, 23] = 1
+    ev = np.zeros((n, 8))
+    ev[4, 0] = 21
+    ev[5, 2] = 1
+    v = np.zeros(n)
+    v[5] = 4
+    audit = {}
+    residual, valid, labels, known = model.measured_targets(
+        t, s, ev, v, np.zeros(n), np.array([5]), audit
+    )
+    expected = 0.75 * (0.995**4 * 0.45 + 0.995**5 * 4)
+    assert valid[0] and residual[0] == pytest.approx(expected)
+    assert not known[0].any() and known[5].all() and labels[5, 0] == 1
+    assert audit["cutoff_states_then_hurt"] == 1
+    ev[4, 6] = 1
+    residual, valid, _, known = model.measured_targets(t, s, ev, v, v, np.array([5]))
+    assert residual[0] == pytest.approx(0.75 * 0.995**4 * 8.45)
+    assert valid[0] and known[0].all()
+
+
+def test_full_late_fight_rewards_keep_numerical_precision(model):
+    t = np.arange(8200) * 0.04
+    s = np.zeros((len(t), 192))
+    s[:, 23] = 1
+    ev = np.zeros((len(t), 8))
+    ev[0, 0] = 99
+    ev[7960, 0] = 21
+    v = np.zeros(len(t))
+    residual, valid, _, _ = model.measured_targets(t, s, ev, v, v, np.array([], dtype=int))
+    assert valid[7900] and residual[7900] == pytest.approx(0.75 * 0.995**60 * 0.45)
