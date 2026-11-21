@@ -1,0 +1,42 @@
+{
+  "policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+  "game_mod_sha256": "230b9d23622a2a8e56bb2ad22c3201f7d2682cac86bad831ba772c777384fd22",
+  "seeds": [
+    9761000,
+    9761001,
+    9761002,
+    9761003,
+    9761004,
+    9761005,
+    9761006,
+    9761007,
+    9761008,
+    9761009,
+    9761010,
+    9761011,
+    9761012,
+    9761013,
+    9761014,
+    9761015,
+    9761016,
+    9761017,
+    9761018,
+    9761019,
+    9761020,
+    9761021,
+    9761022,
+    9761023
+  ],
+  "holdout": [
+    9761001,
+    9761007,
+    9761013,
+    9761019
+  ],
+  "arms": "Two native horizontal proposals ranked by the same frozen H neural model. At an eligible descent or landing within four units, randomize the best versus highest alternative lateral move with joint logit gap at most 3. Each is followed for 0.16 game seconds, reevaluating other controls with the policy. Isolate draws by >=1.50 seconds.",
+  "probability": 0.5,
+  "horizon": 0.6,
+  "teacher": false,
+  "game_speed": 1,
+  "nail_damage_multiplier": 1
+}

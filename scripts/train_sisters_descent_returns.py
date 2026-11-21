@@ -37,7 +37,14 @@ def direction_logits(scores: Tensor, moves: Tensor, requested: Tensor) -> Tensor
 
 
 def fit(
-    archive: Path, parent: Path, deployed: Path, output: Path, updates: int, seed: int
+    archive: Path,
+    parent: Path,
+    deployed: Path,
+    output: Path,
+    updates: int,
+    seed: int,
+    *,
+    native_crossfit: bool = False,
 ) -> None:
     if updates < 1 or output.exists():
         raise ValueError("Use a positive budget and a new output directory")
@@ -63,6 +70,7 @@ def fit(
     parts = {"train": [], "holdout": []}
     anchors = {"train": [], "holdout": []}
     counts = {}
+    arm_coverage = {}
     with zipfile.ZipFile(archive) as z, torch.inference_mode():
         manifest = json.loads(z.read("manifest.json"))
         if len({g["source"] for g in manifest}) != len(manifest):
@@ -96,8 +104,15 @@ def fit(
                     raise ValueError(
                         "Changed duration or cooldown of a direction intervention"
                     )
-                kept, payout, next_row, discount = choice_outcomes(
-                    t,
+                measure = choice_outcomes
+                prefix = (t,)
+                if native_crossfit:
+                    from sisters_maneuver_credit import native_health_outcomes
+
+                    measure = native_health_outcomes
+                    prefix = (t, s)
+                kept, payout, next_row, discount = measure(
+                    *prefix,
                     d["time"],
                     d["elapsed_ticks"],
                     d["events"],
@@ -185,11 +200,49 @@ def fit(
                             float(measured[j]),
                         )
                     )
-                counts[source] = sum(x[0] == source for x in parts[split])
+                included = [x for x in parts[split] if x[0] == source]
+                counts[source] = len(included)
+                if native_crossfit:
+                    arm_coverage[source] = {
+                        "assigned": np.bincount(
+                            arms.astype("i8"), minlength=2
+                        ).tolist(),
+                        "analyzed": np.bincount(
+                            [b[4] for b in included], minlength=2
+                        ).tolist(),
+                    }
     if min(map(len, parts.values())) < 2 or not all(anchors.values()):
         raise ValueError(
             "Need complete randomized maneuvers and ordinary states in both splits"
         )
+
+    if native_crossfit:
+        from sisters_maneuver_credit import (
+            crossfit_options,
+            dr_contrast,
+            option_features,
+        )
+
+        def features(trials):
+            return option_features(
+                np.stack([b[1][0] for b in trials]), np.stack([b[3] for b in trials])
+            )
+
+        train = parts["train"]
+        arms = np.array([b[4] for b in train], dtype=int)
+        payoffs = np.array([b[5] for b in train])
+        game_ids = np.array([b[0] for b in train])
+        estimates = crossfit_options(
+            features(train), arms, payoffs, game_ids, features(parts["holdout"])
+        )
+        for split, predicted in zip(("train", "holdout"), estimates, strict=True):
+            trials = parts[split]
+            delta = dr_contrast(
+                np.array([b[4] for b in trials]),
+                np.array([b[5] for b in trials]),
+                predicted,
+            )
+            parts[split] = [(*b, float(d)) for b, d in zip(trials, delta, strict=True)]
 
     actor = copy.deepcopy(ref)
     actor.out.requires_grad_(True)
@@ -198,7 +251,7 @@ def fit(
     games = sorted({b[0] for b in parts["train"]})
     by_fight = [[b for b in parts["train"] if b[0] == g] for g in games]
     anchor = torch.as_tensor(np.concatenate(anchors["train"]), device=device)
-    payoffs = np.array([b[-1] for b in parts["train"]])
+    payoffs = np.array([b[5] for b in parts["train"]])
     center = float(np.median(payoffs))
     scale = max(0.25, float(np.std(payoffs)))
     for _ in range(updates):
@@ -208,7 +261,7 @@ def fit(
         directions = torch.as_tensor(np.stack([b[3] for b in blocks]), device=device)
         arms = torch.tensor([b[4] for b in blocks], device=device)
         credit = torch.tensor(
-            [(b[-1] - center) / scale for b in blocks], device=device
+            [(b[5] - center) / scale for b in blocks], device=device
         ).clamp(-3, 3)
         scores = actor.heads(onset)[0]
         probability = (
@@ -219,6 +272,13 @@ def fit(
         )
         # A fair coin chose each observed maneuver. Its return is measured in real combat.
         policy_loss = -(2 * probability * credit).mean()
+        if native_crossfit:
+            alternative = direction_logits(scores, moves, directions).softmax(1)[:, 1]
+            contrast = torch.tensor(
+                [b[6] / scale for b in blocks], device=device
+            ).clamp(-6, 6)
+            policy_loss = -(alternative * contrast).mean()
+
         j = [rng.integers(len(b[2])) for b in blocks]
         h = torch.as_tensor(
             np.stack([b[1][k] for b, k in zip(blocks, j, strict=True)]), device=device
@@ -249,7 +309,7 @@ def fit(
             chosen = moves[actor.heads(feat)[0].argmax(1)].cpu().numpy()
             pair = np.stack([b[3] for b in trials])
             assigned = np.array([b[4] for b in trials])
-            pay = np.array([b[-1] for b in trials])
+            pay = np.array([b[5] for b in trials])
             other = chosen == pair[:, 1]
             supported = other | (chosen == pair[:, 0])
             gain = 2 * (2 * assigned - 1) * pay * other
@@ -261,6 +321,10 @@ def fit(
                 "unsupported": int((~supported).sum()),
                 "estimated_option_gain": float(gain.mean()),
             }
+            if native_crossfit:
+                corrected = np.array([b[6] for b in trials]) * other
+                corrected[~supported] = -12.0
+                outcomes[source]["crossfit_option_gain"] = float(corrected.mean())
         h = torch.as_tensor(np.concatenate(anchors["holdout"]), device=device)
         before = moves[ref.heads(h)[0].argmax(1)]
         after = moves[actor.heads(h)[0].argmax(1)]
@@ -272,6 +336,13 @@ def fit(
         and sum(g > 0 for g in gains) > len(gains) / 2
         and drift <= 0.05
     )
+    if native_crossfit:
+        adjusted = [v["crossfit_option_gain"] for v in outcomes.values()]
+        eligible = (
+            eligible
+            and np.mean(adjusted) > 0
+            and sum(v > 0 for v in adjusted) > len(adjusted) / 2
+        )
     output.mkdir(parents=True, exist_ok=False)
     model = output / "world_iql.bin"
     save_native(actor, cat.numpy(), model)
@@ -292,6 +363,11 @@ def fit(
         "data_sha256": sha(archive),
         "policy_sha256": sha(model),
     }
+    if native_crossfit:
+        report["coverage_by_arm"] = arm_coverage
+        report["method"] = (
+            "Cross-fitted doubly robust policy gradient on actual randomized movements, native-clock health losses and world-assisted IQL continuation"
+        )
     (output / "training.json").write_text(json.dumps(report, indent=2) + "\n")
 
 
@@ -301,5 +377,14 @@ if __name__ == "__main__":
         p.add_argument("--" + flag, type=Path, required=True)
     p.add_argument("--updates", type=int, default=350)
     p.add_argument("--seed", type=int, default=9761)
+    p.add_argument("--native-crossfit", action="store_true")
     args = p.parse_args()
-    fit(args.archive, args.parent, args.deployed, args.output, args.updates, args.seed)
+    fit(
+        args.archive,
+        args.parent,
+        args.deployed,
+        args.output,
+        args.updates,
+        args.seed,
+        native_crossfit=args.native_crossfit,
+    )
