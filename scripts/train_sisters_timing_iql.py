@@ -278,6 +278,7 @@ def build_data(
     teacher_win_min_hz: float = 0.0,
     future_keys: bool = False,
     terminal_advantage: bool = False,
+    executed_teacher: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -327,11 +328,26 @@ def build_data(
                 )
             ):
                 raise ValueError(f"Inconsistent teacher labels in {game['source']}")
+            acted = None
+            if executed_teacher and labeled:
+                if "teacher_acted" not in f:
+                    raise ValueError("Executed-teacher learning requires recorded controller assignments")
+                acted = f["teacher_acted"]
+                if acted.dtype != np.bool_ or acted.shape != t.shape or not np.array_equal(
+                    act[acted], f["teacher_controls"][acted]
+                ):
+                    raise ValueError("Executed teacher labels differ from the native controls")
             boundaries = None
             if neural_trial:
                 boundaries = f["block_starts"]
             elif "teacher_acted" in f:
                 boundaries = np.flatnonzero(np.diff(f["teacher_acted"])) + 1
+            elif "choice_rows" in f:
+                boundaries = f["choice_rows"]
+            elif labeled and not np.array_equal(act, f["teacher_controls"]):
+                # Historical mixed tapes without assignments cannot identify a handoff
+                # when both controllers happened to choose the same input.
+                boundaries = np.arange(len(t)) if return_seconds else None
             teacher = (
                 f["teacher_controls"] if labeled else np.full_like(act, -1, dtype="i2")
             )
@@ -372,6 +388,8 @@ def build_data(
             s = motion_history(t, s)
         next_state = np.r_[s[1:], s[-1:]]
         agreement = teacher_history_age(t, act, teacher) if labeled else np.full(len(t), -1, "f4")
+        if acted is not None:
+            agreement[~acted[:n]] = -np.inf
         selected = s[:, 23] > 0.5 if trio_only else slice(None)
         if opening_only:
             selected = s[:, 23] <= 0.5
@@ -511,6 +529,14 @@ def movement_margins(logits: Tensor, membership: Tensor, chosen: Tensor) -> Tens
     return grouped.gather(1, chosen[:, None]) - grouped
 
 
+def greedy_motion_loss(logits: Tensor, groups: Tensor, issued: Tensor) -> Tensor:
+    """Compare the best native key in the issued movement with the best competing key."""
+    correct = groups[None, :] == issued[:, None]
+    best_issued = logits.masked_fill(~correct, -torch.inf).amax(1)
+    competing = logits.masked_fill(correct, -torch.inf).amax(1)
+    return F.softplus(competing - best_issued)
+
+
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     for component in (opener, trio):
         if (
@@ -597,7 +623,10 @@ def train(
     drop_replay_fraction: float = 0.0,
     world_only: bool = False,
     initial_world: Path | None = None,
+    executed_teacher_advantage: bool = False,
 ) -> None:
+    if executed_teacher_advantage and return_seconds <= 0:
+        raise ValueError("Teacher advantage requires an observed reward horizon")
     if world_only and (bc_steps or rl_steps):
         raise ValueError("World pretraining requires zero actor and IQL steps")
     torch.manual_seed(seed)
@@ -624,11 +653,15 @@ def train(
         teacher_win_min_hz,
         future_key_weight > 0,
         terminal_advantage_weight > 0,
+        executed_teacher_advantage,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
     s, y, expert, ns, r, d, good, age = data["train"][:8]
-    supervised = ((expert >= 0) & (age >= agreement_seconds)).nonzero().flatten()
+    eligible = (expert >= 0) & (age >= agreement_seconds)
+    if executed_teacher_advantage:
+        eligible &= good & (y == expert)
+    supervised = eligible.nonzero().flatten()
     if not len(supervised):
         raise ValueError("No teacher decisions meet the configured fight and agreement criteria")
     has_unlabeled = bool((expert < 0).any())
@@ -646,6 +679,15 @@ def train(
         raise ValueError("No eligible descent or landing transitions for targeted replay")
     actor = TimingPolicy(cat, history).to(device)
     groups = movement_groups(cat)
+    baseline = None
+    motion_examples = None
+    if executed_teacher_advantage:
+        danger = eligible & nearby_descending_sister(s)
+        changed = groups[y.clamp_min(0)] != movement_groups(previous_commands(s))
+        changes, holds = (danger & changed).nonzero().flatten(), (danger & ~changed).nonzero().flatten()
+        if not len(changes) or not len(holds):
+            raise ValueError("Need both changed and held movements near a descending Sister")
+        motion_examples = (changes, holds)
     membership = F.one_hot(groups, 12).T.bool()
     plan_index = 8 + int(forecast_weight > 0)
     if plan_weight > 0:
@@ -660,6 +702,8 @@ def train(
         if initial_learner is not None
         else 0
     )
+    if executed_teacher_advantage:
+        baseline = copy.deepcopy(actor).eval().requires_grad_(False)
     forecast_head = None
     movement_head = None
     movement_index = plan_index + int(plan_weight > 0)
@@ -688,6 +732,7 @@ def train(
         "drop_replay_fraction": drop_replay_fraction,
         "drop_replay_training_rows": len(drop_valid),
         "teacher_switch_weight": switch_weight,
+        "executed_teacher_advantage": executed_teacher_advantage,
         "teacher_agreement_seconds": agreement_seconds,
         "future_box_loss_weight": forecast_weight,
         "opener_sha256": hashlib.sha256(opener).hexdigest()
@@ -927,7 +972,7 @@ def train(
             encoded = actor.encode(x)
             logits, factor = actor.heads(encoded)
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
-            if agreement_seconds > 0 or teacher_win_min_hz > 0 or has_unlabeled:
+            if executed_teacher_advantage or agreement_seconds > 0 or teacher_win_min_hz > 0 or has_unlabeled:
                 j = supervised[indices(len(supervised))]
                 labeled_encoding = actor.encode(s[j])
                 supervised_logits, factor = actor.heads(labeled_encoding)
@@ -936,6 +981,23 @@ def train(
                 labeled_encoding = encoded
             lab = expert[j]
             w = rare[lab] * corrective_weight[j]
+            motion_cost = 0.0
+            if executed_teacher_advantage:
+                # The teacher actually issued each selected key. Use rewards from
+                # that controller's own segment and the critic's continuation value.
+                payout, continuation, successor = data["train"][-3:]
+                with torch.no_grad():
+                    advantage = payout[j] + continuation[j] * val(successor[j]).flatten() - val(s[j]).flatten()
+                    w = w * advantage.clamp(-1.5, 1.5).exp()
+                change_rows, hold_rows = motion_examples
+                half = batch // 2
+                pick = torch.cat((change_rows[torch.randint(len(change_rows), (half,), device=device)],
+                                  hold_rows[torch.randint(len(hold_rows), (batch-half,), device=device)]))
+                with torch.no_grad():
+                    observed_adv = payout[pick] + continuation[pick] * val(successor[pick]).flatten() - val(s[pick]).flatten()
+                    weight = observed_adv.clamp(-1.5, 1.5).exp()
+                penalties = greedy_motion_loss(actor(s[pick])[0], groups, groups[y[pick]])
+                motion_cost = (weight * penalties).sum() / weight.sum()
             supervision = (
                 F.cross_entropy(supervised_logits, lab, reduction="none") * w
             ).sum() / w.sum()
@@ -944,6 +1006,7 @@ def train(
                 loss
                 + 0.7 * F.kl_div(logits.log_softmax(1), prior, reduction="batchmean")
                 + 0.85 * supervision
+                + 0.5 * motion_cost
                 + 0.2 * factor_loss(factor, lab)
                 + forecast_weight * forecast_loss(encoded, i)
                 + future_key_weight * future_key_loss(labeled_encoding, j)
@@ -952,6 +1015,23 @@ def train(
         if (step + 1) % 2000 == 0:
             print("iql", step + 1, flush=True)
     save("world_iql")
+    if baseline is not None:
+        with torch.inference_mode():
+            hs, actual, hl, _, _, _, usable, hage = data["holdout"][:8]
+            selected = (hl >= 0) & (hl == actual) & usable & (hage >= agreement_seconds) & nearby_descending_sister(hs)
+            h = hs[selected]
+            if len(h):
+                before = groups[torch.cat([baseline(x)[0].argmax(1) for x in h.split(512)])]
+                after = groups[torch.cat([actor(x)[0].argmax(1) for x in h.split(512)])]
+                target = groups[hl[selected]]
+                switches = target != movement_groups(previous_commands(h))
+                report["heldout_descent_executed_motion"] = {
+                    name: {"rows": int(m.sum()), "baseline_correct": int(((before == target) & m).sum()),
+                           "candidate_correct": int(((after == target) & m).sum()),
+                           "gained": int(((before != target) & (after == target) & m).sum()),
+                           "lost": int(((before == target) & (after != target) & m).sum())}
+                    for name, m in (("change", switches), ("hold", ~switches))
+                }
     if movement_head is not None:
         with torch.no_grad():
             prediction = torch.cat([movement_head(actor.encode(x)).reshape(
@@ -1109,6 +1189,8 @@ if __name__ == "__main__":
                         help="Save only the trained dynamics model and optimizer.")
     parser.add_argument("--initial-world", type=Path,
                         help="Resume dynamics training from a verified world-only checkpoint.")
+    parser.add_argument("--executed-teacher-advantage", action="store_true",
+                        help="Anchor policy improvement on issued teacher keys weighted by their observed short return.")
     args = parser.parse_args()
     if min(args.world_steps, args.batch) < 1 or (not args.world_only and min(args.bc_steps, args.rl_steps) < 1):
         parser.error("Positive budgets required")
@@ -1158,4 +1240,5 @@ if __name__ == "__main__":
         args.drop_replay_fraction,
         args.world_only,
         args.initial_world,
+        args.executed_teacher_advantage,
     )
