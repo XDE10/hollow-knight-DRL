@@ -1,0 +1,12 @@
+{
+  "ordered_inputs": [
+    "../timing-mixed-selfplay/data-sources.json",
+    "../timing-recovery-blocks/development.zip",
+    "../timing-neural-blocks/development.zip"
+  ],
+  "source_sha256": [
+    "f534b4d3d2da80bcf15deae83686732657b4951dc6be23417c3e676069666306",
+    "4c5d0472913f332da6a627030c79a4da1f1275cc8a7ebe2a1d72b1ac4f603cee",
+    "a9669d60560ff5cbbe439fe0aaad4f6005740dfd16382294fc852e9802b4d61b"
+  ]
+}
