@@ -226,7 +226,7 @@ def measured_returns(
 
 
 def opening_rewards(
-    state: np.ndarray, reward: np.ndarray, terminal: np.ndarray
+    state: np.ndarray, reward: np.ndarray, terminal: np.ndarray, reserve: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
     """End the opening subtask on the first observed trio and value resources carried in."""
     reward, terminal = reward.copy(), terminal.copy()
@@ -240,6 +240,9 @@ def opening_rewards(
     if 0 < stop < len(state):
         entry = state[stop]
         reward[stop - 1] += 5 + 0.5 * 9 * entry[4] + 1.5 * entry[5]
+        if reserve:
+            charges = np.floor((99 * np.clip(entry[5], 0, 1) + 1e-4) / 33)
+            reward[stop - 1] += 3 * charges
         terminal[stop - 1] = True
     return reward, terminal
 
@@ -279,6 +282,7 @@ def build_data(
     future_keys: bool = False,
     terminal_advantage: bool = False,
     executed_teacher: bool = False,
+    reserve_opening: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -329,7 +333,7 @@ def build_data(
             ):
                 raise ValueError(f"Inconsistent teacher labels in {game['source']}")
             acted = None
-            if executed_teacher and labeled:
+            if (executed_teacher or reserve_opening) and labeled:
                 if "teacher_acted" not in f:
                     raise ValueError("Executed-teacher learning requires recorded controller assignments")
                 acted = f["teacher_acted"]
@@ -380,9 +384,11 @@ def build_data(
         if no_hit_cost:
             reward = no_hit_rewards(reward, ev, s, no_hit_cost)
         if opening_only:
-            reward, terminal = opening_rewards(s, reward, terminal)
+            reward, terminal = opening_rewards(s, reward, terminal, reserve_opening)
         dt = np.r_[np.diff(t), 0.04].astype("f4")
-        d = (0.995 ** (dt / 0.04)) * (~terminal)
+        # A 40-game-second time constant lets rewards at the handoff influence
+        # earlier casts in the roughly one-minute opening subtask.
+        d = (np.exp(-dt / 40) if reserve_opening else 0.995 ** (dt / 0.04)) * (~terminal)
         good = (dt <= 0.24) & (np.r_[np.ones(n - 1, bool), False] | terminal)
         if history:
             s = motion_history(t, s)
@@ -390,6 +396,11 @@ def build_data(
         agreement = teacher_history_age(t, act, teacher) if labeled else np.full(len(t), -1, "f4")
         if acted is not None:
             agreement[~acted[:n]] = -np.inf
+        if reserve_opening:
+            entry = np.flatnonzero(s[:, 23] > 0.5)
+            if not len(entry) or s[entry[0], 4] < .999 or s[entry[0], 5] * 99 < 66 - 1e-4:
+                # The actual transitions, costs and terminal still train both critics.
+                agreement.fill(-np.inf)
         selected = s[:, 23] > 0.5 if trio_only else slice(None)
         if opening_only:
             selected = s[:, 23] <= 0.5
@@ -624,7 +635,10 @@ def train(
     world_only: bool = False,
     initial_world: Path | None = None,
     executed_teacher_advantage: bool = False,
+    reserve_opening: bool = False,
 ) -> None:
+    if reserve_opening and (late_path is None or executed_teacher_advantage):
+        raise ValueError("Reserve training requires a frozen late policy and an opening learner")
     if executed_teacher_advantage and return_seconds <= 0:
         raise ValueError("Teacher advantage requires an observed reward horizon")
     if world_only and (bc_steps or rl_steps):
@@ -654,6 +668,7 @@ def train(
         future_key_weight > 0,
         terminal_advantage_weight > 0,
         executed_teacher_advantage,
+        reserve_opening,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -733,6 +748,8 @@ def train(
         "drop_replay_training_rows": len(drop_valid),
         "teacher_switch_weight": switch_weight,
         "executed_teacher_advantage": executed_teacher_advantage,
+        "reserve_opening": reserve_opening,
+        "opening_discount_seconds": 40 if reserve_opening else None,
         "teacher_agreement_seconds": agreement_seconds,
         "future_box_loss_weight": forecast_weight,
         "opener_sha256": hashlib.sha256(opener).hexdigest()
@@ -972,7 +989,7 @@ def train(
             encoded = actor.encode(x)
             logits, factor = actor.heads(encoded)
             loss = (F.cross_entropy(logits, u, reduction="none") * aw).sum() / aw.sum()
-            if executed_teacher_advantage or agreement_seconds > 0 or teacher_win_min_hz > 0 or has_unlabeled:
+            if reserve_opening or executed_teacher_advantage or agreement_seconds > 0 or teacher_win_min_hz > 0 or has_unlabeled:
                 j = supervised[indices(len(supervised))]
                 labeled_encoding = actor.encode(s[j])
                 supervised_logits, factor = actor.heads(labeled_encoding)
@@ -1191,6 +1208,8 @@ if __name__ == "__main__":
                         help="Resume dynamics training from a verified world-only checkpoint.")
     parser.add_argument("--executed-teacher-advantage", action="store_true",
                         help="Anchor policy improvement on issued teacher keys weighted by their observed short return.")
+    parser.add_argument("--reserve-opening", action="store_true",
+                        help="Learn from actually issued high-resource openings and value spell charges at the handoff.")
     args = parser.parse_args()
     if min(args.world_steps, args.batch) < 1 or (not args.world_only and min(args.bc_steps, args.rl_steps) < 1):
         parser.error("Positive budgets required")
@@ -1241,4 +1260,5 @@ if __name__ == "__main__":
         args.world_only,
         args.initial_world,
         args.executed_teacher_advantage,
+        args.reserve_opening,
     )
