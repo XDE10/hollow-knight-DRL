@@ -183,6 +183,38 @@ def test_no_hit_opening_uses_events_through_the_trio_handoff(monkeypatch) -> Non
     )
 
 
+def test_entry_replay_mask_preserves_whole_fight_splits_and_mirroring(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    t = np.arange(254, dtype="f4") * 0.04
+    s = np.zeros((len(t), mod.WIDTH), dtype="f4")
+    s[:, 4] = 1
+    s[2:, 23] = 1
+    opening = s.copy()
+    opening[:, 23] = 0
+    mask = np.zeros(len(t), dtype=bool)
+    mask[2:252] = True
+    records = []
+    for split, state in (("train", s), ("holdout", opening)):
+        path = tmp_path / f"{split}.npz"
+        keys = np.zeros((len(t), 3), dtype="i2")
+        np.savez(
+            path, timing_state=state, control_time=t, controls=keys,
+            teacher_controls=keys, time=t, elapsed_ticks=np.full(len(t), 2),
+            events=np.zeros((len(t), 8), dtype="f4"),
+        )
+        records.append({
+            "file": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "source": f"native-development/{split}", "split": split, "won": False,
+        })
+    (tmp_path / "manifest.json").write_text(json.dumps(records))
+    data, _, _ = mod.build_data(tmp_path, "cpu", return_seconds=0.32, entry_replay=True)
+    np.testing.assert_array_equal(data["train"][-4], np.tile(mask, 2))
+    np.testing.assert_array_equal(data["holdout"][-4], np.zeros(len(t), dtype=bool))
+
+
 def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

@@ -279,6 +279,14 @@ def eligible_teacher_fight(won: bool, times: np.ndarray, minimum_hz: float) -> b
     return bool(won and len(times) > 1 and len(times) - 1 >= minimum_hz * (times[-1] - times[0]))
 
 
+def early_trio_rows(times: np.ndarray, state: np.ndarray) -> np.ndarray:
+    """Mark the first ten game seconds after the trio is first observed."""
+    trio = state[:, 23] > 0.5
+    if not trio.any():
+        return trio
+    return trio & (times < float(times[trio.argmax()]) + 10 - 1e-5)
+
+
 def build_data(
     directory: Path,
     device: str,
@@ -295,6 +303,7 @@ def build_data(
     terminal_advantage: bool = False,
     executed_teacher: bool = False,
     reserve_opening: bool = False,
+    entry_replay: bool = False,
 ) -> tuple[dict, np.ndarray, dict]:
     games = json.loads((directory / "manifest.json").read_bytes())
     if len({g["source"] for g in games}) != len(games) or any(
@@ -309,6 +318,7 @@ def build_data(
     options: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     movements: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     outcomes: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {"train": [], "holdout": []}
+    entry_rows: dict[str, list[np.ndarray]] = {"train": [], "holdout": []}
     stats: dict[str, dict] = {}
     mirror_axes = list(MIRROR)
     if history:
@@ -423,6 +433,8 @@ def build_data(
 
             context, terminal_return = outcome_samples(t, s, ev, bool(game["won"]))
             outcomes[game["split"]].append((context[selected], terminal_return[selected]))
+        if entry_replay:
+            entry_rows[game["split"]].append(early_trio_rows(t, s)[selected])
         if teacher_win_min_hz and not eligible_teacher_fight(game["won"], t[selected], teacher_win_min_hz):
             # Only the teacher/plan labels are excluded. Actual rewards and
             # actions from lost fights still train the world, value and critic.
@@ -509,6 +521,11 @@ def build_data(
             if split == "train" and mirror:
                 excess = np.tile(excess, 2)
             result[split] += (torch.from_numpy(excess).to(device),)
+        if entry_replay:
+            entry = np.concatenate(entry_rows[split])
+            if split == "train" and mirror:
+                entry = np.tile(entry, 2)
+            result[split] += (torch.from_numpy(entry).to(device),)
         if return_seconds:
             total, remaining, successor = [
                 np.concatenate(values) for values in zip(*windows[split], strict=True)
@@ -781,6 +798,7 @@ def train(
     initial_world: Path | None = None,
     executed_teacher_advantage: bool = False,
     reserve_opening: bool = False,
+    entry_replay_fraction: float = 0.0,
 ) -> None:
     if reserve_opening and (late_path is None or executed_teacher_advantage):
         raise ValueError("Reserve training requires a frozen late policy and an opening learner")
@@ -788,6 +806,14 @@ def train(
         raise ValueError("Teacher advantage requires an observed reward horizon")
     if world_only and (bc_steps or rl_steps):
         raise ValueError("World pretraining requires zero actor and IQL steps")
+    if (
+        not 0 <= drop_replay_fraction < 1
+        or not 0 <= entry_replay_fraction < 1
+        or drop_replay_fraction + entry_replay_fraction >= 1
+    ):
+        raise ValueError("Replay fractions must be nonnegative and sum to less than one")
+    if entry_replay_fraction and late_path is not None:
+        raise ValueError("Trio entry replay requires a learner that trains on trio states")
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -814,6 +840,7 @@ def train(
         terminal_advantage_weight > 0,
         executed_teacher_advantage,
         reserve_opening,
+        entry_replay_fraction > 0,
     )
     output.mkdir(exist_ok=False, parents=True)
     cat = torch.as_tensor(commands, device=device)
@@ -829,14 +856,22 @@ def train(
     corrective_weight = 1 + (switch_weight - 1) * switch.float()
     valid = good.nonzero().flatten()
     dynamics_rows = (good & (d > 0)).nonzero().flatten()
-    if not 0 <= drop_replay_fraction < 1:
-        raise ValueError("The drop replay fraction must be in [0, 1)")
     drop_count = int(batch * drop_replay_fraction)
     drop_mask = nearby_descending_sister(s) if drop_count else torch.zeros_like(good)
     drop_valid = valid[drop_mask[valid]]
     drop_dynamics = dynamics_rows[drop_mask[dynamics_rows]]
     if drop_count and (not len(drop_valid) or not len(drop_dynamics)):
         raise ValueError("No eligible descent or landing transitions for targeted replay")
+    entry_count = int(batch * entry_replay_fraction)
+    entry_mask = (
+        data["train"][-4 if return_seconds else -1]
+        if entry_replay_fraction
+        else torch.zeros_like(good)
+    )
+    entry_valid = valid[entry_mask[valid]]
+    entry_dynamics = dynamics_rows[entry_mask[dynamics_rows]]
+    if entry_count and (not len(entry_valid) or not len(entry_dynamics)):
+        raise ValueError("No eligible trio entry transitions for targeted replay")
     actor = TimingPolicy(cat, history).to(device)
     groups = movement_groups(cat)
     baseline = None
@@ -891,6 +926,8 @@ def train(
         "mirrored_training": mirror,
         "drop_replay_fraction": drop_replay_fraction,
         "drop_replay_training_rows": len(drop_valid),
+        "entry_replay_fraction": entry_replay_fraction,
+        "entry_replay_training_rows": len(entry_valid),
         "teacher_switch_weight": switch_weight,
         "executed_teacher_advantage": executed_teacher_advantage,
         "reserve_opening": reserve_opening,
@@ -935,10 +972,14 @@ def train(
     def indices(n: int) -> Tensor:
         return torch.randint(n, (batch,), device=device)
 
-    def replay_rows(pool: Tensor, drops: Tensor) -> Tensor:
+    def replay_rows(pool: Tensor, drops: Tensor, entries: Tensor) -> Tensor:
         selected = pool[indices(len(pool))]
         if drop_count:
             selected[:drop_count] = drops[torch.randint(len(drops), (drop_count,), device=device)]
+        if entry_count:
+            selected[drop_count : drop_count + entry_count] = entries[
+                torch.randint(len(entries), (entry_count,), device=device)
+            ]
         return selected
 
     def factor_loss(factor: Tensor, label: Tensor) -> Tensor:
@@ -1050,7 +1091,7 @@ def train(
         report["initial_world_sha256"] = hashlib.sha256(initial_world.read_bytes()).hexdigest()
     report["total_world_updates"] = prior_updates + world_steps
     for _ in range(world_steps):
-        i = replay_rows(dynamics_rows, drop_dynamics)
+        i = replay_rows(dynamics_rows, drop_dynamics, entry_dynamics)
         delta = world(torch.cat((s[i], action_encoding[y[i]]), 1))
         update(
             wopt,
@@ -1094,7 +1135,7 @@ def train(
     vopt = torch.optim.AdamW(val.parameters(), lr=0.00035)
     aopt = torch.optim.AdamW(parameters, lr=0.00009)
     for step in range(rl_steps):
-        i = replay_rows(valid, drop_valid)
+        i = replay_rows(valid, drop_valid, entry_valid)
         x, u, observed = s[i], y[i], ns[i]
         with torch.no_grad():
             key = u[:, None]
@@ -1347,6 +1388,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--drop-replay-fraction", type=float, default=0.0,
                         help="Reserve a share of world-model and IQL minibatches for observed nearby boss drops.")
+    parser.add_argument("--entry-replay-fraction", type=float, default=0.0,
+                        help="Reserve a share of world-model and IQL minibatches for the first ten seconds of the trio.")
     parser.add_argument("--world-only", action="store_true",
                         help="Save only the trained dynamics model and optimizer.")
     parser.add_argument("--initial-world", type=Path,
@@ -1406,4 +1449,5 @@ if __name__ == "__main__":
         args.initial_world,
         args.executed_teacher_advantage,
         args.reserve_opening,
+        args.entry_replay_fraction,
     )
