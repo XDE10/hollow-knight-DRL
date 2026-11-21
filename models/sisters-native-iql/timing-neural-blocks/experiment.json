@@ -1,0 +1,25 @@
+{
+  "actor_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+  "alternate_policy_sha256": "fd51ea7a18e2313850bb936f639212edcf1296211f7d8a8820e740535ed210c8",
+  "game_mod_sha256": "02a65cdf45b7052aa854b0752929b9d820022d6723fc477b7f2ea1650d191cba",
+  "candidate_probability": 0.5,
+  "block_game_seconds": 0.8,
+  "game_speed": 1,
+  "nail_multiplier": 1,
+  "train_seeds": [
+    9713000,
+    9713002,
+    9713003,
+    9713004,
+    9713006,
+    9713007,
+    9713008,
+    9713010,
+    9713011
+  ],
+  "heldout_seeds": [
+    9713001,
+    9713005,
+    9713009
+  ]
+}
