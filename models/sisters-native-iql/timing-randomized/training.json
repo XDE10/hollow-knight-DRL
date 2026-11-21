@@ -1,0 +1,67 @@
+{
+  "method": "randomized pair policy gradient with world-assisted IQL continuation",
+  "parent_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+  "learner_sha256": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+  "fights": {
+    "train": 20,
+    "holdout": 4
+  },
+  "trials": {
+    "train": 1731,
+    "holdout": 371
+  },
+  "horizon_game_seconds": 0.6,
+  "selected": {
+    "scale": 0.0,
+    "mean_fight_gain": 0.0,
+    "fight_gains": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "changed_fraction": 0.0,
+    "unsupported_fraction": 0.0
+  },
+  "heldout_estimates": [
+    {
+      "scale": 0.0,
+      "mean_fight_gain": 0.0,
+      "fight_gains": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "changed_fraction": 0.0,
+      "unsupported_fraction": 0.0
+    },
+    {
+      "scale": 0.5,
+      "mean_fight_gain": -0.00432716537034139,
+      "fight_gains": [
+        0.0,
+        0.0024802791886031628,
+        0.0006710148882120848,
+        -0.02045995555818081
+      ],
+      "changed_fraction": 0.01886792480945587,
+      "unsupported_fraction": 0.0
+    },
+    {
+      "scale": 1.0,
+      "mean_fight_gain": -0.004571772820781916,
+      "fight_gains": [
+        0.006414677947759628,
+        0.0005586014594882727,
+        -0.005092641804367304,
+        -0.020167728886008263
+      ],
+      "changed_fraction": 0.03773584961891174,
+      "unsupported_fraction": 0.0
+    }
+  ],
+  "opener_sha256": "2c8cf39b99c0e9bc0689df3bbe40047a614913f4b61883d36b9da843eaea85ad",
+  "seed": 635,
+  "return_clip": 6
+}

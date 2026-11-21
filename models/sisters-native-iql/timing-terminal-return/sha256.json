@@ -1,0 +1,10 @@
+{
+  "bc.bin": "4e307fdc2d54427c094c508a90de2b127c5ca0f032e7fadcdf397ab2b57653fa",
+  "contact-context.json": "c771768380062426bea2fca524b0c8a8322131fc0264c26c3f91bf3a2252a0c3",
+  "development.zip": "15b3d6bd2db1824f6f331fa422630e339e64a6393072b40d42da1d70613ddd97",
+  "evaluation.json": "4223ca2ee421f9218719f0a74a0b0c844c9aa1b0b672c15a16dd8de880e0b0ba",
+  "learner.pt": "153e31f5b3e516b52f2efb93333aaf95496252c1cd110df91e45d8c3e7fca0ff",
+  "study.json": "b5085a8afa58d55890875d168c4139e06f7985d5926e931375bba1b2ee66fead",
+  "training.json": "f5f8f685417f0f5ee2a42360e041e43495cdedcddbba998f68aff9e931ecf78a",
+  "world_iql.bin": "d024fd982229b9dc7f6287978af167319d3c36a2a199ad7a6453fd8c5d6641ec"
+}

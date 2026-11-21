@@ -1,0 +1,14 @@
+{
+  "fights": 24,
+  "sha256": "254861f9976ff8536b119c0b03557ffeecb24af41d6295460fde20c83235e9e5",
+  "behavior": "plans98h",
+  "behavior_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+  "initial_learner": "plans98h",
+  "original_speed_only": true,
+  "learner_controlled_fights": 24,
+  "hardware": "Windows CPU; parent world/value trained on NVIDIA L4",
+  "scripts": {
+    "train_sisters_online_choices.py": "fb2d9ccbe405ad9b3e8ab89d910d847ce2c54036fa23ace34da56e9b7f1b07bb",
+    "sisters_online_choices.py": "a57ab1a045b236e2a64012813490174b8aba363fd2617f055f062025617190c3"
+  }
+}
