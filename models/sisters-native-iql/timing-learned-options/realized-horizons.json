@@ -1,0 +1,373 @@
+{
+  "scope": "Post-freeze diagnostic. Only the first block departs from equal random assignment. Subsequent controllers follow the recorded randomized behavior. Complete observation intervals; retain terminal outcomes. Three independent held fights, overlapping outcomes within fight.",
+  "coverage_in_order": [
+    "usable_draws",
+    "with_input_tape_clock_gap",
+    "with_recorded_terminal"
+  ],
+  "coverage": {
+    "native-development/9713000": {
+      "2.4": [
+        122,
+        17,
+        3
+      ],
+      "8.0": [
+        122,
+        41,
+        10
+      ]
+    },
+    "native-development/9713001": {
+      "2.4": [
+        120,
+        0,
+        3
+      ],
+      "8.0": [
+        120,
+        0,
+        10
+      ]
+    },
+    "native-development/9713002": {
+      "2.4": [
+        143,
+        0,
+        3
+      ],
+      "8.0": [
+        143,
+        0,
+        10
+      ]
+    },
+    "native-development/9713003": {
+      "2.4": [
+        69,
+        0,
+        3
+      ],
+      "8.0": [
+        69,
+        0,
+        10
+      ]
+    },
+    "native-development/9713004": {
+      "2.4": [
+        153,
+        0,
+        3
+      ],
+      "8.0": [
+        153,
+        0,
+        10
+      ]
+    },
+    "native-development/9713005": {
+      "2.4": [
+        135,
+        0,
+        3
+      ],
+      "8.0": [
+        135,
+        0,
+        10
+      ]
+    },
+    "native-development/9713006": {
+      "2.4": [
+        163,
+        0,
+        3
+      ],
+      "8.0": [
+        163,
+        0,
+        9
+      ]
+    },
+    "native-development/9713007": {
+      "2.4": [
+        159,
+        3,
+        3
+      ],
+      "8.0": [
+        159,
+        9,
+        10
+      ]
+    },
+    "native-development/9713008": {
+      "2.4": [
+        166,
+        0,
+        3
+      ],
+      "8.0": [
+        166,
+        0,
+        10
+      ]
+    },
+    "native-development/9713009": {
+      "2.4": [
+        153,
+        0,
+        3
+      ],
+      "8.0": [
+        153,
+        0,
+        10
+      ]
+    },
+    "native-development/9713010": {
+      "2.4": [
+        146,
+        3,
+        2
+      ],
+      "8.0": [
+        146,
+        10,
+        9
+      ]
+    },
+    "native-development/9713011": {
+      "2.4": [
+        120,
+        0,
+        3
+      ],
+      "8.0": [
+        120,
+        0,
+        10
+      ]
+    }
+  },
+  "results": {
+    "2.4": {
+      "discounted_reward": [
+        {
+          "source": "native-development/9713001",
+          "blocks": 120,
+          "fraction_R": 0.6,
+          "assigned_primary": 52,
+          "assigned_alternate": 68,
+          "vs_fair": 0.11291846256511974,
+          "vs_H": 0.2376048662956327,
+          "vs_R": -0.01176794116539321,
+          "raw_ips_vs_fair": 0.1168899592012167
+        },
+        {
+          "source": "native-development/9713005",
+          "blocks": 135,
+          "fraction_R": 0.6,
+          "assigned_primary": 65,
+          "assigned_alternate": 70,
+          "vs_fair": 0.019972814408607174,
+          "vs_H": -0.04479373985814524,
+          "vs_R": 0.0847393686753596,
+          "raw_ips_vs_fair": 0.004162877135806613
+        },
+        {
+          "source": "native-development/9713009",
+          "blocks": 153,
+          "fraction_R": 0.6470588235294118,
+          "assigned_primary": 75,
+          "assigned_alternate": 78,
+          "vs_fair": -0.0034874163692217375,
+          "vs_H": 0.019146930124165212,
+          "vs_R": -0.026121762862608703,
+          "raw_ips_vs_fair": -0.08004268400030198
+        }
+      ],
+      "damage_dealt": [
+        {
+          "source": "native-development/9713001",
+          "blocks": 120,
+          "fraction_R": 0.6,
+          "assigned_primary": 52,
+          "assigned_alternate": 68,
+          "vs_fair": -1.691412981286473,
+          "vs_H": -2.2588247029581887,
+          "vs_R": -1.1240012596147575,
+          "raw_ips_vs_fair": -0.5583333333333333
+        },
+        {
+          "source": "native-development/9713005",
+          "blocks": 135,
+          "fraction_R": 0.6,
+          "assigned_primary": 65,
+          "assigned_alternate": 70,
+          "vs_fair": 6.061825170532713,
+          "vs_H": 10.759050852114058,
+          "vs_R": 1.3645994889513702,
+          "raw_ips_vs_fair": 5.148148148148148
+        },
+        {
+          "source": "native-development/9713009",
+          "blocks": 153,
+          "fraction_R": 0.6470588235294118,
+          "assigned_primary": 75,
+          "assigned_alternate": 78,
+          "vs_fair": -4.738920849899939,
+          "vs_H": -9.638450145819302,
+          "vs_R": 0.16060844601942384,
+          "raw_ips_vs_fair": -9.477124183006536
+        }
+      ],
+      "masks_lost": [
+        {
+          "source": "native-development/9713001",
+          "blocks": 120,
+          "fraction_R": 0.6,
+          "assigned_primary": 52,
+          "assigned_alternate": 68,
+          "vs_fair": 0.0417436670011468,
+          "vs_H": 0.050132386731636315,
+          "vs_R": 0.03335494727065726,
+          "raw_ips_vs_fair": 0.05
+        },
+        {
+          "source": "native-development/9713005",
+          "blocks": 135,
+          "fraction_R": 0.6,
+          "assigned_primary": 65,
+          "assigned_alternate": 70,
+          "vs_fair": 0.04301204806128668,
+          "vs_H": 0.13217785078640196,
+          "vs_R": -0.046153754663828594,
+          "raw_ips_vs_fair": 0.037037037037037035
+        },
+        {
+          "source": "native-development/9713009",
+          "blocks": 153,
+          "fraction_R": 0.6470588235294118,
+          "assigned_primary": 75,
+          "assigned_alternate": 78,
+          "vs_fair": -0.018854455760327862,
+          "vs_H": -0.046053023911774085,
+          "vs_R": 0.008344112391118375,
+          "raw_ips_vs_fair": -0.032679738562091505
+        }
+      ]
+    },
+    "8.0": {
+      "discounted_reward": [
+        {
+          "source": "native-development/9713001",
+          "blocks": 120,
+          "fraction_R": 0.6,
+          "assigned_primary": 52,
+          "assigned_alternate": 68,
+          "vs_fair": -0.01267462955585798,
+          "vs_H": -0.09530798976745292,
+          "vs_R": 0.06995873065573696,
+          "raw_ips_vs_fair": 0.06364731813470523
+        },
+        {
+          "source": "native-development/9713005",
+          "blocks": 135,
+          "fraction_R": 0.6,
+          "assigned_primary": 65,
+          "assigned_alternate": 70,
+          "vs_fair": 0.028808121552115887,
+          "vs_H": 0.06818266110876395,
+          "vs_R": -0.010566418004532167,
+          "raw_ips_vs_fair": -0.027314698696136473
+        },
+        {
+          "source": "native-development/9713009",
+          "blocks": 153,
+          "fraction_R": 0.6470588235294118,
+          "assigned_primary": 75,
+          "assigned_alternate": 78,
+          "vs_fair": -0.11891568663910174,
+          "vs_H": -0.05733545293890247,
+          "vs_R": -0.18049592033930104,
+          "raw_ips_vs_fair": -0.2923349629040637
+        }
+      ],
+      "damage_dealt": [
+        {
+          "source": "native-development/9713001",
+          "blocks": 120,
+          "fraction_R": 0.6,
+          "assigned_primary": 52,
+          "assigned_alternate": 68,
+          "vs_fair": -6.753104931372838,
+          "vs_H": -15.912525706018668,
+          "vs_R": 2.406315843272991,
+          "raw_ips_vs_fair": -1.2416666666666667
+        },
+        {
+          "source": "native-development/9713005",
+          "blocks": 135,
+          "fraction_R": 0.6,
+          "assigned_primary": 65,
+          "assigned_alternate": 70,
+          "vs_fair": 9.330157693436966,
+          "vs_H": 22.58312070530589,
+          "vs_R": -3.9228053184319553,
+          "raw_ips_vs_fair": 4.644444444444445
+        },
+        {
+          "source": "native-development/9713009",
+          "blocks": 153,
+          "fraction_R": 0.6470588235294118,
+          "assigned_primary": 75,
+          "assigned_alternate": 78,
+          "vs_fair": -17.49509368144054,
+          "vs_H": -21.416443286171752,
+          "vs_R": -13.573744076709332,
+          "raw_ips_vs_fair": -32.30718954248366
+        }
+      ],
+      "masks_lost": [
+        {
+          "source": "native-development/9713001",
+          "blocks": 120,
+          "fraction_R": 0.6,
+          "assigned_primary": 52,
+          "assigned_alternate": 68,
+          "vs_fair": 0.0687999628100361,
+          "vs_H": 0.09945462454467419,
+          "vs_R": 0.038145301075398,
+          "raw_ips_vs_fair": 0.08333333333333333
+        },
+        {
+          "source": "native-development/9713005",
+          "blocks": 135,
+          "fraction_R": 0.6,
+          "assigned_primary": 65,
+          "assigned_alternate": 70,
+          "vs_fair": 0.07524731326048321,
+          "vs_H": 0.1558701256238102,
+          "vs_R": -0.005375499102843735,
+          "raw_ips_vs_fair": 0.05925925925925926
+        },
+        {
+          "source": "native-development/9713009",
+          "blocks": 153,
+          "fraction_R": 0.6470588235294118,
+          "assigned_primary": 75,
+          "assigned_alternate": 78,
+          "vs_fair": -0.017553773317856288,
+          "vs_H": -0.03956677189189558,
+          "vs_R": 0.004459225256183037,
+          "raw_ips_vs_fair": -0.06535947712418301
+        }
+      ]
+    }
+  },
+  "policy_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+  "development_sha256": "a9669d60560ff5cbbe439fe0aaad4f6005740dfd16382294fc852e9802b4d61b",
+  "method": "Hold the composite policy frozen. Start at each trio draw, sum complete observation intervals up to 2.4 or 8.0 game seconds or the observed terminal, retaining logged later random draws. Discounted reward uses the original return weights and 0.995 per 0.04 seconds. Damage and lost masks use raw units. Fit arm-specific ridge outcome regressions on nine training fights, then score the exact known-propensity contrast on each of three held fights. Nearby windows overlap and do not count as independent games."
+}

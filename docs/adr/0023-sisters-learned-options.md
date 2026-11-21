@@ -20,3 +20,5 @@ python scripts/train_sisters_option_router.py \
 ```
 
 Replaying 12,448 decisions from the three held-out fights through the compiled game library reproduced the selected controllers and primitive keys at every decision. The independent evaluation binds both the composite checkpoint and the game library by SHA-256 and verifies seed receipts from Unity. [Runtime replay](../../models/sisters-native-iql/timing-learned-options/runtime-parity.json) · [Frozen original-condition plan](../../models/sisters-native-iql/timing-learned-options/goal1-plan.json)
+
+A post-freeze diagnostic followed the same experimental draw into later play while subsequent blocks retained their original random assignment. At 2.4 seconds the mean estimated discounted reward difference against random switching was +0.043. At 8.0 seconds it was −0.034 and the mean estimated difference in masks lost was +0.042. Longer windows overlap and these observations still came from three held fights. Both the conflicting horizons and the original frozen evaluation plan are retained. [Delayed outcomes by fight](../../models/sisters-native-iql/timing-learned-options/realized-horizons.json)
