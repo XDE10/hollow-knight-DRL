@@ -302,7 +302,9 @@ def build_data(
                 or (np.diff(t) <= 0).any()
             ):
                 raise ValueError("Invalid native state or timestamp")
-            ev = attribute_events(t, f["time"], f["elapsed_ticks"], f["events"])
+            ev = attribute_events(
+                t, f["time"], f["elapsed_ticks"], f["events"], health_masks=s[:, 4] * 9
+            )
             if plans:
                 from sisters_plan_labels import PLAN_ACTIONS, plan_preferences
 

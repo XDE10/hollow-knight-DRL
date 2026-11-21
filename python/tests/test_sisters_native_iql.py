@@ -16,6 +16,42 @@ def native(monkeypatch):
     return importlib.import_module("train_sisters_native_iql")
 
 
+def test_interval_damage_uses_inputs_before_observed_losses(native):
+    t = np.arange(9, dtype="f4") * 0.04
+    starts = np.array([0, 0.16], dtype="f4")
+    ticks = np.array([8, 8])
+    events = np.zeros((2, 8), dtype="f4")
+    events[0, 1] = 2
+    events[1, [0, 2, 7]] = [21, 1, 1]
+    hp = np.array([9, 8, 8, 8, 7, 7, 6, 6, 6])
+    actual = native.attribute_events(t, starts, ticks, events, health_masks=hp)
+    expected = np.zeros((len(t), 8), dtype="f4")
+    expected[[0, 3], 1] = 1  # The loss at t=0.16 belongs to the first interval.
+    expected[5, 2] = 1
+    expected[7, [0, 7]] = [21, 1]
+    np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("t", "hp", "values"),
+    [
+        ([0, 0.04, 0.08, 0.12], [9, 8, 7, 7], {1: 1, 2: 1}),
+        ([0, 0.04, 0.08, 0.12], [8, 9, 8, 8], {2: 1, 5: 1}),
+        ([0, 0.04, 0.08, 0.12], [9, 8, 8, 8], {1: 2}),
+        ([0, 0.10, 0.12], [9, 8, 8], {3: 1}),
+        ([0, 0.04, 0.08, 0.12], [9, 8.5, 8, 8], {2: 1}),
+    ],
+)
+def test_ambiguous_damage_preserves_original_event_totals(native, t, hp, values):
+    events = np.zeros((1, 8), dtype="f4")
+    for column, value in values.items():
+        events[0, column] = value
+    args = np.asarray(t), np.array([0.0]), np.array([8]), events
+    actual = native.attribute_events(*args, health_masks=np.asarray(hp))
+    np.testing.assert_array_equal(actual, native.attribute_events(*args))
+    np.testing.assert_array_equal(actual.sum(0), events.sum(0))
+
+
 def test_history_and_clocks_are_causal_and_restart_at_fight_boundary(native):
     raw = np.tile(np.arange(7, dtype="f4")[:, None], (1, 56))
     times = np.arange(7, dtype="f4") * 0.04

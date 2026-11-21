@@ -44,15 +44,53 @@ def decision_states(raw: np.ndarray, t: np.ndarray, buttons: np.ndarray) -> np.n
 
 
 def attribute_events(
-    t: np.ndarray, obs_t: np.ndarray, ticks: np.ndarray, events: np.ndarray
-):
-    # Each snapshot row carries events from the ensuing Gym interval. The last
-    # native decision strictly before its end gets the reward, once per event.
+    t: np.ndarray,
+    obs_t: np.ndarray,
+    ticks: np.ndarray,
+    events: np.ndarray,
+    *,
+    health_masks: np.ndarray | None = None,
+) -> np.ndarray:
+    """Attribute interval events to native decisions, using observed HP when available."""
     end = np.r_[obs_t[1:], obs_t[-1] + ticks[-1] * 0.02]
     slot = np.searchsorted(t, end - 1e-6, side="left") - 1
     valid = (slot >= 0) & (end >= t[0])
     credited = np.zeros((len(t), 8), "f4")
     np.add.at(credited, slot[valid], events[valid])
+    if health_masks is None:
+        return credited
+    if health_masks.shape != t.shape or not np.isfinite(health_masks).all():
+        raise ValueError("Invalid native health trace")
+    hp = np.rint(health_masks)
+    if np.any(np.abs(hp - health_masks) > 0.001):
+        # Older or differently scaled traces do not identify individual masks.
+        return credited
+    delta = -np.diff(hp, prepend=hp[0])
+    changed = np.flatnonzero(delta)
+    changed_at = t[changed].astype("f8")
+    for j in np.flatnonzero(valid & events[:, 1:5].any(1)):
+        sources = np.flatnonzero(events[j, 1:5])
+        if len(sources) != 1 or events[j, 5] != 0:
+            continue
+        # A health observation at the closing snapshot belongs to the interval
+        # that just finished. The two edges use the same float-clock tolerance.
+        lo, hi = np.searchsorted(
+            changed_at, np.array([obs_t[j], end[j]], dtype="f8") + 1e-5, side="right"
+        )
+        rows = changed[lo:hi]
+        source = 1 + sources[0]
+        if (
+            not len(rows)
+            or (delta[rows] <= 0).any()
+            or delta[rows].sum() != events[j, source]
+            or (t[rows] - t[rows - 1] > 0.081).any()
+            or (rows - 1 > slot[j]).any()
+        ):
+            continue
+        # HP is observed before the next input is selected. Charge the most
+        # recent input already in force at each observed loss of health.
+        credited[slot[j], source] -= events[j, source]
+        np.add.at(credited[:, source], rows - 1, delta[rows])
     return credited
 
 
