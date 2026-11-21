@@ -23,6 +23,8 @@ def main() -> None:
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--checkpoint", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--record-skills", action="store_true",
+                   help="Track observed quake starts, health gain and net SOUL decreases in live samples.")
     p.add_argument(
         "--expected-mod-sha256", help="Verify the staged game mod before this cohort."
     )
@@ -83,7 +85,7 @@ def main() -> None:
         env = HKRLEnv(make_transport(cfg, port=args.port), task, step_timeout_s=25)
         try:
             for i in range(args.episodes):
-                result = play_game(env, args.seed + i)
+                result = play_game(env, args.seed + i, record_skill_use=args.record_skills)
                 episode, sha, n, attack, cast, dash, art = ledger.read_text(
                     encoding="utf-8-sig"
                 ).splitlines()

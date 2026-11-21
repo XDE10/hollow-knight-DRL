@@ -67,6 +67,7 @@ def play_game(
     *,
     scale: float = 1.0,
     on_transition: Callable[[float, float, dict], None] | None = None,
+    record_skill_use: bool = False,
 ) -> dict[str, Any]:
     obs, info = env.reset(seed=seed, options={"reset_timeout_s": 90})
     episode = int(info["episode_id"])
@@ -86,6 +87,7 @@ def play_game(
     trio_damage = 0.0
     heals = 0.0
     observed_dashes: Counter[str] = Counter()
+    skill_use = {"opening": Counter(), "trio": Counter()}
     last_trio: dict[str, Any] | None = None
     speeds: Counter[float] = Counter()
     noop: dict[str, Any] = {
@@ -126,7 +128,19 @@ def play_game(
             bool(obs["player"][spaces.PLAYER_FEATURE_INDEX[k]])
             for k in ("dashing", "shadow_dashing")
         ]
+        before_player = obs["player"]
         obs, _, terminated, truncated, info = env.step(noop)
+        if record_skill_use and not (terminated or truncated):
+            # The game can refill health as the arena closes. Only compare live samples.
+            phase = skill_use["trio" if trio_entry is not None else "opening"]
+            after_player = obs["player"]
+            flags = spaces.PLAYER_FEATURE_INDEX["action_flags"]
+            quake = 1 << spaces.PLAYER_ACTION_FLAG_BITS["spell_quake"]
+            phase["observed_quake_starts"] += int(
+                not (int(before_player[flags]) & quake) and bool(int(after_player[flags]) & quake)
+            )
+            phase["observed_health_gained"] += max(0, int(after_player[4]) - previous_health)
+            phase["observed_soul_spent_net"] += max(0, int(before_player[6]) - int(after_player[6]))
         for before, name in zip(
             previous_dash, ("dashing", "shadow_dashing"), strict=True
         ):
@@ -195,6 +209,7 @@ def play_game(
         "damage_after_trio_observed": trio_damage,
         "hit_intervals": hits,
         "heal_event_amount": heals,
+        **({"sampled_skill_use": {k: dict(v) for k, v in skill_use.items()}} if record_skill_use else {}),
         "observed_dash_starts": dict(observed_dashes),
         "last_observed_trio": last_trio,
         "truncated": bool(truncated),

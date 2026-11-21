@@ -73,6 +73,7 @@ def test_second_phase_damage_and_health_use_observed_intervals() -> None:
         p = np.zeros(32)
         p[4:7] = [hp, 9, 0]
         p[13] = 1 if t == 1 else 0
+        p[26] = 32 if t >= 1 else 0
         return {
             "player": p,
             "entities": b,
@@ -108,7 +109,10 @@ def test_second_phase_damage_and_health_use_observed_intervals() -> None:
         (snapshot(8, 1, True), 0, False, False, info(incoming, outgoing)),
         (snapshot(9, 2, True), 0, False, True, info(heal, outgoing)),
     ]
-    game = module.play_game(env, 77)
+    game = module.play_game(env, 77, record_skill_use=True)
+    assert game["sampled_skill_use"]["opening"]["observed_quake_starts"] == 1
+    assert game["sampled_skill_use"]["opening"]["observed_health_gained"] == 0
+    assert not game["sampled_skill_use"]["trio"]
     assert game["first_cleared"] and not game["win"]
     assert game["trio_entry"] == {"game_time": 1, "physics_ticks": 5, "hp": 8, "soul": 0}
     assert game["damage"] == 42 and game["damage_after_trio_observed"] == 21
