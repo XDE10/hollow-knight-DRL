@@ -1,0 +1,74 @@
+{
+  "fights": 24,
+  "sha256": "ce1a6dff3eff5a4db11f4ffcc27491ed3227cdcd1a5a56b2aaba42635562c5ca",
+  "parts": 3,
+  "updates": 350,
+  "seed": 9761,
+  "scripts": {
+    "train_sisters_native_iql.py": "5ab7448cfdd4c54c9efedf4219cdf89b2dd193c1fd01adb362c0b80746d7fe69",
+    "train_sisters_timing_iql.py": "c3fb5628e6685609e24a10615b44a88a9753d8cb9f86651d5f601d32e9e24785",
+    "sisters_future_occupancy.py": "c7ab0cd40785dad2f45be1c2eaa49d942e75963cf181d521120f614ec6cf6b22",
+    "sisters_online_choices.py": "aa2973083417f98f53d35393519d926ae3aab2c9b7a1225e1374583088e9d9c2",
+    "sisters_maneuver_credit.py": "6f3bb20276723a9e5d3a5711f668918003c7b914260478f6619590af129b6a33",
+    "train_sisters_descent_returns.py": "120f475b4dbc4927af5e793c8581ba5f92e3a4f4b5dc3ed3e1c39783b1772856"
+  },
+  "assets": {
+    "warmstart.pt": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+    "opener.bin": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3"
+  },
+  "experiment": {
+    "policy_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+    "game_mod_sha256": "230b9d23622a2a8e56bb2ad22c3201f7d2682cac86bad831ba772c777384fd22",
+    "seeds": [
+      9761000,
+      9761001,
+      9761002,
+      9761003,
+      9761004,
+      9761005,
+      9761006,
+      9761007,
+      9761008,
+      9761009,
+      9761010,
+      9761011,
+      9761012,
+      9761013,
+      9761014,
+      9761015,
+      9761016,
+      9761017,
+      9761018,
+      9761019,
+      9761020,
+      9761021,
+      9761022,
+      9761023
+    ],
+    "holdout": [
+      9761001,
+      9761007,
+      9761013,
+      9761019
+    ],
+    "arms": "Two native horizontal proposals ranked by the same frozen H neural model. At an eligible descent or landing within four units, randomize the best versus highest alternative lateral move with joint logit gap at most 3. Each is followed for 0.16 game seconds, reevaluating other controls with the policy. Isolate draws by >=1.50 seconds.",
+    "probability": 0.5,
+    "horizon": 0.6,
+    "teacher": false,
+    "game_speed": 1,
+    "nail_damage_multiplier": 1
+  },
+  "heldout_rule": "Average IPS estimated option benefit positive and positive in a majority of complete held-out fights; direction drift on non-intervention anchors at most 5%. Full-game results on fresh games decide the goal.",
+  "paired_candidate": {
+    "real_game_batch": "Previously registered 24 randomized development fights, 20 training and 4 held out; use the same frozen neural parent and training seed.",
+    "registered_after": "Six training games: 176 fully observed maneuvers, 21 lost masks on the native health clock versus 17 in complete event intervals. No comparisons of held-out arm outcomes were used to choose the correction.",
+    "outcomes": "Keep the original 0.60s inverse-propensity control. The challenger charges additional native-clock health losses once and estimates continuation at the full horizon. Outcome regressions exclude the entire training fight whose gradient is computed. Report assigned and observed counts separately for each arm.",
+    "decision": "Keep the original raw-IPS held-out screen. Test original candidate first if eligible. Challenger needs positive raw and corrected option benefits on average by fight and in a majority of the four holdouts, and at most 5% ordinary-state direction drift. If original meets goal one, start goal two immediately. Otherwise assess an eligible challenger on distinct Unity seeds.",
+    "fresh_cohorts": [
+      9784000,
+      9831000
+    ],
+    "updates_each": 350,
+    "gpu": "One allocation, one upload, two sequential fits"
+  }
+}
