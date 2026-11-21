@@ -74,11 +74,12 @@ def native_health_outcomes(
 def dr_contrast(
     arms: np.ndarray, returns: np.ndarray, predictions: np.ndarray
 ) -> np.ndarray:
-    """Unbiased advantage of arm one over arm zero under the real fair coin."""
+    """Fair-coin return contrast for the two arms on observed outcomes."""
     if predictions.shape != (len(arms), 2) or not np.isin(arms, [0, 1]).all():
         raise ValueError(
             "Expected two potential outcomes and a binary random assignment"
         )
+    arms = np.asarray(arms, dtype=np.int64)
     chosen = predictions[np.arange(len(arms)), arms]
     return (
         predictions[:, 1] - predictions[:, 0] + 2 * (2 * arms - 1) * (returns - chosen)

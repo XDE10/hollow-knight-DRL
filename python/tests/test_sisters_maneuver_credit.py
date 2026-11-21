@@ -38,6 +38,7 @@ def test_doubly_robust_coin_identity_and_disjoint_games(monkeypatch) -> None:
     q = np.tile([3.0, -4.0], (len(arm), 1))
     out = mod.dr_contrast(arm, 2.0 + 5 * arm, q)
     assert out.mean() == 5
+    np.testing.assert_equal(out, mod.dr_contrast(arm.astype("u1"), 2.0 + 5 * arm, q))
     x = np.arange(len(arm) * 2, dtype=float).reshape(-1, 2)
     games = np.repeat(np.arange(3), 6)
     y = arm.astype(float) * 2 + 0.5
