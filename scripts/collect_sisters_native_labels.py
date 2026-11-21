@@ -112,9 +112,10 @@ def main() -> None:
     envs = proc.environ()
     has_teacher = bool(envs.get("HKRL_TACTICS_POLICY"))
     sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
+    candidate = envs.get("HKRL_NATIVE_TRIAL_CANDIDATE")
     if (
         proc.name().lower() != "hollow_knight.exe"
-        or not (has_teacher or sampling)
+        or not (has_teacher or sampling or candidate)
         or float(envs.get("HKRL_SISTERS_NAIL_MULTIPLIER", "1")) != 1
     ):
         raise RuntimeError("Wrong development game mode")
@@ -125,6 +126,12 @@ def main() -> None:
     if scale not in (1.0, 2.0):
         raise ValueError("Development collection supports 1x or 2x speed")
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
+    alternate_sha = hashlib.sha256(Path(candidate).read_bytes()).hexdigest() if candidate else None
+    if candidate and (
+        has_teacher or sampling or scale != 1 or envs.get("HKRL_NATIVE_TIMING") != "1"
+        or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0 or alternate_sha == sha
+    ):
+        raise ValueError("Expected two distinct frozen neural arms at original speed")
     args.output.mkdir(exist_ok=False, parents=True)
     manifest = []
     cfg = load_train_config("configs/train/sisters_platform.yaml")
@@ -160,6 +167,14 @@ def main() -> None:
                 ):
                     raise ValueError("Actor receipt differs")
                 controller: dict[str, str | float] = {"student_policy_sha256": sha}
+                if alternate_sha:
+                    from sisters_control_blocks import neural_assignments
+
+                    block_starts, assigned = neural_assignments(
+                        tape_dir / f"{eid}.arms", eid, clock, sha, alternate_sha
+                    )
+                    decisions.update(block_starts=block_starts, candidate_draw=assigned)
+                    controller.update(alternate_policy_sha256=alternate_sha, candidate_probability=0.5)
                 if has_teacher and envs.get("HKRL_NATIVE_DEMO_RATIO"):
                     controller["teacher_probability"] = float(envs["HKRL_NATIVE_DEMO_RATIO"])
                 file = f"dev-{i:03d}.npz"

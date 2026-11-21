@@ -75,6 +75,7 @@ namespace HKRLEnvMod.Action
                 _episode = obs.Global.EpisodeId;
                 _count = _attack = _cast = _dash = _art = 0;
                 _demonstrator?.Reset(_episode);
+                _demonstrator?.NeuralTrial?.Reset(_episode, bytes);
                 _timing = _net.UsesTiming || _demonstrator?.RecordsTiming == true ? new SistersTimingState() : null;
             }
             _tick = tick;
@@ -84,6 +85,8 @@ namespace HKRLEnvMod.Action
             var state = _net.UsesTiming ? _timing!.Values : _raw;
             var active = _trioNet != null && state[SistersTimingState.TrioFlag] > .5f ? _trioNet : _net;
             if (active != _trioNet) _trioNet?.Remember(state, obs.Global.TimeInEpisode);
+            if (_demonstrator?.NeuralTrial != null)
+                active = _demonstrator.NeuralTrial.Select(active, active == _trioNet, state, obs.Global.TimeInEpisode);
             Input = active.Choose(state, obs.Global.TimeInEpisode);
             if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values, active);
             _timing?.Commit(Input, obs.Global.TimeInEpisode);

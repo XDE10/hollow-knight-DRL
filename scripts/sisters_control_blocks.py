@@ -2,9 +2,55 @@
 
 from __future__ import annotations
 
+import struct
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
+
+
+def neural_block_starts(clock: np.ndarray) -> np.ndarray:
+    if (
+        clock.ndim != 1
+        or not len(clock)
+        or not np.isfinite(clock).all()
+        or (np.diff(clock) <= 0).any()
+    ):
+        raise ValueError("Invalid neural block clock")
+    starts = [0]
+    while True:
+        boundary = np.float32(clock[starts[-1]]) + np.float32(0.8)
+        after = int(np.searchsorted(clock, boundary))
+        if after >= len(clock):
+            break
+        starts.append(after)
+    return np.asarray(starts, dtype="i4")
+
+
+def neural_assignments(
+    path: Path, episode: int, clock: np.ndarray, parent_hash: str, candidate_hash: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """Verify the two deployed files and the actual random draws against the native clock."""
+    header = struct.Struct("<IQ32s32s")
+    with path.open("rb") as stream:
+        if header.unpack(stream.read(header.size)) != (
+            0x314D5241,
+            episode,
+            bytes.fromhex(parent_hash),
+            bytes.fromhex(candidate_hash),
+        ):
+            raise ValueError("Unexpected neural block trial receipt")
+        draws = np.frombuffer(
+            stream.read(), dtype=[("time", "<f4"), ("candidate", "u1")]
+        )
+    starts = neural_block_starts(clock)
+    if (
+        not np.array_equal(draws["time"], clock[starts])
+        or not np.isin(draws["candidate"], [0, 1]).all()
+    ):
+        raise ValueError("Actual controller draws do not match the registered clock")
+    lengths = np.diff(np.r_[starts, len(clock)])
+    return starts, np.repeat(draws["candidate"].astype(bool), lengths)
 
 
 @dataclass(frozen=True)

@@ -20,6 +20,7 @@ namespace HKRLEnvMod.Action
         private readonly bool _recordTiming;
         private readonly bool _recordPlans;
         private readonly SistersOnlineChoices? _online;
+        internal SistersNeuralBlockTrial? NeuralTrial { get; }
 
         private SistersNativeDemonstrator(string folder, SistersTactics? teacher)
         {
@@ -45,7 +46,14 @@ namespace HKRLEnvMod.Action
                     throw new InvalidOperationException("Online sampling requires a timing trace and zero teacher control");
                 _online = new SistersOnlineChoices(folder, seed);
             }
-            if (teacher == null && (_online == null || _recordPlans))
+            var candidate = Environment.GetEnvironmentVariable("HKRL_NATIVE_TRIAL_CANDIDATE");
+            if (!string.IsNullOrWhiteSpace(candidate))
+            {
+                if (teacher != null || _online != null || _recordPlans || !_recordTiming || _teacherRatio != 0)
+                    throw new InvalidOperationException("Neural block comparisons require exclusive teacher-free timing recording");
+                NeuralTrial = new SistersNeuralBlockTrial(folder, candidate!, seed);
+            }
+            if (teacher == null && ((_online == null && NeuralTrial == null) || _recordPlans))
                 throw new InvalidOperationException("Teacher-free recording requires an online trial without plan labels");
         }
 
@@ -113,7 +121,7 @@ namespace HKRLEnvMod.Action
             writer.Write((float)a.Buttons);
         }
 
-        internal void Flush() { _tape?.Flush(); _online?.Flush(); if (_recordPlans) _teacher!.Flush(); }
-        public void Dispose() { _tape?.Dispose(); _online?.Dispose(); _teacher?.Dispose(); }
+        internal void Flush() { _tape?.Flush(); _online?.Flush(); NeuralTrial?.Flush(); if (_recordPlans) _teacher!.Flush(); }
+        public void Dispose() { _tape?.Dispose(); _online?.Dispose(); NeuralTrial?.Dispose(); _teacher?.Dispose(); }
     }
 }

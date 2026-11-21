@@ -4,10 +4,88 @@ import importlib
 import io
 import json
 import pathlib
+import struct
 import zipfile
 
 import numpy as np
 import pytest
+
+
+def test_random_neural_receipt_including_repeated_draws(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
+    parse = importlib.import_module("sisters_control_blocks").neural_assignments
+    clock = np.arange(50, dtype="f4") / 25
+    a, b = "01" * 32, "02" * 32
+    header = struct.pack("<IQ32s32s", 0x314D5241, 7, bytes.fromhex(a), bytes.fromhex(b))
+    tape = tmp_path / "7.arms"
+    draws = [(0, 1), (20, 1), (40, 0)]
+    tape.write_bytes(header + b"".join(struct.pack("<fB", clock[i], arm) for i, arm in draws))
+    starts, assigned = parse(tape, 7, clock, a, b)
+    assert starts.tolist() == [0, 20, 40]
+    assert assigned.tolist() == [True] * 40 + [False] * 10
+    with pytest.raises(ValueError, match="receipt"):
+        parse(tape, 7, clock, b, a)
+    tape.write_bytes(tape.read_bytes()[:-5])
+    with pytest.raises(ValueError, match="draws"):
+        parse(tape, 7, clock, a, b)
+
+
+def test_neural_block_archive_keeps_interventions_and_fight_split(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
+    pack = importlib.import_module("pack_sisters_timing_replay").pack
+    x = np.zeros((30, 192), "f4")
+    x[:, 24] = 1
+    clock = np.arange(30, dtype="f4") / 25
+    assigned = np.arange(30) >= 20
+    data = dict(
+        control_time=clock,
+        timing_state=x,
+        controls=np.zeros((30, 3)),
+        time=clock[::3],
+        events=np.zeros((10, 8)),
+        elapsed_ticks=np.full(10, 6),
+        block_starts=[0, 20],
+        candidate_draw=assigned,
+    )
+    fields = dict(
+        student_policy_sha256="a" * 64,
+        alternate_policy_sha256="b" * 64,
+        candidate_probability=0.5,
+        teacher_labels=False,
+    )
+    games = []
+    for i in [0, 1]:
+        meta = dict(seed=i, win=False, speed_counts={"1": 30}, **fields)
+        games.append(dict(source=f"native-development/{i}", won=False, file=f"{i}.npz", **fields))
+        (tmp_path / f"episode-{i:03d}.json").write_text(json.dumps(meta))
+        np.savez(tmp_path / f"{i}.npz", **data)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps(games))
+    contract = tmp_path / "experiment.json"
+    contract.write_text(
+        json.dumps(
+            dict(
+                actor_sha256="a" * 64,
+                alternate_policy_sha256="b" * 64,
+                candidate_probability=0.5,
+                train_seeds=[1],
+                heldout_seeds=[0],
+            )
+        )
+    )
+    output = tmp_path / "complete.zip"
+    pack([manifest], output, True, contract)
+    with zipfile.ZipFile(output) as z:
+        rows = json.loads(z.read("manifest.json"))
+        assert [r["split"] for r in rows] == ["holdout", "train"]
+        for row in rows:
+            assert row["alternate_policy_sha256"] == "b" * 64
+            with np.load(io.BytesIO(z.read(row["file"]))) as d:
+                assert np.array_equal(d["candidate_draw"], assigned)
+    assigned[4] = True
+    np.savez(tmp_path / "0.npz", **data)
+    with pytest.raises(ValueError, match="Inconsistent neural draws"):
+        pack([manifest], tmp_path / "invalid.zip", True, contract)
 
 
 def test_contiguous_same_arm_draws_and_terminal_use_only_owned_rewards(monkeypatch):

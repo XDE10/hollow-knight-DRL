@@ -100,3 +100,10 @@ The learned recovery policy needs its own games against the frozen parent.
 Record damage through the following block as well as whole-fight results to
 capture delayed collisions, resource costs and the cost of switching policies.
 The two formal cohorts use only frozen neural control. [Acceptance criteria](../../configs/experiments/sisters_acceptance.json)
+
+For the development comparison, two frozen networks share the opening policy.
+The game draws a controller every 0.8 game seconds. In the trio phase the
+selected network supplies primitive inputs while both networks retain the
+observed history. The replay records the draw times, both checkpoint hashes
+and the executed controls. The independent evaluator rejects this recording
+mode. [Native comparison](../../mod/HKRLEnvMod/Action/SistersNeuralBlockTrial.cs)

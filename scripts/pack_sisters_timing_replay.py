@@ -11,6 +11,13 @@ from pathlib import Path
 
 import numpy as np
 
+CONTROLLER_FIELDS = (
+    "student_policy_sha256",
+    "teacher_probability",
+    "alternate_policy_sha256",
+    "candidate_probability",
+)
+
 
 def pack(
     manifests: list[Path],
@@ -31,10 +38,7 @@ def pack(
                 or game.get("behavior_policy_sha256")
                 != meta.get("behavior_policy_sha256")
                 or game.get("teacher_labels", True) != meta.get("teacher_labels", True)
-                or any(
-                    game.get(k) != meta.get(k)
-                    for k in ("student_policy_sha256", "teacher_probability")
-                )
+                or any(game.get(k) != meta.get(k) for k in CONTROLLER_FIELDS)
             ):
                 raise ValueError("Repeated seed or unmatched development record")
             seen.add(seed)
@@ -47,15 +51,28 @@ def pack(
             games[seed] = (manifest.parent / game["file"], game)
     split_by_seed = {}
     spec = None
+    neural_trial = False
     if block_experiment is not None:
         spec = json.loads(block_experiment.read_bytes())
         train, held = spec["train_seeds"], spec["heldout_seeds"]
+        neural_trial = "alternate_policy_sha256" in spec
+        expected_fields = {"student_policy_sha256": spec["actor_sha256"]}
+        if neural_trial:
+            expected_fields.update(
+                alternate_policy_sha256=spec["alternate_policy_sha256"],
+                candidate_probability=0.5,
+            )
+        else:
+            expected_fields.update(teacher_probability=0.5)
         if (
             not train
             or not held
             or len(set(train + held)) != len(train) + len(held)
             or set(train + held) != set(games)
-            or spec["teacher_probability"] != 0.5
+            or spec.get(
+                "candidate_probability" if neural_trial else "teacher_probability"
+            )
+            != 0.5
             or not original_speed_only
         ):
             raise ValueError(
@@ -65,8 +82,7 @@ def pack(
             seed: "holdout" for seed in held
         }
         if any(
-            g.get("student_policy_sha256") != spec["actor_sha256"]
-            or g.get("teacher_probability") != spec["teacher_probability"]
+            any(g.get(k) != v for k, v in expected_fields.items())
             for _, g in games.values()
         ):
             raise ValueError(
@@ -108,8 +124,36 @@ def pack(
                     if not all(k in raw for k in online_keys):
                         raise ValueError(f"Incomplete online behavior record in {path}")
                 labeled = game.get("teacher_labels", True)
+                trial_keys = ()
+                if game.get("alternate_policy_sha256"):
+                    from sisters_control_blocks import neural_block_starts
+
+                    trial_keys = ("block_starts", "candidate_draw")
+                    if (
+                        labeled
+                        or online_keys
+                        or game.get("candidate_probability") != 0.5
+                        or game["alternate_policy_sha256"]
+                        == game["student_policy_sha256"]
+                        or not all(k in raw for k in trial_keys)
+                    ):
+                        raise ValueError(f"Invalid neural block trial in {path}")
+                    assigned = raw["candidate_draw"]
+                    starts = neural_block_starts(t)
+                    if (
+                        not np.array_equal(starts, raw["block_starts"])
+                        or assigned.shape != t.shape
+                        or assigned.dtype != np.bool_
+                        or not np.array_equal(
+                            assigned,
+                            np.repeat(assigned[starts], np.diff(np.r_[starts, len(t)])),
+                        )
+                    ):
+                        raise ValueError(f"Inconsistent neural draws in {path}")
+                elif "block_starts" in raw or "candidate_draw" in raw:
+                    raise ValueError(f"Undeclared neural block trial in {path}")
                 if ("teacher_controls" in raw) != labeled or (
-                    not labeled and (not online_keys or plan_keys)
+                    not labeled and (not (online_keys or trial_keys) or plan_keys)
                 ):
                     raise ValueError(f"Inconsistent teacher availability in {path}")
                 assignment_keys = ()
@@ -133,7 +177,9 @@ def pack(
                         raise ValueError(
                             f"Controller assignment differs from applied keys in {path}"
                         )
-                if spec is not None and not assignment_keys:
+                if spec is not None and not (
+                    trial_keys if neural_trial else assignment_keys
+                ):
                     raise ValueError(f"No recorded controller assignments in {path}")
                 np.savez_compressed(
                     buf,
@@ -150,6 +196,7 @@ def pack(
                             "elapsed_ticks",
                             *plan_keys,
                             *online_keys,
+                            *trial_keys,
                         )
                     },
                 )
@@ -165,11 +212,7 @@ def pack(
                     ),
                     "won": game["won"],
                     **({"teacher_labels": False} if not labeled else {}),
-                    **{
-                        k: game[k]
-                        for k in ("student_policy_sha256", "teacher_probability")
-                        if k in game
-                    },
+                    **{k: game[k] for k in CONTROLLER_FIELDS if k in game},
                     **(
                         {"behavior_policy_sha256": game["behavior_policy_sha256"]}
                         if online_keys
@@ -191,6 +234,10 @@ if __name__ == "__main__":
     parser.add_argument("--manifests", nargs="+", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--original-speed-only", action="store_true")
-    parser.add_argument("--block-experiment", type=Path, help="Preassigned policy hashes and complete fight splits.")
+    parser.add_argument(
+        "--block-experiment",
+        type=Path,
+        help="Preassigned policy hashes and complete fight splits.",
+    )
     args = parser.parse_args()
     pack(args.manifests, args.output, args.original_speed_only, args.block_experiment)
