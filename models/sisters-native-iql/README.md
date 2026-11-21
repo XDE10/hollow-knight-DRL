@@ -4,7 +4,7 @@
 
 神经策略已在原速原伤下独立打通战斗姐妹。冻结的走位版 11 场赢 8 场。后续的按键选择版 12 场全部过首只，9 场完整通关。两版均为 0 场全程无伤，在第三场败局后结束各自的百场验收。使用运行时动作规划器的工程对照曾在 100 场中赢 99 场，其中 7 场无伤。[走位版记录](timing-executed-movement/evaluation.json) · [9 胜版记录和权重](timing-learned-options/) · [规划器对照](../sisters-world-v2/README.md)
 
-从 9 胜版权重继续训练的神经策略，在另一批种子的前 10 场全部过首只，8 场完整通关，0 场无伤。平均对敌造成 2626.8 点伤害，累计撞本体损失 38 格血、飞镖 28 格、地刺 1 格。原 9 胜版在其前 10 场也赢了 8 场，平均伤害为 2651.9。这是不同种子的两批对局，前十场成绩尚未显示胜率提高。新一组的逐场记录包含模型指纹、游戏实际使用的随机种子和每场损血来源。[续训权重](timing-ninewin-continuation/world_iql.bin) · [续训后的逐场成绩](timing-ninewin-continuation/independent-progress.json) · [训练方法](../../docs/adr/0030-sisters-nine-win-continuation.md)
+从 9 胜版权重继续训练的神经策略在另一批种子上打到第 11 场出现第三次败局，触发提前结束。11 场全部过首只，8 场完整通关，0 场无伤。平均对敌造成 2619.36 点伤害，累计撞本体损失 41 格血、飞镖 34 格、地刺 1 格。两版各自的前 10 场都赢了 8 场，原版场均伤害 2651.9，续训版 2626.8。此次续训没有带来可确认的胜率提升。[续训权重](timing-ninewin-continuation/world_iql.bin) · [11 场原始记录](timing-ninewin-continuation/evaluation.json) · [训练方法](../../docs/adr/0030-sisters-nine-win-continuation.md)
 
 1. **本机负责打游戏。** 网络读取小骑士状态、最多三只螳螂和两枚飞镖的位置与动作。三姐妹阶段还读取约 0.16 和 0.48 游戏秒前的状态。它给 79 种原生按键组合打分，执行得分最高的一种。开局使用单独训练的 70 种按键组合策略。[策略与按键实现](../../mod/HKRLEnvMod/Action/SistersNativeActor.cs)
 2. **示范教会它从哪里起步，强化学习决定哪些动作值得重复。** Colab 先让网络模仿开发对局的按键，再用实战中实际按下的键、造成的伤害、损失的血量和胜负学习。一对 Q 网络估计当前动作的回报，价值网络估计当前局面的回报。IQL 用两者的差给策略更新加权。这版做了 16000 次强化学习更新。[训练实现](../../scripts/train_sisters_timing_iql.py) · [训练记录](timing-executed-movement/training.json)
