@@ -10,6 +10,15 @@
 
 ## 1. What this project is
 
+### 战斗姐妹课程项目的连续目标
+
+Codex 负责向 agy 发起讨论、传递实机证据、收取答复并追问。按本聊天和工作树绑定接力，收到回调后收件。用户无需发起接力或在终端输入 `/z`。等待答复期间继续训练和分析。
+
+按 [验收配置](configs/experiments/sisters_acceptance.json) 顺序完成两个目标。两轮均从 9 格血、0 灵魂开始，使用原速原伤，由冻结的神经策略独立选择原生按键。
+
+1. 在 100 场全新实机对局中完整通关至少 98 场。保存冻结权重和逐场证据。
+2. 第一轮通过后立即继续改进和训练。在另 100 场全新实机对局中完整通关至少 98 场，其中至少 95 场全程无伤。保留第一轮模型作为对照，将最终模型和逐场成绩提交到 `main`。
+
 A **game-state reinforcement-learning agent** for Hollow Knight. A C# mod
 (`HKRLEnvMod`) exposes structured game state and accepts actions, acting as an
 *environment server*. A Python package (`hkrl`) runs a Gymnasium env, models, and
