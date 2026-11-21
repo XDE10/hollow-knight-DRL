@@ -84,12 +84,15 @@ def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, m
     assert data["train"][6][5:10].any()
 
 
-def test_teacher_free_transitions_have_real_actions_and_no_imitation_target(tmp_path, monkeypatch):
+@pytest.mark.parametrize("neural_trial", [False, True])
+def test_teacher_free_transitions_have_real_actions_and_no_imitation_target(
+    tmp_path, monkeypatch, neural_trial
+):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")
     rows = []
     for i in range(3):
-        t = np.arange(5, dtype="f4") * .04
+        t = np.arange(5, dtype="f4") * 0.04
         state = np.zeros((len(t), mod.WIDTH), dtype="f4")
         keys = np.zeros((len(t), 3), dtype="i2")
         keys[:, 0] = 1
@@ -97,13 +100,41 @@ def test_teacher_free_transitions_have_real_actions_and_no_imitation_target(tmp_
         events[1, 1] = 1
         path = tmp_path / f"{i}.npz"
         labeled = i == 0
-        np.savez(path, timing_state=state, control_time=t, controls=keys,
-                 time=t, elapsed_ticks=np.full(len(t), 2), events=events,
-                 **({"teacher_controls": keys} if labeled else {}))
-        rows.append(dict(file=path.name, source=f"native-development/test-{i}",
-                         split="holdout" if i==2 else "train", won=False,
-                         teacher_labels=labeled, behavior_policy_sha256="a"*64,
-                         sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+        draws = (
+            {"block_starts": np.array([0]), "candidate_draw": np.zeros(len(t), bool)}
+            if neural_trial and not labeled
+            else {}
+        )
+        np.savez(
+            path,
+            timing_state=state,
+            control_time=t,
+            controls=keys,
+            time=t,
+            elapsed_ticks=np.full(len(t), 2),
+            events=events,
+            **draws,
+            **({"teacher_controls": keys} if labeled else {}),
+        )
+        rows.append(
+            dict(
+                file=path.name,
+                source=f"native-development/test-{i}",
+                split="holdout" if i == 2 else "train",
+                won=False,
+                teacher_labels=labeled,
+                behavior_policy_sha256="a" * 64,
+                sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+            )
+        )
+    if neural_trial:
+        for row in rows[1:]:
+            row.pop("behavior_policy_sha256")
+            row.update(
+                student_policy_sha256="a" * 64,
+                alternate_policy_sha256="b" * 64,
+                candidate_probability=0.5,
+            )
     (tmp_path / "manifest.json").write_text(json.dumps(rows))
     data, actions, _ = mod.build_data(tmp_path, "cpu", mirror=True)
     np.testing.assert_array_equal(actions, [[-1, 0, 0], [1, 0, 0]])

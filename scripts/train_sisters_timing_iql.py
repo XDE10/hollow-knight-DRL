@@ -291,11 +291,31 @@ def build_data(
             s = f["timing_state"].astype("f4")
             t, act = f["control_time"], f["controls"]
             labeled = game.get("teacher_labels", True)
+            neural_trial = bool(game.get("alternate_policy_sha256"))
+            if neural_trial and (
+                labeled
+                or not game.get("student_policy_sha256")
+                or game.get("candidate_probability") != 0.5
+                or game["alternate_policy_sha256"] == game["student_policy_sha256"]
+                or "block_starts" not in f
+                or "candidate_draw" not in f
+                or f["candidate_draw"].dtype != np.bool_
+                or f["candidate_draw"].shape != t.shape
+            ):
+                raise ValueError(
+                    f"Invalid neural controller record in {game['source']}"
+                )
             if labeled != ("teacher_controls" in f) or (
-                not labeled and (not game.get("behavior_policy_sha256") or "plan_costs" in f)
+                not labeled
+                and (
+                    not (game.get("behavior_policy_sha256") or neural_trial)
+                    or "plan_costs" in f
+                )
             ):
                 raise ValueError(f"Inconsistent teacher labels in {game['source']}")
-            teacher = f["teacher_controls"] if labeled else np.full_like(act, -1, dtype="i2")
+            teacher = (
+                f["teacher_controls"] if labeled else np.full_like(act, -1, dtype="i2")
+            )
             if (
                 s.shape != (len(t), WIDTH)
                 or not np.isfinite(s).all()
