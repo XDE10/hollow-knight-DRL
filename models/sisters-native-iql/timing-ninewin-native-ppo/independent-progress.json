@@ -1,0 +1,96 @@
+{
+  "finished": 5,
+  "wins": 2,
+  "no_hit_wins": 0,
+  "damage_taken": {
+    "BOSS_BODY": 28,
+    "ENEMY_PROJECTILE": 10
+  },
+  "complete": false,
+  "passed": false,
+  "next_goal": null,
+  "plan": {
+    "goal": 1,
+    "first_seed": 10183000,
+    "policy_sha256": "d839a81448fe470acebe2a34deb6d346088883f297091258987d2e51ee07f0c3",
+    "mod_sha256": "6c62934d913587b82bc6771f8389037a26a8974af6ee9773b327ac25bbac0c12",
+    "verify_unity_seed": true
+  },
+  "episodes": [
+    {
+      "seed": 10183000,
+      "unity_reset_seed": 10183000,
+      "win": false,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2372.0,
+      "damage_taken": {
+        "BOSS_BODY": 7,
+        "ENEMY_PROJECTILE": 2
+      },
+      "hp": 0,
+      "minimum_hp": 0,
+      "physics_ticks": 6459
+    },
+    {
+      "seed": 10183001,
+      "unity_reset_seed": 10183001,
+      "win": false,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2132.0,
+      "damage_taken": {
+        "BOSS_BODY": 7,
+        "ENEMY_PROJECTILE": 2
+      },
+      "hp": 0,
+      "minimum_hp": 0,
+      "physics_ticks": 7727
+    },
+    {
+      "seed": 10183002,
+      "unity_reset_seed": 10183002,
+      "win": true,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2675.0,
+      "damage_taken": {
+        "BOSS_BODY": 2,
+        "ENEMY_PROJECTILE": 1
+      },
+      "hp": 6,
+      "minimum_hp": 6,
+      "physics_ticks": 10912
+    },
+    {
+      "seed": 10183003,
+      "unity_reset_seed": 10183003,
+      "win": true,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2721.0,
+      "damage_taken": {
+        "BOSS_BODY": 3,
+        "ENEMY_PROJECTILE": 4
+      },
+      "hp": 2,
+      "minimum_hp": 2,
+      "physics_ticks": 8810
+    },
+    {
+      "seed": 10183004,
+      "unity_reset_seed": 10183004,
+      "win": false,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 1701.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 1,
+        "BOSS_BODY": 9
+      },
+      "hp": 0,
+      "minimum_hp": 0,
+      "physics_ticks": 5885
+    }
+  ]
+}

@@ -1,6 +1,9 @@
 {
   "development-games.json": "d7c18bf6e22f54f0a133a28629dae7da9dadcd8ff2d5ccddab60fbb918121b8c",
+  "evaluation.json": "a6b57d82bf3e67205893045abd35a6ec7837b5707bf0c89e7c6623f8b876c698",
+  "first-win.json": "4f78cb43f5721acac17c00a29e46b8f11a9e5df4361d679f8631301130c4d2e7",
   "goal1-plan.json": "5cb1d36edcdba8e65263f85b35e987b5d866072ad66b68e3deca38c731d9e6a4",
+  "independent-progress.json": "90eefa6f4bc05e63d4579ab43946147e4a5bce121e78e77be310205ae3ac9f11",
   "learner.pt": "69699c6febef96b2629aa530b473b30283323d3038bdae9978614b2b66232edb",
   "round-00/batch.json": "a47a5f62efa22adda47162d69ee4f4341a94b20d414d501d5b332de4e69dc083",
   "round-00/learner.pt": "b31f4363d03804f3d219897d44f6a8af476ad3c96deab4dd12de5fbbf26b15ef",
