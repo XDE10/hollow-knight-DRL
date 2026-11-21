@@ -60,6 +60,21 @@ def test_full_horizon_keeps_terminal_and_both_native_mask_margins(modules):
     assert len(idx) == 0
 
 
+@pytest.mark.parametrize("metric", ["observed_reward", "native_masks_lost", "long"])
+def test_screen_requires_all_held_fights_at_both_horizons(modules, metric):
+    _, _, _, trainer = modules
+    seeds = list(range(6))
+    reward = [{"source": f"native-development/{i}", "vs_H": 1.0} for i in seeds]
+    masks = [r | {"vs_H": -0.5} for r in reward]
+    short = {"observed_reward": list(reward), "native_masks_lost": masks}
+    long = {"observed_reward": list(reward)}
+    metrics = {"4.0": short, "8.0": long}
+    assert trainer.passes_screen(metrics, seeds)
+    rows = long["observed_reward"] if metric == "long" else short[metric]
+    rows.pop()
+    assert not trainer.passes_screen(metrics, seeds)
+
+
 def test_return_selector_and_serialized_layout(modules, tmp_path):
     _, _, model, trainer = modules
     x = np.tile([[-1.0, 0.0], [-1.0, 0.0], [1.0, 0.0], [1.0, 0.0]], (30, 1))

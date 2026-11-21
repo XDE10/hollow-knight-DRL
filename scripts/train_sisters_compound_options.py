@@ -19,6 +19,7 @@ from train_sisters_timing_iql import (
     COMPOUND_MAGIC,
     WIDTH,
     TimingPolicy,
+    mlp,
     motion_history,
     phase_checkpoint,
     phase_components,
@@ -49,6 +50,22 @@ def fit_gate(
     return np.r_[beta[0] - center @ slope, projection @ slope].astype("<f4")
 
 
+def passes_screen(metrics: dict, heldout_seeds: list[int]) -> bool:
+    expected = {f"native-development/{i}" for i in heldout_seeds}
+    short = metrics["4.0"]["observed_reward"]
+    health = metrics["4.0"]["native_masks_lost"]
+    long = metrics["8.0"]["observed_reward"]
+    for rows in (short, health, long):
+        if len(rows) != len(expected) or {row["source"] for row in rows} != expected:
+            return False
+    return bool(
+        sum(row["vs_H"] > 0 for row in short) >= 4
+        and np.mean([row["vs_H"] for row in short]) > 0
+        and np.mean([row["vs_H"] for row in health]) < 0
+        and np.mean([row["vs_H"] for row in long]) >= 0
+    )
+
+
 def study(
     data: Path,
     parent: Path,
@@ -67,6 +84,13 @@ def study(
     ck = torch.load(learner, weights_only=True, map_location="cpu")
     net = TimingPolicy(ck["catalogue"], history=True).eval()
     net.load_state_dict(ck["actor"])
+    critics = []
+    for name in ("q1", "q2"):
+        q = mlp(ck[name]["0.weight"].shape[1], len(ck["catalogue"])).eval()
+        q.load_state_dict(ck[name])
+        critics.append(q)
+    critic_diagnostics = {"4.0": [], "8.0": []}
+
     native = parent.read_bytes()
     opening, late = phase_components(native)
     samples = {4.0: [], 8.0: []}
@@ -131,6 +155,11 @@ def study(
                     raise ValueError(
                         "Recorded native choices differ from the frozen neural model"
                     )
+                q_delta = None
+                if g["split"] == "holdout":
+                    q_values = torch.minimum(critics[0](h), critics[1](h)).numpy()
+                    q_pair = q_values[np.arange(n)[:, None], pairs]
+                    q_delta = q_pair[:, 1] - q_pair[:, 0]
                 for horizon, dest in samples.items():
                     kept, y = observed_outcomes(
                         clock,
@@ -144,6 +173,31 @@ def study(
                     coverage[g["source"]][str(horizon)] = np.bincount(
                         arm[kept], minlength=2
                     ).tolist()
+                    if q_delta is not None:
+                        for favors_alternate in (False, True):
+                            selected = (q_delta[kept] > 0) == favors_alternate
+                            choices = arm[kept][selected].astype("i8")
+                            if not len(choices):
+                                continue
+                            effect = 2 * (2 * choices - 1)
+                            critic_diagnostics[str(horizon)].append(
+                                {
+                                    "source": g["source"],
+                                    "critic_favors_alternate": favors_alternate,
+                                    "assigned_by_arm": np.bincount(
+                                        choices, minlength=2
+                                    ).tolist(),
+                                    "mean_onset_q_difference": float(
+                                        q_delta[kept][selected].mean()
+                                    ),
+                                    "ips_option_reward_difference": float(
+                                        (effect * y[selected, 0]).mean()
+                                    ),
+                                    "ips_option_mask_difference": float(
+                                        (effect * y[selected, 1]).mean()
+                                    ),
+                                }
+                            )
                     for j, yrow in zip(kept, y, strict=True):
                         dest.append((g["source"], g["split"], x[j], int(arm[j]), yrow))
 
@@ -175,19 +229,7 @@ def study(
             )
             here[name] = paired_screen(games, decisions, ah, yh[:, col], nuisance)
         metrics[str(horizon)] = here
-    short = metrics["4.0"]["observed_reward"]
-    health = metrics["4.0"]["native_masks_lost"]
-    long = metrics["8.0"]["observed_reward"]
-    complete_held = {row["source"] for row in short} == {
-        f"native-development/{i}" for i in spec["heldout_seeds"]
-    }
-    eligible = (
-        complete_held
-        and sum(row["vs_H"] > 0 for row in short) >= 4
-        and np.mean([row["vs_H"] for row in short]) > 0
-        and np.mean([row["vs_H"] for row in health]) < 0
-        and np.mean([row["vs_H"] for row in long]) >= 0
-    )
+    eligible = passes_screen(metrics, spec["heldout_seeds"])
     compound = (
         struct.pack("<2i", COMPOUND_MAGIC, len(late))
         + late
@@ -214,6 +256,8 @@ def study(
         "extra_mask_cost": extra_mask_cost,
         "coverage_by_arm": coverage,
         "heldout": metrics,
+        "onset_critic_diagnostic": critic_diagnostics,
+        "critic_scope": "The two frozen one-step action values compare the onset keys. The measured contrasts compare the full randomized 0.32-second options followed by T. No critic output selects the candidate or labels its rewards.",
         "trial_eligible": bool(eligible),
     }
     (output / "training.json").write_bytes(
