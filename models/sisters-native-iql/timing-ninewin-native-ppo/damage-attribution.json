@@ -1,0 +1,665 @@
+{
+  "evaluation_sha256": "a6b57d82bf3e67205893045abd35a6ec7837b5707bf0c89e7c6623f8b876c698",
+  "policy_sha256": "d839a81448fe470acebe2a34deb6d346088883f297091258987d2e51ee07f0c3",
+  "mod_sha256": "6c62934d913587b82bc6771f8389037a26a8974af6ee9773b327ac25bbac0c12",
+  "damage_receipts_matched": 5,
+  "definitions": {
+    "source_descent_or_land_at_either_endpoint": "The entity ID reported by the damage event matches a boss with Drop, Fall or Land observed before or after that observation interval.",
+    "hit_timing": "The event is bounded by observation endpoints. The receipt has no continuous per-decision input trace.",
+    "states": {
+      "289970528": "Drop",
+      "291868896": "Fall",
+      "-1523407744": "Land"
+    }
+  },
+  "damage_events": 38,
+  "masks": 38,
+  "by_phase_and_source": {
+    "BOSS_BODY_trio": 28,
+    "BOSS_BODY_descent_or_land_at_either_endpoint": 18,
+    "ENEMY_PROJECTILE_trio": 9,
+    "ENEMY_PROJECTILE_before_trio": 1
+  },
+  "games": [
+    {
+      "seed": 10183000,
+      "win": false,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 51.52000045776367,
+        "physics_ticks": 2575,
+        "hp": 9,
+        "soul": 99
+      },
+      "boss_damage_after_trio_observed": 1889.0,
+      "damage_intervals": [
+        {
+          "interval": [
+            69.5,
+            69.64
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            93.64,
+            93.75999
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 18,
+          "masks": 1,
+          "source_fsm_observed": [
+            null,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            95.32,
+            95.43999
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 18,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            97.72,
+            97.84
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            99.4,
+            99.52
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            102.04,
+            102.16
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            117.07999,
+            117.2
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1374908928,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            124.88,
+            125.0
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            129.08,
+            129.2
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 12,
+          "masks": 1,
+          "source_fsm_observed": [
+            -737267072,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        }
+      ]
+    },
+    {
+      "seed": 10183001,
+      "win": false,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 58.2599983215332,
+        "physics_ticks": 2912,
+        "hp": 9,
+        "soul": 83
+      },
+      "boss_damage_after_trio_observed": 1640.0,
+      "damage_intervals": [
+        {
+          "interval": [
+            61.1,
+            61.26
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            63.76,
+            63.92
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 14,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            90.56,
+            90.68
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 12,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            106.66,
+            106.8
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            129.48,
+            129.98
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            19109382
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            131.52,
+            131.75999
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            134.53999,
+            135.37999
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -737267072,
+            2085456000
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            142.8,
+            143.06
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 10,
+          "masks": 1,
+          "source_fsm_observed": [
+            -737267072,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            153.66,
+            154.56
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 28,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        }
+      ]
+    },
+    {
+      "seed": 10183002,
+      "win": true,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 70.55999755859375,
+        "physics_ticks": 3527,
+        "hp": 9,
+        "soul": 81
+      },
+      "boss_damage_after_trio_observed": 2183.0,
+      "damage_intervals": [
+        {
+          "interval": [
+            121.34,
+            121.46
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 15,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            135.89999,
+            136.02
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 16,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            150.16,
+            150.28
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 32,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        }
+      ]
+    },
+    {
+      "seed": 10183003,
+      "win": true,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 50.119998931884766,
+        "physics_ticks": 2505,
+        "hp": 9,
+        "soul": 99
+      },
+      "boss_damage_after_trio_observed": 2223.0,
+      "damage_intervals": [
+        {
+          "interval": [
+            53.36,
+            53.48
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 10,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1374908928,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            62.24,
+            62.36
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 13,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            71.9,
+            72.02
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 17,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            73.84,
+            73.96
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 10,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            87.43999,
+            87.56
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 9,
+          "masks": 1,
+          "source_fsm_observed": [
+            -737267072,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            134.59999,
+            134.72
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 28,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            160.67999,
+            160.81999
+          ],
+          "phase": "trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 32,
+          "masks": 1,
+          "source_fsm_observed": [
+            null,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        }
+      ]
+    },
+    {
+      "seed": 10183004,
+      "win": false,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 57.29999923706055,
+        "physics_ticks": 2864,
+        "hp": 9,
+        "soul": 51
+      },
+      "boss_damage_after_trio_observed": 1206.0,
+      "damage_intervals": [
+        {
+          "interval": [
+            27.64,
+            27.78
+          ],
+          "phase": "before_trio",
+          "source": "ENEMY_PROJECTILE",
+          "entity_id": 7,
+          "masks": 1,
+          "source_fsm_observed": [
+            755932,
+            755932
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            74.16,
+            74.28
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 12,
+          "masks": 1,
+          "source_fsm_observed": [
+            289970528,
+            291868896
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            87.36,
+            87.48
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 12,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1374908928,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            88.68,
+            88.8
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 10,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1374908928,
+            -1374908928
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            91.8,
+            91.92
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 12,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1374908928,
+            1928179328
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            94.07999,
+            94.2
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 10,
+          "masks": 1,
+          "source_fsm_observed": [
+            1928179328,
+            1928179328
+          ],
+          "source_descent_or_land_at_either_endpoint": false
+        },
+        {
+          "interval": [
+            102.84,
+            102.96
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            111.24,
+            111.36
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 10,
+          "masks": 1,
+          "source_fsm_observed": [
+            291868896,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            112.68,
+            112.8
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 11,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        },
+        {
+          "interval": [
+            117.6,
+            117.71999
+          ],
+          "phase": "trio",
+          "source": "BOSS_BODY",
+          "entity_id": 12,
+          "masks": 1,
+          "source_fsm_observed": [
+            -1523407744,
+            -1523407744
+          ],
+          "source_descent_or_land_at_either_endpoint": true
+        }
+      ]
+    }
+  ]
+}

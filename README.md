@@ -8,7 +8,9 @@
 
 本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
 
-最新的课程实验把策略放进游戏物理循环，在 Colab 用原生按键示范、真实游戏奖励与一步世界模型训练离线 actor 和 critic。加入纠正示范后，两份冻结策略原速原伤各打 10 场。世界模型辅助 IQL 场均伤害 886.6、7 场过首只，同等更新次数的模仿对照场均 529.1、4 场过首只，两组均未整场通关。[冻结权重、逐场结果与复现命令](models/sisters-native-iql/README.md)
+早期离线实验在 Colab 用原生按键示范、真实游戏奖励与一步世界模型训练 actor 和 critic。加入纠正示范后，两份冻结策略原速原伤各打 10 场。世界模型辅助 IQL 场均伤害 886.6、7 场过首只，同等更新次数的模仿对照场均 529.1、4 场过首只，两组完整通关均为 0 场。[冻结权重、逐场结果与复现命令](models/sisters-native-iql/README.md)
+
+后续冻结的神经选择器在独立实机对局中完整通关 9/12，直接更新原生按键的 PPO 候选完整通关 2/5。两组均在第三次败局后结束。项目的第一轮正式验收要求全新 100 场中至少通关 98 场。第一轮通过后，第二轮另用 100 场，要求同时达到 98 胜和 95 场全程无伤。[9/12 逐场记录](models/sisters-native-iql/timing-learned-options/evaluation.json) · [PPO 的逐场记录](models/sisters-native-iql/timing-ninewin-native-ppo/evaluation.json) · [验收配置](configs/experiments/sisters_acceptance.json)
 
 《深度强化学习》课程主线使用实体世界模型和 PPO。Actor 直接控制骑士的移动、攻击与施法，critic 学习折扣回报。Colab L4 训练记录、三个检查点的对照设计和实机入口见[课程模型](models/sisters-course-ac/README.md)。
 
