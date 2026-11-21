@@ -12,6 +12,58 @@ import pytest
 import torch
 
 
+def test_deterministic_native_trace_preserves_real_keys_and_behavior(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    read = importlib.import_module("collect_sisters_native_labels").read_decisions
+    pack = importlib.import_module("pack_sisters_timing_replay").pack
+    actor = "a" * 64
+    rows = np.zeros((3, 196), dtype="<f4")
+    rows[:, 0] = [0, 0.04, 0.08]
+    rows[:, 1:4] = [[-1, 0, 8], [1, 0, 0], [1, 0, 16]]
+    rows[:, 4 + 24] = 1
+    fields = {
+        "teacher_labels": False, "deterministic_native_trace": True,
+        "student_policy_sha256": actor, "behavior_policy_sha256": actor,
+    }
+    entries = []
+    for seed in (0, 1):
+        tape = tmp_path / f"{seed}.native"
+        tape.write_bytes(struct.pack("<IQ", 0x33474144, seed) + rows.tobytes())
+        decisions, stats = read(tape, seed, True, False)
+        np.savez(
+            tmp_path / f"{seed}.npz", **decisions, time=rows[:, 0],
+            events=np.zeros((3, 8)), elapsed_ticks=np.full(3, 2),
+        )
+        (tmp_path / f"episode-{seed:03d}.json").write_text(json.dumps({
+            **fields, **stats, "seed": seed, "win": False, "speed_counts": {"1": 3},
+        }))
+        entries.append({
+            **fields, "source": f"native-development/{seed}", "won": False,
+            "file": f"{seed}.npz",
+        })
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps(entries))
+    archive = tmp_path / "development.zip"
+    pack([manifest], archive, original_speed_only=True)
+    with zipfile.ZipFile(archive) as data:
+        games = json.loads(data.read("manifest.json"))
+        assert [g["split"] for g in games] == ["train", "holdout"]
+        for game in games:
+            assert game["behavior_policy_sha256"] == actor
+            assert game["deterministic_native_trace"] is True
+            assert game["teacher_labels"] is False
+            with np.load(io.BytesIO(data.read(game["file"]))) as raw:
+                np.testing.assert_array_equal(raw["controls"], rows[:, 1:4])
+                assert "teacher_controls" not in raw and "choice_rows" not in raw
+    with np.load(tmp_path / "0.npz") as valid:
+        invalid = dict(valid)
+    np.savez(tmp_path / "0.npz", **invalid, choice_rows=np.array([0]))
+    with pytest.raises(ValueError, match="Invalid deterministic native trace"):
+        pack([manifest], tmp_path / "mixed.zip")
+
+
 def test_record_and_pack_actor_assignment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     read = importlib.import_module("collect_sisters_native_labels").read_decisions

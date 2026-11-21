@@ -55,11 +55,17 @@ namespace HKRLEnvMod.Action
             }
             bool routing = Environment.GetEnvironmentVariable("HKRL_NATIVE_ROUTER_ROLLOUT") == "1";
             bool primitive = Environment.GetEnvironmentVariable("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1";
+            bool traceOnly = Environment.GetEnvironmentVariable("HKRL_NATIVE_TRACE_ONLY") == "1";
             if (routing && primitive) throw new InvalidOperationException("Select one stochastic controller");
             if ((routing || primitive) && (teacher != null || _online != null || NeuralTrial != null || _recordPlans || !_recordTiming || _teacherRatio != 0))
                 throw new InvalidOperationException("A router rollout must use its own neural actors exclusively");
-            if (teacher == null && ((_online == null && NeuralTrial == null && !routing && !primitive) || _recordPlans))
-                throw new InvalidOperationException("Teacher-free recording requires an online trial without plan labels");
+            if (traceOnly &&
+                (teacher != null || _online != null || NeuralTrial != null || routing ||
+                 primitive || _recordPlans || !_recordTiming || _teacherRatio != 0))
+                throw new InvalidOperationException("Trace-only recording requires exclusive deterministic neural control");
+            if (teacher == null &&
+                (_recordPlans || (_online == null && NeuralTrial == null && !routing && !primitive && !traceOnly)))
+                throw new InvalidOperationException("Teacher-free recording requires an explicit development mode without plan labels");
         }
 
         internal static SistersNativeDemonstrator? FromEnvironment()

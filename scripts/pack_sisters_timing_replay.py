@@ -19,6 +19,7 @@ CONTROLLER_FIELDS = (
     "sampler_sha256",
     "sampler_draw_seed",
     "directional_groups",
+    "deterministic_native_trace",
 )
 
 
@@ -44,6 +45,7 @@ def pack(
                 != meta.get("behavior_policy_sha256")
                 or game.get("teacher_labels", True) != meta.get("teacher_labels", True)
                 or any(game.get(k) != meta.get(k) for k in CONTROLLER_FIELDS)
+                or (game.get("deterministic_native_trace") and meta.get("teacher_fraction") != 0)
             ):
                 raise ValueError("Repeated seed or unmatched development record")
             seen.add(seed)
@@ -153,7 +155,22 @@ def pack(
                         raise ValueError(f"Incomplete movement alternatives in {path}")
                 buf = io.BytesIO()
                 online_keys: tuple[str, ...] = ()
-                if game.get("behavior_policy_sha256"):
+                labeled = game.get("teacher_labels", True)
+                trace_only = game.get("deterministic_native_trace") is True
+                behavior = game.get("behavior_policy_sha256")
+                if trace_only and (
+                    labeled
+                    or not behavior
+                    or behavior != game.get("student_policy_sha256")
+                    or game.get("alternate_policy_sha256")
+                    or game.get("sampler_sha256")
+                    or game.get("sampler_draw_seed") is not None
+                    or {"choice_rows", "key_rows", "route_rows"}.intersection(raw.files)
+                    or raw["controls"].shape != (len(t), 3)
+                    or raw["controls"].dtype.kind not in "iu"
+                ):
+                    raise ValueError(f"Invalid deterministic native trace in {path}")
+                if behavior and not trace_only:
                     from sisters_online_choices import CHOICE_KEYS
 
                     online_keys = CHOICE_KEYS
@@ -186,7 +203,6 @@ def pack(
                         raise ValueError("Missing compound risk record")
                     if not all(k in raw for k in online_keys):
                         raise ValueError(f"Incomplete online behavior record in {path}")
-                labeled = game.get("teacher_labels", True)
                 trial_keys = ()
                 if game.get("alternate_policy_sha256"):
                     from sisters_control_blocks import neural_block_starts
@@ -216,7 +232,7 @@ def pack(
                 elif "block_starts" in raw or "candidate_draw" in raw:
                     raise ValueError(f"Undeclared neural block trial in {path}")
                 if ("teacher_controls" in raw) != labeled or (
-                    not labeled and (not (online_keys or trial_keys) or plan_keys)
+                    not labeled and (not (online_keys or trial_keys or trace_only) or plan_keys)
                 ):
                     raise ValueError(f"Inconsistent teacher availability in {path}")
                 assignment_keys = ()
@@ -278,7 +294,7 @@ def pack(
                     **{k: game[k] for k in CONTROLLER_FIELDS if k in game},
                     **(
                         {"behavior_policy_sha256": game["behavior_policy_sha256"]}
-                        if online_keys
+                        if online_keys or trace_only
                         else {}
                     ),
                     "sha256": hashlib.sha256(data).hexdigest(),

@@ -112,6 +112,8 @@ def main() -> None:
     proc = psutil.Process(listeners[0].pid)
     envs = proc.environ()
     has_teacher = bool(envs.get("HKRL_TACTICS_POLICY"))
+    timing = envs.get("HKRL_NATIVE_TIMING") == "1"
+    trace_only = envs.get("HKRL_NATIVE_TRACE_ONLY") == "1"
     routing = envs.get("HKRL_NATIVE_ROUTER_ROLLOUT") == "1"
     primitive = envs.get("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1"
     if primitive and routing:
@@ -127,9 +129,15 @@ def main() -> None:
         raise ValueError(
             "A sampled neural option requires a teacher-free development worker"
         )
+    if trace_only and (
+        has_teacher or sampling or candidate or routing or primitive or not timing
+        or envs.get("HKRL_NATIVE_PLAN_TRACE") == "1"
+        or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0
+    ):
+        raise ValueError("Trace-only recording requires exclusive deterministic neural control")
     if (
         proc.name().lower() != "hollow_knight.exe"
-        or not (has_teacher or sampling or candidate or routing or primitive)
+        or not (has_teacher or sampling or candidate or routing or primitive or trace_only)
         or float(envs.get("HKRL_SISTERS_NAIL_MULTIPLIER", "1")) != 1
     ):
         raise RuntimeError("Wrong development game mode")
@@ -169,7 +177,6 @@ def main() -> None:
                     raise RuntimeError("Wrong development speed")
                 if not result["win"] and not result["truncated"] and result["hp"] == 0:
                     events[-1][7] = 1
-                timing = envs.get("HKRL_NATIVE_TIMING") == "1"
                 decisions, control_stats = read_decisions(
                     tape_dir / f"{eid}.native", eid, timing, has_teacher
                 )
@@ -185,7 +192,10 @@ def main() -> None:
                     or int(receipt[2]) != len(clock)
                 ):
                     raise ValueError("Actor receipt differs")
-                controller: dict[str, str | float] = {"student_policy_sha256": sha}
+                controller: dict[str, str | float | bool] = {"student_policy_sha256": sha}
+                if trace_only:
+                    controller["deterministic_native_trace"] = True
+                    result.update(behavior_policy_sha256=sha, native_inputs=len(clock))
                 if alternate_sha:
                     from sisters_control_blocks import neural_assignments
 
@@ -210,8 +220,8 @@ def main() -> None:
                     plans = read_plans(tape_dir / f"{eid}.plans", eid, clock)
                 online = {}
                 if routing or primitive:
-                    from sisters_router_rollout import read_routes
                     from sisters_primitive_rollout import read_keys
+                    from sisters_router_rollout import read_routes
 
                     seed = int(envs["HKRL_NATIVE_DEMO_SEED"])
                     temperature = float(envs["HKRL_NATIVE_ROUTER_TEMPERATURE"])
@@ -289,7 +299,7 @@ def main() -> None:
                         "won": result["win"],
                         "teacher_labels": has_teacher,
                         **controller,
-                        **({"behavior_policy_sha256": sha} if online else {}),
+                        **({"behavior_policy_sha256": sha} if online or trace_only else {}),
                     }
                 )
                 (args.output / "manifest.json").write_text(
