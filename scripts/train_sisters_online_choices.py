@@ -53,6 +53,8 @@ def read_trials(
             if sha(path) != g["sha256"]:
                 raise ValueError("Online replay changed")
             with np.load(path, allow_pickle=False) as f:
+                if "choice_hold_stop" in f:
+                    raise ValueError("This estimator expects single-decision interventions")
                 s, t, rows = f["timing_state"], f["control_time"], f["choice_rows"]
                 if actor.past is not None:
                     s = motion_history(t, s)

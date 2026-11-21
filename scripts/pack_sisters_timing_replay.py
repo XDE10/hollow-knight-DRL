@@ -121,6 +121,16 @@ def pack(
                     from sisters_online_choices import CHOICE_KEYS
 
                     online_keys = CHOICE_KEYS
+                    if "choice_hold_stop" in raw:
+                        stops = raw["choice_hold_stop"]
+                        if (
+                            stops.shape != raw["choice_rows"].shape
+                            or stops.dtype.kind not in "iu"
+                            or (stops <= raw["choice_rows"]).any()
+                            or (stops > len(t)).any()
+                        ):
+                            raise ValueError(f"Invalid duration of randomized movement in {path}")
+                        online_keys += ("choice_hold_stop",)
                     if not all(k in raw for k in online_keys):
                         raise ValueError(f"Incomplete online behavior record in {path}")
                 labeled = game.get("teacher_labels", True)

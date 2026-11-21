@@ -86,7 +86,7 @@ namespace HKRLEnvMod.Action
         {
             float now=obs.Global.TimeInEpisode;
             if (_online != null && timing![SistersTimingState.TrioFlag] > .5f)
-                learner = _online.Choose(now, active, learner);
+                learner = _online.Choose(now, active, learner, timing!);
             var tape=_tape!;
             if (_teacher == null)
             {

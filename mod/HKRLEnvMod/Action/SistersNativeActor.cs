@@ -212,7 +212,17 @@ namespace HKRLEnvMod.Action
 
         internal PrimitiveInput Command(int index) => _actions[index];
 
-        internal bool MovementPair(out int first, out int other, out float gap)
+        internal PrimitiveInput BestHorizontal(int movement)
+        {
+            int best = -1;
+            for (int i = 0; i < _actions.Length; i++)
+                if (_actions[i].MovementX == movement && (best < 0 || _scores[i] > _scores[best]))
+                    best = i;
+            if (best < 0) throw new InvalidOperationException("Unavailable recorded movement");
+            return _actions[best];
+        }
+
+        internal bool MovementPair(out int first, out int other, out float gap, bool horizontalOnly = false)
         {
             first = _best;
             other = -1;
@@ -220,6 +230,7 @@ namespace HKRLEnvMod.Action
             for (int i = 0; i < _actions.Length; i++)
             {
                 var candidate = _actions[i];
+                if (horizontalOnly && candidate.MovementX == greedy.MovementX) continue;
                 if (candidate.MovementX == greedy.MovementX &&
                     ((candidate.Buttons & 3) != 0) == ((greedy.Buttons & 3) != 0) &&
                     (candidate.Buttons & 4) == (greedy.Buttons & 4)) continue;

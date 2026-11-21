@@ -48,16 +48,18 @@ def read_choices(
     catalogue: np.ndarray,
 ) -> dict[str, np.ndarray]:
     with path.open("rb") as f:
-        if struct.unpack("<IQ", f.read(12)) != (0x31434B48, episode):
+        magic, recorded_episode = struct.unpack("<IQ", f.read(12))
+        if magic not in (0x31434B48, 0x32434B48) or recorded_episode != episode:
             raise ValueError("Wrong online episode")
         raw = np.frombuffer(f.read(), dtype=ROW)
     trial_time, pairs, draw, prob, gap = (
         raw[k] for k in ("time", "pair", "draw", "p", "gap")
     )
+    descent = magic == 0x32434B48
     rows = np.searchsorted(times, trial_time)
     if (
         not np.isfinite(trial_time).all()
-        or (np.diff(trial_time) < 0.719).any()
+        or (np.diff(trial_time) < (1.499 if descent else 0.719)).any()
         or (rows >= len(times)).any()
         or not np.array_equal(times[rows], trial_time)
         or (state[rows, 23] <= 0.5).any()
@@ -71,9 +73,18 @@ def read_choices(
         raise ValueError("Invalid randomized action record")
     if not np.array_equal(catalogue[pairs[np.arange(len(draw)), draw]], applied[rows]):
         raise ValueError("Randomized control differs from the input actually issued")
-    return dict(
-        zip(CHOICE_KEYS, (rows.astype("i4"), pairs, draw, prob, gap), strict=True)
-    )
+    result = dict(zip(CHOICE_KEYS, (rows.astype("i4"), pairs, draw, prob, gap), strict=True))
+    if descent:
+        bosses = state[rows, 24:132].reshape(-1, 3, 36)
+        near = (bosses[:, :, 0] > .5) & (np.abs(bosses[:, :, 1]) <= .4) & (bosses[:, :, 20:23] > .5).any(2)
+        if not near.any(1).all() or (state[rows, 9] > .5).any() or (catalogue[pairs[:, 0], 0] == catalogue[pairs[:, 1], 0]).any():
+            raise ValueError("Descent trial did not start on a supported horizontal disagreement")
+        stops = np.searchsorted(times, trial_time + np.float32(.16))
+        for row, end, key in zip(rows, stops, catalogue[pairs[np.arange(len(draw)), draw]], strict=True):
+            if (applied[row:end, 0] != key[0]).any():
+                raise ValueError("Recorded development movement differed during the hold")
+        result["choice_hold_stop"] = stops.astype("i4")
+    return result
 
 
 def choice_outcomes(
