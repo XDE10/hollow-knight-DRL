@@ -77,6 +77,22 @@ def pack(
                     not labeled and (not online_keys or plan_keys)
                 ):
                     raise ValueError(f"Inconsistent teacher availability in {path}")
+                assignment_keys = ()
+                if "student_controls" in raw or "teacher_acted" in raw:
+                    assignment_keys = ("student_controls", "teacher_acted")
+                    if not labeled or not all(k in raw for k in assignment_keys):
+                        raise ValueError(f"Incomplete controller assignment in {path}")
+                    assigned = raw["teacher_acted"]
+                    student = raw["student_controls"]
+                    teacher = raw["teacher_controls"]
+                    if (
+                        assigned.dtype != np.bool_
+                        or assigned.shape != (len(t),)
+                        or student.shape != (len(t), 3)
+                        or teacher.shape != student.shape
+                        or not np.array_equal(raw["controls"], np.where(assigned[:, None], teacher, student))
+                    ):
+                        raise ValueError(f"Controller assignment differs from applied keys in {path}")
                 np.savez_compressed(
                     buf,
                     **{
@@ -86,6 +102,7 @@ def pack(
                             "timing_state",
                             "controls",
                             *(("teacher_controls",) if labeled else ()),
+                            *assignment_keys,
                             "time",
                             "events",
                             "elapsed_ticks",

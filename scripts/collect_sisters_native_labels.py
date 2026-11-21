@@ -64,10 +64,18 @@ def read_decisions(
         data.update(controls=rows[:, 1:4].astype("i2"), timing_state=rows[:, 4:])
         return data, {"teacher_fraction": 0.0}
     applied, labels, student = (rows[:, j : j + 3].astype("i2") for j in (57, 60, 63))
+    if not np.isin(rows[:, 66], [0.0, 1.0]).all():
+        raise ValueError("Invalid native controller assignment")
     teacher = rows[:, 66].astype(bool)
     if not np.array_equal(applied, np.where(teacher[:, None], labels, student)):
         raise ValueError("Incorrect executed action trace")
-    data.update(controls=applied, teacher_controls=labels, student_features=rows[:, 1:57])
+    data.update(
+        controls=applied,
+        teacher_controls=labels,
+        student_controls=student,
+        teacher_acted=teacher,
+        student_features=rows[:, 1:57],
+    )
     if timing:
         data["timing_state"] = rows[:, 67:]
     return data, {

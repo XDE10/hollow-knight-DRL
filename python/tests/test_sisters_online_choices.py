@@ -1,13 +1,55 @@
 from __future__ import annotations
 
 import importlib
+import io
 import json
 import struct
+import zipfile
 from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
+
+
+def test_record_and_pack_actor_assignment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    read = importlib.import_module("collect_sisters_native_labels").read_decisions
+    pack = importlib.import_module("pack_sisters_timing_replay").pack
+    rows = np.zeros((3, 259), dtype="<f4")
+    rows[:, 0] = [0, 0.04, 0.08]
+    rows[:, 60:63] = [[-1, 0, 8], [1, 0, 0], [1, 0, 0]]
+    rows[:, 63:66] = [[1, 0, 8], [1, 0, 0], [-1, 0, 0]]
+    rows[:, 66] = [1, 0, 0]
+    rows[:, 57:60] = np.where(rows[:, 66:67] == 1, rows[:, 60:63], rows[:, 63:66])
+    rows[:, 67 + 24] = 1
+    tape = tmp_path / "3.native"
+    tape.write_bytes(struct.pack("<IQ", 0x32474144, 3) + rows.tobytes())
+    data, _ = read(tape, 3, timing=True, has_teacher=True)
+    archive = tmp_path / "replay.zip"
+    manifests = []
+    for i, seed in enumerate([1000, 1001]):
+        path = tmp_path / f"fight-{seed}.npz"
+        fields = dict(data)
+        if i == 0:
+            del fields["teacher_acted"], fields["student_controls"]
+        np.savez(path, **fields, time=[0.0], elapsed_ticks=[6], events=np.zeros((1, 8)))
+        meta = {"seed": seed, "win": True}
+        (tmp_path / f"episode-{i:03d}.json").write_text(json.dumps(meta))
+        manifests.append({"source": f"native-development/{seed}", "file": path.name, "won": True})
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps(manifests))
+    pack([manifest], archive)
+    with zipfile.ZipFile(archive) as z:
+        with np.load(io.BytesIO(z.read("fight-1000.npz"))) as old:
+            assert "teacher_acted" not in old
+        with np.load(io.BytesIO(z.read("fight-1001.npz"))) as new:
+            np.testing.assert_array_equal(new["teacher_acted"], [True, False, False])
+            np.testing.assert_array_equal(new["student_controls"], rows[:, 63:66])
+    rows[1, 66] = 2
+    tape.write_bytes(struct.pack("<IQ", 0x32474144, 3) + rows.tobytes())
+    with pytest.raises(ValueError, match="controller assignment"):
+        read(tape, 3, timing=True, has_teacher=True)
 
 
 def test_student_record_cannot_supply_teacher_labels(tmp_path: Path, monkeypatch) -> None:
