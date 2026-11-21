@@ -1,0 +1,224 @@
+{
+  "scope": "Stochastic development rollouts used for this PPO update.",
+  "episodes": [
+    {
+      "seed": 9951000,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 66.55999755859375,
+        "physics_ticks": 3327,
+        "hp": 8,
+        "soul": 99
+      },
+      "win": false,
+      "damage": 2004.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 3,
+        "BOSS_BODY": 6
+      },
+      "physics_ticks": 6216,
+      "speed_counts": {
+        "1.0": 1029,
+        "0.836": 1
+      },
+      "sampler_draw_seed": 1498475858,
+      "randomized_choices": 40,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951001,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 60.53999710083008,
+        "physics_ticks": 3026,
+        "hp": 9,
+        "soul": 99
+      },
+      "win": false,
+      "damage": 2358.0,
+      "damage_taken": {
+        "BOSS_BODY": 7,
+        "ENEMY_PROJECTILE": 2
+      },
+      "physics_ticks": 6638,
+      "speed_counts": {
+        "1.0": 1095,
+        "0.798": 1
+      },
+      "sampler_draw_seed": 1594471494,
+      "randomized_choices": 47,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951002,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 53.37999725341797,
+        "physics_ticks": 2668,
+        "hp": 9,
+        "soul": 46
+      },
+      "win": false,
+      "damage": 2190.0,
+      "damage_taken": {
+        "BOSS_BODY": 4,
+        "ENEMY_PROJECTILE": 4,
+        "SPIKES": 1
+      },
+      "physics_ticks": 8763,
+      "speed_counts": {
+        "1.0": 1444,
+        "0.623": 1,
+        "0.497": 1
+      },
+      "sampler_draw_seed": 589270225,
+      "randomized_choices": 61,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951003,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 54.939998626708984,
+        "physics_ticks": 2746,
+        "hp": 9,
+        "soul": 57
+      },
+      "win": false,
+      "damage": 2476.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "BOSS_BODY": 5,
+        "SPIKES": 1
+      },
+      "physics_ticks": 7500,
+      "speed_counts": {
+        "1.0": 1241,
+        "0.497": 1,
+        "0.992": 1,
+        "0.511": 1
+      },
+      "sampler_draw_seed": 1765217605,
+      "randomized_choices": 58,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951004,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 51.7599983215332,
+        "physics_ticks": 2587,
+        "hp": 9,
+        "soul": 75
+      },
+      "win": false,
+      "damage": 1348.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "BOSS_BODY": 3,
+        "SPIKES": 2
+      },
+      "physics_ticks": 5264,
+      "speed_counts": {
+        "1.0": 849,
+        "0.38": 1
+      },
+      "sampler_draw_seed": 901364462,
+      "randomized_choices": 36,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951005,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 51.23999786376953,
+        "physics_ticks": 2561,
+        "hp": 9,
+        "soul": 99
+      },
+      "win": false,
+      "damage": 2634.0,
+      "damage_taken": {
+        "BOSS_BODY": 5,
+        "ENEMY_PROJECTILE": 4
+      },
+      "physics_ticks": 8074,
+      "speed_counts": {
+        "1.0": 1265,
+        "0.767": 1,
+        "0.784": 1,
+        "0.848": 1
+      },
+      "sampler_draw_seed": 429601103,
+      "randomized_choices": 58,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951006,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 59.2599983215332,
+        "physics_ticks": 2962,
+        "hp": 9,
+        "soul": 99
+      },
+      "win": false,
+      "damage": 1775.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 3,
+        "BOSS_BODY": 6
+      },
+      "physics_ticks": 6791,
+      "speed_counts": {
+        "1.0": 937,
+        "0.733": 1,
+        "0.564": 1
+      },
+      "sampler_draw_seed": 1753523385,
+      "randomized_choices": 50,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    },
+    {
+      "seed": 9951007,
+      "first_cleared": true,
+      "trio_entry": {
+        "game_time": 59.39999771118164,
+        "physics_ticks": 2967,
+        "hp": 8,
+        "soul": 99
+      },
+      "win": false,
+      "damage": 1527.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 1,
+        "BOSS_BODY": 6,
+        "SPIKES": 2
+      },
+      "physics_ticks": 5391,
+      "speed_counts": {
+        "1.0": 506,
+        "0.641": 1,
+        "0.525": 1
+      },
+      "sampler_draw_seed": 1937206802,
+      "randomized_choices": 27,
+      "teacher_fraction": 0.0,
+      "behavior_policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "sampler_sha256": "426678689b0b5cbb98e08c3f61c8aaee29db846f004328d52244674d6e43a278"
+    }
+  ]
+}
