@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 import time
 from pathlib import Path
 
@@ -63,7 +64,12 @@ def main() -> None:
     ):
         raise RuntimeError("Wrong model or damage setting")
     ledger = Path(environment["HKRL_NATIVE_ACTOR_LEDGER"])
-    digest = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
+    policy = args.checkpoint.read_bytes()
+    digest = hashlib.sha256(policy).hexdigest()
+    focus_policy = False
+    if policy[:4] == struct.pack("<i", 0x334C5149):
+        late_offset = 12 + struct.unpack_from("<i", policy, 4)[0]
+        focus_policy = policy[late_offset:late_offset+4] == struct.pack("<i", 0x374C5149)
     mod_hash = None
     if args.expected_mod_sha256:
         game_root = Path(process.exe()).parent
@@ -95,6 +101,18 @@ def main() -> None:
                     raise RuntimeError(
                         "Native policy receipt does not match this battle"
                     )
+                focus_receipt = Path(str(ledger) + ".focus")
+                if focus_policy:
+                    receipt_episode, starts, inputs, gains, debits = map(
+                        int, focus_receipt.read_text(encoding="utf-8-sig").splitlines()
+                    )
+                    if receipt_episode != int(episode) or min(starts, inputs, gains, debits) < 0 or inputs < starts:
+                        raise ValueError("Invalid native focus receipt")
+                    result["focus_continuations"] = {
+                        "starts": starts, "changed_inputs": inputs,
+                        "observed_masks_gained_within_052s": gains,
+                        "observed_masks_lost_within_052s": debits,
+                    }
                 if args.verify_unity_seed:
                     seed_file = Path(environment["HKRL_ARENA_SEED_RECEIPT"])
                     ids = list(map(int, seed_file.read_text(encoding="utf-8-sig").splitlines()))

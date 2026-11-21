@@ -159,3 +159,5 @@ python scripts/train_sisters_timing_iql.py --data "$job/data" --output "$job/wei
 冻结选择器的前十场全部过首只，整场通关 8 次，全程无伤 0 次，场均输出 2651.9。十场合计被本体打掉 35 格、飞镖打掉 30 格、踩刺 0 格。此前走位版自己的前十场同为 8 次完整通关，场均输出 2631.1。两组各自独立开局。[选择器的十场实机记录](timing-learned-options/first-ten.json) · [走位版逐场记录](timing-executed-movement/evaluation.json)
 
 这组选择器评估在第 12 场出现第三场败局。12 场全部过首只，9 场完整通关，0 场全程无伤，场均打出 2647.92 点伤害。本体和飞镖共造成 47、37 格伤害，踩刺为 0。三场败局都以 9 格血进入三姐妹阶段，进场灵魂分别为 99、69 和 57。按游戏观测实际增加的生命合计 5 格，原始治疗事件的金额也包含未改变血量的请求。九场胜局均实际运行至战斗结束；这组百场最多只能获得 97 胜。[冻结模型逐场完整记录](timing-learned-options/evaluation.json)
+
+三姐妹合击期间，部分聚集灵魂的动作已消耗 20 多点灵魂，松手时生命仍未增加。新的策略从真实按键后的半秒结果学习，在原策略准备松手时决定是否多按一会儿。训练里实际松手与继续按键分别来自 75 和 146 次不同的聚集尝试。原有开局权重保留。在三个留出片段中，游戏插件与 Python 对 6975 次原生输入逐次重放一致。是否真正回了血、是否提升整场胜率，按单独的实机队列计分。[两场实测的生命与灵魂变化](timing-focus-continuation/observed-focus.json) · [训练方法](../../docs/adr/0024-sisters-focus-continuation.md) · [冻结策略及验收设置](timing-focus-continuation/)

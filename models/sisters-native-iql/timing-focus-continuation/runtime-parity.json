@@ -1,0 +1,27 @@
+{
+  "games": [
+    {
+      "alternate": 0,
+      "action_mismatches": 0,
+      "source": "9593001",
+      "decisions": 2766,
+      "route_mismatches": 0
+    },
+    {
+      "alternate": 0,
+      "action_mismatches": 0,
+      "source": "9713001",
+      "decisions": 2459,
+      "route_mismatches": 0
+    },
+    {
+      "alternate": 0,
+      "action_mismatches": 0,
+      "source": "9761007",
+      "decisions": 1750,
+      "route_mismatches": 0
+    }
+  ],
+  "game_mod_sha256": "36a2eaee1f37e2b7a1d964b1d646ab6a7ef8e7d77a39ce7273086575f2f9547b",
+  "policy_sha256": "78db6418472465915d03157113fc723dd7cf7abef2bb871c5f8cc2d5ab0be977"
+}

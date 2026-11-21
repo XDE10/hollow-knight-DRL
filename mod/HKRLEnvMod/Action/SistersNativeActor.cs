@@ -106,6 +106,7 @@ namespace HKRLEnvMod.Action
         {
             _demonstrator?.Flush();
             if (_count == 0) return;
+            _trioNet?.Focus?.WriteReceipt(_ledger + ".focus", _episode);
             File.WriteAllText(_ledger, string.Join("\n", _episode.ToString(CultureInfo.InvariantCulture),
                 _digest, _count, _attack, _cast, _dash, _art));
         }
@@ -130,6 +131,7 @@ namespace HKRLEnvMod.Action
         private int _index;
         private int _best;
         internal SistersCompoundOption? Compound { get; set; }
+        internal SistersFocusOption? Focus { get; set; }
         internal int BestIndex => _best;
         internal float Score(int index) => _scores[index];
         internal float[] Embedding => _z;
@@ -222,6 +224,7 @@ namespace HKRLEnvMod.Action
             for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
             _best = best;
             _index++;
+            if (Focus != null) return Focus.Choose(_actions[best], raw, time);
             return Compound == null ? _actions[best] : Compound.Choose(this, raw, time);
         }
 

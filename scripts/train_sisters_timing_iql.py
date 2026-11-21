@@ -580,6 +580,21 @@ def option_components(component: bytes) -> tuple[bytes, bytes, np.ndarray]:
 
 
 COMPOUND_MAGIC = 0x364C5149
+FOCUS_MAGIC = 0x374C5149
+FOCUS_FEATURES = 16
+
+
+def focus_components(component: bytes) -> tuple[bytes, np.ndarray]:
+    if len(component) < 8:
+        raise ValueError("Truncated focus option")
+    magic, size = struct.unpack_from("<2i", component)
+    if magic != FOCUS_MAGIC or size < 20 or len(component) != 8 + size + 4 * FOCUS_FEATURES:
+        raise ValueError("Invalid focus option size")
+    leaf = component[8:8 + size]
+    weights = np.frombuffer(component, "<f4", offset=8 + size)
+    if not _timing_component(leaf) or struct.unpack_from("<i", leaf)[0] != 0x344C5149 or not np.isfinite(weights).all():
+        raise ValueError("Invalid focus option parameters")
+    return leaf, weights
 
 
 def compound_components(component: bytes) -> tuple[bytes, np.ndarray, np.ndarray]:
@@ -601,7 +616,9 @@ def compound_components(component: bytes) -> tuple[bytes, np.ndarray, np.ndarray
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
     if not _timing_component(opener):
         raise ValueError("Expected a timing actor for the opening")
-    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == COMPOUND_MAGIC:
+    if len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == FOCUS_MAGIC:
+        focus_components(trio)
+    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == COMPOUND_MAGIC:
         compound_components(trio)
     elif not _timing_component(trio):
         option_components(trio)

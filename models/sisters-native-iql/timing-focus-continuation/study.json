@@ -1,0 +1,12 @@
+{
+  "native_parent": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+  "fit": "Fit two action-conditioned 0.52-game-second outcome models on executed focus continuations and releases; maximize their measured utility during a still-active native focus attempt. The parent neural actor and its world-assisted IQL training are frozen.",
+  "utility": "2 per mask gained, -3 per mask lost, 0.45/21 per point of damage, -0.12/33 per unit of SOUL spent. Observed native health over 0.52 game seconds.",
+  "selection": "Existing T alone starts focus. The fitted neural policy can extend its existing focus on intact observed attempts for up to the fitted outcome window. Preserve the opening. Report intervention counts, actual HP gains/losses and full wins independently.",
+  "game_conditions": "Solo original speed/damage, 9 starting masks, 0 starting SOUL, no teacher, receipt-verified Unity seeds 9908000 through 9908099.",
+  "parent": {
+    "world_updates_total": 6000,
+    "iql_updates": 16000
+  },
+  "hardware": "CPU action outcome estimator on the frozen L4-trained T policy."
+}

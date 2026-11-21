@@ -1,0 +1,879 @@
+{
+  "method": "Fit two action-conditioned 0.52-game-second outcome models on executed focus continuations and releases; maximize their measured utility during a still-active native focus attempt. The parent neural actor and its world-assisted IQL training are frozen.",
+  "scope": "Observational returns under the recorded follow-on policies. Selection and subsequent actions can confound the contrast. Native game evaluation is required.",
+  "horizon": 0.52,
+  "parent_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+  "policy_sha256": "78db6418472465915d03157113fc723dd7cf7abef2bb871c5f8cc2d5ab0be977",
+  "archives": {
+    "timing-winning-guidance": "15b3d6bd2db1824f6f331fa422630e339e64a6393072b40d42da1d70613ddd97",
+    "timing-neural-blocks": "a9669d60560ff5cbbe439fe0aaad4f6005740dfd16382294fc852e9802b4d61b",
+    "timing-randomized-descent": "ce1a6dff3eff5a4db11f4ffcc27491ed3227cdcd1a5a56b2aaba42635562c5ca"
+  },
+  "episodes": {
+    "native-development/9526004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9526005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 20
+    },
+    "native-development/9526006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 91
+    },
+    "native-development/9526007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9526008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 63
+    },
+    "native-development/9526009": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 31
+    },
+    "native-development/9526010": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9526011": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 24
+    },
+    "native-development/9526012": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 42
+    },
+    "native-development/9526013": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9526014": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 32
+    },
+    "native-development/9526015": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 32
+    },
+    "native-development/9558000": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 31
+    },
+    "native-development/9558001": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9558002": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 180
+    },
+    "native-development/9558003": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9558004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9558005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 29
+    },
+    "native-development/9558006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 3
+    },
+    "native-development/9558007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 8
+    },
+    "native-development/9558008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 54
+    },
+    "native-development/9558009": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 2
+    },
+    "native-development/9558010": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9558011": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 109
+    },
+    "native-development/9558012": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9558013": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9558014": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 43
+    },
+    "native-development/9558015": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 132
+    },
+    "native-development/9558016": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 4
+    },
+    "native-development/9558017": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9567000": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9567001": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 77
+    },
+    "native-development/9567002": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 34
+    },
+    "native-development/9567003": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 66
+    },
+    "native-development/9567004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 37
+    },
+    "native-development/9567005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 21
+    },
+    "native-development/9567006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 41
+    },
+    "native-development/9567007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 74
+    },
+    "native-development/9567008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 38
+    },
+    "native-development/9567009": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 31
+    },
+    "native-development/9586000": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9586001": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 64
+    },
+    "native-development/9586002": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 27
+    },
+    "native-development/9586003": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 12
+    },
+    "native-development/9586004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9586005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 39
+    },
+    "native-development/9586006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9586007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9586008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9586009": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9587000": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 70
+    },
+    "native-development/9587001": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 100
+    },
+    "native-development/9587002": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 7
+    },
+    "native-development/9587003": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 67
+    },
+    "native-development/9587004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 75
+    },
+    "native-development/9587005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 68
+    },
+    "native-development/9587006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 53
+    },
+    "native-development/9587007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 43
+    },
+    "native-development/9587008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 15
+    },
+    "native-development/9587009": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 21
+    },
+    "native-development/9587010": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 2
+    },
+    "native-development/9587011": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 11
+    },
+    "native-development/9587012": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9587013": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 48
+    },
+    "native-development/9587014": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9587015": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589900": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589901": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589902": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589903": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589904": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 21
+    },
+    "native-development/9589905": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 31
+    },
+    "native-development/9589906": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589907": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9589908": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 97
+    },
+    "native-development/9589909": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590100": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590101": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590102": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590103": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590104": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590105": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590106": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9590107": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 34
+    },
+    "native-development/9592000": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 28
+    },
+    "native-development/9592001": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 62
+    },
+    "native-development/9592002": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 31
+    },
+    "native-development/9592003": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9592004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 35
+    },
+    "native-development/9592005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 28
+    },
+    "native-development/9592006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9592007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 34
+    },
+    "native-development/9592008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 52
+    },
+    "native-development/9592009": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9592010": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9592011": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9593000": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 47
+    },
+    "native-development/9593001": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 65
+    },
+    "native-development/9593002": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 36
+    },
+    "native-development/9593003": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9593004": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9593005": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 35
+    },
+    "native-development/9593006": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 0
+    },
+    "native-development/9593007": {
+      "split": "holdout",
+      "teacher_free": false,
+      "rows": 74
+    },
+    "native-development/9593008": {
+      "split": "train",
+      "teacher_free": false,
+      "rows": 115
+    },
+    "native-development/9713000": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 34
+    },
+    "native-development/9713001": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 29
+    },
+    "native-development/9713002": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9713003": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 24
+    },
+    "native-development/9713004": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 28
+    },
+    "native-development/9713005": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9713006": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 35
+    },
+    "native-development/9713007": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 29
+    },
+    "native-development/9713008": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 43
+    },
+    "native-development/9713009": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 29
+    },
+    "native-development/9713010": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 57
+    },
+    "native-development/9713011": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761000": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 70
+    },
+    "native-development/9761001": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 31
+    },
+    "native-development/9761002": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761003": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 30
+    },
+    "native-development/9761004": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 31
+    },
+    "native-development/9761005": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 126
+    },
+    "native-development/9761006": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761007": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 29
+    },
+    "native-development/9761008": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 159
+    },
+    "native-development/9761009": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 64
+    },
+    "native-development/9761010": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761011": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 31
+    },
+    "native-development/9761012": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761013": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761014": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 34
+    },
+    "native-development/9761015": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761016": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 121
+    },
+    "native-development/9761017": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761018": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 54
+    },
+    "native-development/9761019": {
+      "split": "holdout",
+      "teacher_free": true,
+      "rows": 0
+    },
+    "native-development/9761020": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 28
+    },
+    "native-development/9761021": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 55
+    },
+    "native-development/9761022": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 29
+    },
+    "native-development/9761023": {
+      "split": "train",
+      "teacher_free": true,
+      "rows": 66
+    }
+  },
+  "training_rows_by_arm": [
+    75,
+    3320
+  ],
+  "training_bouts_by_arm": [
+    75,
+    146
+  ],
+  "heldout": [
+    {
+      "source": "native-development/9558007",
+      "teacher_free": false,
+      "rows": 8,
+      "unique_bouts": 1,
+      "trio_releases": 0,
+      "would_extend_release": 0,
+      "realized_reward_mae_logged_action": 0.09129986410156028,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    },
+    {
+      "source": "native-development/9567001",
+      "teacher_free": false,
+      "rows": 77,
+      "unique_bouts": 3,
+      "trio_releases": 0,
+      "would_extend_release": 0,
+      "realized_reward_mae_logged_action": 0.4122175549441289,
+      "observed_hp_gains_in_overlapping_logged_windows": 25
+    },
+    {
+      "source": "native-development/9567007",
+      "teacher_free": false,
+      "rows": 74,
+      "unique_bouts": 3,
+      "trio_releases": 2,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.3336550507495975,
+      "observed_hp_gains_in_overlapping_logged_windows": 13
+    },
+    {
+      "source": "native-development/9586001",
+      "teacher_free": false,
+      "rows": 64,
+      "unique_bouts": 3,
+      "trio_releases": 0,
+      "would_extend_release": 0,
+      "realized_reward_mae_logged_action": 0.34359754877851423,
+      "observed_hp_gains_in_overlapping_logged_windows": 11
+    },
+    {
+      "source": "native-development/9587001",
+      "teacher_free": false,
+      "rows": 100,
+      "unique_bouts": 3,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.36234187715629246,
+      "observed_hp_gains_in_overlapping_logged_windows": 26
+    },
+    {
+      "source": "native-development/9587007",
+      "teacher_free": false,
+      "rows": 43,
+      "unique_bouts": 2,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.2473707906047821,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    },
+    {
+      "source": "native-development/9587013",
+      "teacher_free": false,
+      "rows": 48,
+      "unique_bouts": 2,
+      "trio_releases": 0,
+      "would_extend_release": 0,
+      "realized_reward_mae_logged_action": 0.36201193480028043,
+      "observed_hp_gains_in_overlapping_logged_windows": 12
+    },
+    {
+      "source": "native-development/9592001",
+      "teacher_free": false,
+      "rows": 62,
+      "unique_bouts": 2,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.4065295460632048,
+      "observed_hp_gains_in_overlapping_logged_windows": 13
+    },
+    {
+      "source": "native-development/9592007",
+      "teacher_free": false,
+      "rows": 34,
+      "unique_bouts": 1,
+      "trio_releases": 0,
+      "would_extend_release": 0,
+      "realized_reward_mae_logged_action": 0.5999766052202083,
+      "observed_hp_gains_in_overlapping_logged_windows": 13
+    },
+    {
+      "source": "native-development/9593001",
+      "teacher_free": false,
+      "rows": 65,
+      "unique_bouts": 2,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.35121044287830855,
+      "observed_hp_gains_in_overlapping_logged_windows": 13
+    },
+    {
+      "source": "native-development/9593007",
+      "teacher_free": false,
+      "rows": 74,
+      "unique_bouts": 4,
+      "trio_releases": 2,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.2874723019842733,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    },
+    {
+      "source": "native-development/9713001",
+      "teacher_free": true,
+      "rows": 29,
+      "unique_bouts": 2,
+      "trio_releases": 2,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.1544526548784268,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    },
+    {
+      "source": "native-development/9713009",
+      "teacher_free": true,
+      "rows": 29,
+      "unique_bouts": 1,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.18390026115245875,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    },
+    {
+      "source": "native-development/9761001",
+      "teacher_free": true,
+      "rows": 31,
+      "unique_bouts": 1,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.16832812332152813,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    },
+    {
+      "source": "native-development/9761007",
+      "teacher_free": true,
+      "rows": 29,
+      "unique_bouts": 1,
+      "trio_releases": 1,
+      "would_extend_release": 1,
+      "realized_reward_mae_logged_action": 0.18086919510455318,
+      "observed_hp_gains_in_overlapping_logged_windows": 0
+    }
+  ]
+}
