@@ -155,6 +155,34 @@ def test_no_hit_reward_counts_contacts_even_after_healing(monkeypatch) -> None:
     np.testing.assert_array_equal(mod.no_hit_rewards(base, events, state, 0), base)
 
 
+def test_no_hit_opening_uses_events_through_the_trio_handoff(monkeypatch) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    mod = importlib.import_module("train_sisters_timing_iql")
+    state = np.ones((5, mod.WIDTH), dtype="f4")
+    state[:3, 23] = 0
+    events = np.zeros((5, 8), dtype="f4")
+    base = np.zeros(5, dtype="f4")
+    events[3, 1] = 1
+    events[4, 6] = 1
+    np.testing.assert_array_equal(
+        mod.no_hit_rewards(base, events, state, 2, opening=True), [0, 0, 4, -4, 0]
+    )
+    events[2, 2] = 1
+    np.testing.assert_array_equal(
+        mod.no_hit_rewards(base, events, state, 2, opening=True), [0, 0, -4, -2, 0]
+    )
+    events[2, 2] = 0
+    state[1, 4] = 8 / 9
+    np.testing.assert_array_equal(
+        mod.no_hit_rewards(base, events, state, 2, opening=True), [0, 0, 0, -4, 0]
+    )
+    state[1, 4] = 1
+    events[2, 7] = 1
+    np.testing.assert_array_equal(
+        mod.no_hit_rewards(base, events, state, 2, opening=True), [0, 0, 0, -4, 0]
+    )
+
+
 def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")

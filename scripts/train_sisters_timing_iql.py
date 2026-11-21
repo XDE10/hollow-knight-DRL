@@ -248,16 +248,28 @@ def opening_rewards(
 
 
 def no_hit_rewards(
-    reward: np.ndarray, events: np.ndarray, state: np.ndarray, cost: float
+    reward: np.ndarray,
+    events: np.ndarray,
+    state: np.ndarray,
+    cost: float,
+    *,
+    opening: bool = False,
 ) -> np.ndarray:
-    """Penalize real damage and award an observed full-health, zero-contact finish."""
+    """Penalize real damage and reward an observed clean subtask completion."""
     masks = events[:, 1:5].sum(axis=1)
     adjusted = reward - cost * masks
     hits = np.flatnonzero(masks > 0)
     if len(hits):
         adjusted[hits[0]] -= cost
     clean = (masks.cumsum() == 0) & np.logical_and.accumulate(state[:, 4] >= 1)
-    adjusted[(events[:, 6] > 0) & (events[:, 7] == 0) & clean] += 2 * cost
+    if opening:
+        trio = np.flatnonzero(state[:, 23] > 0.5)
+        if len(trio) and trio[0] > 0:
+            entry = int(trio[0])
+            if clean[entry - 1] and state[entry, 4] >= 1 and not events[:entry, 7].any():
+                adjusted[entry - 1] += 2 * cost
+    else:
+        adjusted[(events[:, 6] > 0) & (events[:, 7] == 0) & clean] += 2 * cost
     return adjusted
 
 
@@ -382,7 +394,7 @@ def build_data(
         ]
         reward = ev @ REWARD_WEIGHTS
         if no_hit_cost:
-            reward = no_hit_rewards(reward, ev, s, no_hit_cost)
+            reward = no_hit_rewards(reward, ev, s, no_hit_cost, opening=opening_only)
         if opening_only:
             reward, terminal = opening_rewards(s, reward, terminal, reserve_opening)
         dt = np.r_[np.diff(t), 0.04].astype("f4")
