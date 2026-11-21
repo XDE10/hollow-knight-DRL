@@ -58,6 +58,8 @@ def main() -> None:
         or environment.get("HKRL_NATIVE_DEMO_DIR")
         or environment.get("HKRL_NATIVE_TRIAL_CANDIDATE")
         or environment.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
+        or environment.get("HKRL_NATIVE_ROUTER_ROLLOUT") == "1"
+        or environment.get("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1"
     ):
         raise RuntimeError(
             "Expected direct native control without a tactical controller"

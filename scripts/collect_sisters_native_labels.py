@@ -113,6 +113,9 @@ def main() -> None:
     envs = proc.environ()
     has_teacher = bool(envs.get("HKRL_TACTICS_POLICY"))
     routing = envs.get("HKRL_NATIVE_ROUTER_ROLLOUT") == "1"
+    primitive = envs.get("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1"
+    if primitive and routing:
+        raise ValueError("Select one behavior policy")
     sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
     candidate = envs.get("HKRL_NATIVE_TRIAL_CANDIDATE")
     directional = envs.get("HKRL_NATIVE_DIRECTIONAL_SAMPLER")
@@ -126,7 +129,7 @@ def main() -> None:
         )
     if (
         proc.name().lower() != "hollow_knight.exe"
-        or not (has_teacher or sampling or candidate or routing)
+        or not (has_teacher or sampling or candidate or routing or primitive)
         or float(envs.get("HKRL_SISTERS_NAIL_MULTIPLIER", "1")) != 1
     ):
         raise RuntimeError("Wrong development game mode")
@@ -137,7 +140,7 @@ def main() -> None:
     if scale not in (1.0, 2.0):
         raise ValueError("Development collection supports 1x or 2x speed")
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
-    if routing and (has_teacher or sampling or candidate or envs.get("HKRL_NATIVE_TIMING") != "1"
+    if (routing or primitive) and (has_teacher or sampling or candidate or envs.get("HKRL_NATIVE_TIMING") != "1"
                     or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
         raise ValueError("A winning-router rollout requires exclusive student control")
     alternate_sha = hashlib.sha256(Path(candidate).read_bytes()).hexdigest() if candidate else None
@@ -206,17 +209,18 @@ def main() -> None:
 
                     plans = read_plans(tape_dir / f"{eid}.plans", eid, clock)
                 online = {}
-                if routing:
+                if routing or primitive:
                     from sisters_router_rollout import read_routes
+                    from sisters_primitive_rollout import read_keys
 
                     seed = int(envs["HKRL_NATIVE_DEMO_SEED"])
                     temperature = float(envs["HKRL_NATIVE_ROUTER_TEMPERATURE"])
-                    online = read_routes(tape_dir / f"{eid}.routes", eid, sha, seed, temperature,
-                                         clock, decisions["timing_state"])
+                    reader, suffix, index = (read_keys, "keys", "key_rows") if primitive else (read_routes, "routes", "route_rows")
+                    online = reader(tape_dir / f"{eid}.{suffix}", eid, sha, seed, temperature, clock, decisions["timing_state"])
                     controller.update(router_temperature=temperature, sampler_draw_seed=seed)
                     result.update(game_speed=scale, play_wall_seconds=play_wall_seconds,
                                   native_inputs=len(clock), control_game_seconds=float(clock[-1]-clock[0]))
-                    result.update(behavior_policy_sha256=sha, randomized_choices=len(online["route_rows"]))
+                    result.update(behavior_policy_sha256=sha, randomized_choices=len(online[index]))
                 if sampling:
                     from sisters_online_choices import late_catalogue, read_choices
 

@@ -33,6 +33,23 @@ ROW = np.dtype(
 )
 
 
+def available_keys(catalogue: np.ndarray, state: np.ndarray) -> np.ndarray:
+    bits = catalogue[:, 2]
+    feasible = ((bits & 1) == 0) | (
+        (state[:, 164:165] <= 0.5) & ((state[:, 7:8] >= 0.5) | (state[:, 8:9] >= 0.5))
+    )
+    feasible &= ((bits & 3) != 2) | (state[:, 165:166] >= 0.5)
+    feasible &= ((bits & 4) == 0) | (
+        (state[:, 13:14] >= 0.5) & (state[:, 166:167] <= 0.5)
+    )
+    feasible &= ((bits & 16) == 0) | (
+        (state[:, 11:12] >= 0.5)
+        & (state[:, 5:6] >= np.float32(33 / 99))
+        & (state[:, 168:169] <= 0.5)
+    )
+    return feasible
+
+
 def menu_slots(
     scores: np.ndarray, catalogue: np.ndarray, state: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -47,18 +64,7 @@ def menu_slots(
     direction = (catalogue[:, 0] + 1) * 2
     primary = direction[best]
     groups = direction + (family != family[best, None])
-    feasible = ((bits & 1) == 0) | (
-        (state[:, 164:165] <= 0.5) & ((state[:, 7:8] >= 0.5) | (state[:, 8:9] >= 0.5))
-    )
-    feasible &= ((bits & 3) != 2) | (state[:, 165:166] >= 0.5)
-    feasible &= ((bits & 4) == 0) | (
-        (state[:, 13:14] >= 0.5) & (state[:, 166:167] <= 0.5)
-    )
-    feasible &= ((bits & 16) == 0) | (
-        (state[:, 11:12] >= 0.5)
-        & (state[:, 5:6] >= np.float32(33 / 99))
-        & (state[:, 168:169] <= 0.5)
-    )
+    feasible = available_keys(catalogue, state)
     slots = np.full((len(best), GROUPS), -1, dtype="i4")
     for g in range(GROUPS):
         eligible = feasible & (groups == g)

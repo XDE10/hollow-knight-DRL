@@ -1,0 +1,17 @@
+[
+  {
+    "source": "native-development/9713001",
+    "decisions": 4047,
+    "changed_native_inputs": 56
+  },
+  {
+    "source": "native-development/9713005",
+    "decisions": 4023,
+    "changed_native_inputs": 38
+  },
+  {
+    "source": "native-development/9713009",
+    "decisions": 4378,
+    "changed_native_inputs": 43
+  }
+]

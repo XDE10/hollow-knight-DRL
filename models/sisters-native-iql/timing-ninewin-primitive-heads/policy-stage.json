@@ -1,0 +1,33 @@
+{
+  "stage": "heldout_rejected",
+  "shadow_key_net_gain": 0,
+  "policy_sha256": "eb45e08e10fde13394681b5d98c54a7720927af603b8e61479086f3ffcd4c415",
+  "arms": [
+    {
+      "sampled_inputs": 2838,
+      "safe_inputs": 2482,
+      "changed_safe": 52,
+      "changed_inputs": 58,
+      "affected_pre_hit_inputs": 6,
+      "shadow_pre_hit": 117,
+      "parent_matches": 63,
+      "new_matches": 62,
+      "value_mae": 0.6235960721969604,
+      "world_mae": 0.42959868907928467,
+      "persistence_mae": 0.4879995584487915
+    },
+    {
+      "sampled_inputs": 4902,
+      "safe_inputs": 4218,
+      "changed_safe": 62,
+      "changed_inputs": 78,
+      "affected_pre_hit_inputs": 16,
+      "shadow_pre_hit": 203,
+      "parent_matches": 89,
+      "new_matches": 90,
+      "value_mae": 0.6747381687164307,
+      "world_mae": 0.42915529012680054,
+      "persistence_mae": 0.48914504051208496
+    }
+  ]
+}
