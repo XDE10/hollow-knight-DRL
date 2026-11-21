@@ -1,0 +1,36 @@
+{
+  "finished": 1,
+  "wins": 1,
+  "no_hit_wins": 0,
+  "damage_taken": {
+    "ENEMY_PROJECTILE": 4,
+    "BOSS_BODY": 2
+  },
+  "complete": false,
+  "passed": false,
+  "next_goal": null,
+  "plan": {
+    "goal": 1,
+    "first_seed": 10091000,
+    "policy_sha256": "ce5b46bf416e647c5dd45956833f5c19b8e484a369eecd6f37801eb59a069a9c",
+    "mod_sha256": "5f20711d2fdeecb450f61b4f89d7fc614bbdeb7d195d31ab54eb6a38985e51f6",
+    "verify_unity_seed": true
+  },
+  "episodes": [
+    {
+      "seed": 10091000,
+      "unity_reset_seed": 10091000,
+      "win": true,
+      "no_hit_win": false,
+      "first_cleared": true,
+      "damage": 2710.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "BOSS_BODY": 2
+      },
+      "hp": 3,
+      "minimum_hp": 3,
+      "physics_ticks": 8984
+    }
+  ]
+}

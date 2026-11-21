@@ -1,0 +1,1739 @@
+{
+  "episode_id": 1,
+  "win": true,
+  "first_cleared": true,
+  "damage": 2710.0,
+  "damage_taken": {
+    "ENEMY_PROJECTILE": 4,
+    "BOSS_BODY": 2
+  },
+  "physics_ticks": 8984,
+  "hp": 3,
+  "minimum_hp": 3,
+  "trio_entry": {
+    "game_time": 56.29999923706055,
+    "physics_ticks": 2814,
+    "hp": 9,
+    "soul": 99
+  },
+  "damage_after_trio_observed": 2212.0,
+  "hit_intervals": [
+    {
+      "interval_start": 59.79999923706055,
+      "interval_end": 59.91999816894531,
+      "trio_already_observed": true,
+      "source": "ENEMY_PROJECTILE",
+      "source_entity_id": 12,
+      "hazard_type": 1,
+      "masks": 1,
+      "hp_before_interval": 9,
+      "hp_after_interval": 8,
+      "position_before_interval": [
+        34.10968017578125,
+        10.777925491333008
+      ],
+      "position_after_interval": [
+        34.305335998535156,
+        10.635354995727539
+      ],
+      "entities_before_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            32.10805130004883,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 19109382,
+          "hurtbox_center": [
+            32.10805130004883,
+            8.989999771118164
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 12,
+          "type": "PROJECTILE",
+          "position": [
+            32.50958251953125,
+            8.587861061096191
+          ],
+          "velocity": [
+            9.179983139038086,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            32.52788162231445,
+            8.615418434143066
+          ],
+          "hurtbox_size": [
+            4.831094741821289,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 13,
+          "type": "PROJECTILE",
+          "position": [
+            27.46042251586914,
+            8.351317405700684
+          ],
+          "velocity": [
+            -9.179983139038086,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            27.478721618652344,
+            8.378874778747559
+          ],
+          "hurtbox_size": [
+            4.831096649169922,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ],
+      "entities_after_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -696177920,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 12,
+          "type": "PROJECTILE",
+          "position": [
+            33.711978912353516,
+            8.32386302947998
+          ],
+          "velocity": [
+            10.61998176574707,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            33.73027801513672,
+            8.351420402526855
+          ],
+          "hurtbox_size": [
+            4.831094741821289,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 13,
+          "type": "PROJECTILE",
+          "position": [
+            26.258024215698242,
+            8.087319374084473
+          ],
+          "velocity": [
+            -10.61998176574707,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            26.276323318481445,
+            8.114876747131348
+          ],
+          "hurtbox_size": [
+            4.831096649169922,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ]
+    },
+    {
+      "interval_start": 98.91999816894531,
+      "interval_end": 99.04000091552734,
+      "trio_already_observed": true,
+      "source": "ENEMY_PROJECTILE",
+      "source_entity_id": 20,
+      "hazard_type": 1,
+      "masks": 1,
+      "hp_before_interval": 8,
+      "hp_after_interval": 7,
+      "position_before_interval": [
+        30.114238739013672,
+        7.408124923706055
+      ],
+      "position_after_interval": [
+        30.16495132446289,
+        8.103970527648926
+      ],
+      "entities_before_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            26.96906089782715,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            27.06281089782715,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 20,
+          "type": "PROJECTILE",
+          "position": [
+            31.17518424987793,
+            8.629265785217285
+          ],
+          "velocity": [
+            7.259984970092773,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            31.193483352661133,
+            8.65682315826416
+          ],
+          "hurtbox_size": [
+            4.831096649169922,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 21,
+          "type": "PROJECTILE",
+          "position": [
+            37.379634857177734,
+            8.889565467834473
+          ],
+          "velocity": [
+            -14.519969940185547,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            37.39793395996094,
+            8.917122840881348
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404808044433594
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ],
+      "entities_after_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            26.96906089782715,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 19109382,
+          "hurtbox_center": [
+            26.96906089782715,
+            8.989999771118164
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 20,
+          "type": "PROJECTILE",
+          "position": [
+            32.14718246459961,
+            8.365267753601074
+          ],
+          "velocity": [
+            8.699983596801758,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            32.16548156738281,
+            8.39282512664795
+          ],
+          "hurtbox_size": [
+            4.831094741821289,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 21,
+          "type": "PROJECTILE",
+          "position": [
+            35.435638427734375,
+            8.625567436218262
+          ],
+          "velocity": [
+            -17.399967193603516,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            35.45393753051758,
+            8.653124809265137
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ]
+    },
+    {
+      "interval_start": 101.87999725341797,
+      "interval_end": 102.0,
+      "trio_already_observed": true,
+      "source": "BOSS_BODY",
+      "source_entity_id": 9,
+      "hazard_type": 1,
+      "masks": 1,
+      "hp_before_interval": 7,
+      "hp_after_interval": 6,
+      "position_before_interval": [
+        33.756507873535156,
+        8.599502563476562
+      ],
+      "position_after_interval": [
+        33.964717864990234,
+        9.579591751098633
+      ],
+      "entities_before_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            32.544254302978516,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            32.638004302978516,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -696177920,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            34.592445373535156,
+            16.959999084472656
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 289970528,
+          "hurtbox_center": [
+            33.654945373535156,
+            17.538124084472656
+          ],
+          "hurtbox_size": [
+            2.15625,
+            2.15625
+          ]
+        },
+        {
+          "entity_id": 20,
+          "type": "PROJECTILE",
+          "position": [
+            105.58953857421875,
+            2.117260694503784
+          ],
+          "velocity": [
+            42.78003692626953,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            105.60783386230469,
+            2.144818067550659
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404802083969116
+          ]
+        },
+        {
+          "entity_id": 21,
+          "type": "PROJECTILE",
+          "position": [
+            -111.44906616210938,
+            2.3775618076324463
+          ],
+          "velocity": [
+            -85.56007385253906,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            -111.43077087402344,
+            2.4051191806793213
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404802083969116
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ],
+      "entities_after_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            32.544254302978516,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            32.638004302978516,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -696177920,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            34.592445373535156,
+            16.959999084472656
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 289970528,
+          "hurtbox_center": [
+            33.561195373535156,
+            17.764686584472656
+          ],
+          "hurtbox_size": [
+            1.5,
+            2.609375
+          ]
+        },
+        {
+          "entity_id": 20,
+          "type": "PROJECTILE",
+          "position": [
+            110.82394409179688,
+            1.8532607555389404
+          ],
+          "velocity": [
+            44.22004699707031,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            110.84223937988281,
+            1.8808181285858154
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404802083969116
+          ]
+        },
+        {
+          "entity_id": 21,
+          "type": "PROJECTILE",
+          "position": [
+            -121.91787719726562,
+            2.1135623455047607
+          ],
+          "velocity": [
+            -88.44009399414062,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            -121.89958190917969,
+            2.1411197185516357
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404802083969116
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ]
+    },
+    {
+      "interval_start": 106.31999969482422,
+      "interval_end": 106.43999481201172,
+      "trio_already_observed": true,
+      "source": "BOSS_BODY",
+      "source_entity_id": 10,
+      "hazard_type": 1,
+      "masks": 1,
+      "hp_before_interval": 6,
+      "hp_after_interval": 5,
+      "position_before_interval": [
+        33.39357376098633,
+        7.408123970031738
+      ],
+      "position_after_interval": [
+        33.18181228637695,
+        7.689846038818359
+      ],
+      "entities_before_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            22.25,
+            10.279999732971191
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1376807296,
+          "hurtbox_center": [
+            23.703125,
+            6.897187232971191
+          ],
+          "hurtbox_size": [
+            3.59375,
+            1.984375
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            34.70526123046875,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            34.61151123046875,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            37.650001525878906,
+            10.279999732971191
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1376807296,
+          "hurtbox_center": [
+            36.196876525878906,
+            6.897187232971191
+          ],
+          "hurtbox_size": [
+            3.59375,
+            1.984375
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ],
+      "entities_after_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            22.25,
+            10.279999732971191
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -737267072,
+          "hurtbox_center": [
+            21.828125,
+            7.217499732971191
+          ],
+          "hurtbox_size": [
+            1.96875,
+            2.625
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            34.70526123046875,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            34.61151123046875,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            37.650001525878906,
+            10.279999732971191
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -737267072,
+          "hurtbox_center": [
+            38.071876525878906,
+            7.217499732971191
+          ],
+          "hurtbox_size": [
+            1.96875,
+            2.625
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ]
+    },
+    {
+      "interval_start": 120.47999572753906,
+      "interval_end": 120.5999984741211,
+      "trio_already_observed": true,
+      "source": "ENEMY_PROJECTILE",
+      "source_entity_id": 24,
+      "hazard_type": 1,
+      "masks": 1,
+      "hp_before_interval": 5,
+      "hp_after_interval": 4,
+      "position_before_interval": [
+        26.92863655090332,
+        8.627155303955078
+      ],
+      "position_after_interval": [
+        26.38397216796875,
+        9.740510940551758
+      ],
+      "entities_before_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            23.435243606567383,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            23.528993606567383,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -696177920,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 24,
+          "type": "PROJECTILE",
+          "position": [
+            29.928817749023438,
+            9.601882934570312
+          ],
+          "velocity": [
+            -5.099987030029297,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            29.94711685180664,
+            9.629440307617188
+          ],
+          "hurtbox_size": [
+            4.831094741821289,
+            1.3404808044433594
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ],
+      "entities_after_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 17280096,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 10,
+          "type": "BOSS",
+          "position": [
+            23.435243606567383,
+            8.989999771118164
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -1523407744,
+          "hurtbox_center": [
+            23.528993606567383,
+            7.279062271118164
+          ],
+          "hurtbox_size": [
+            1.34375,
+            2.390625
+          ]
+        },
+        {
+          "entity_id": 11,
+          "type": "BOSS",
+          "position": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": -696177920,
+          "hurtbox_center": [
+            28.514368057250977,
+            29.145322799682617
+          ],
+          "hurtbox_size": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "entity_id": 24,
+          "type": "PROJECTILE",
+          "position": [
+            29.216018676757812,
+            9.337884902954102
+          ],
+          "velocity": [
+            -6.539985656738281,
+            -2.200000047683716
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            29.234317779541016,
+            9.365442276000977
+          ],
+          "hurtbox_size": [
+            4.831096649169922,
+            1.3404808044433594
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ]
+    },
+    {
+      "interval_start": 163.5800018310547,
+      "interval_end": 163.6999969482422,
+      "trio_already_observed": true,
+      "source": "ENEMY_PROJECTILE",
+      "source_entity_id": 32,
+      "hazard_type": 1,
+      "masks": 1,
+      "hp_before_interval": 4,
+      "hp_after_interval": 3,
+      "position_before_interval": [
+        29.901504516601562,
+        7.412886619567871
+      ],
+      "position_after_interval": [
+        30.297407150268555,
+        7.5588274002075195
+      ],
+      "entities_before_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            41.77000045776367,
+            9.944135665893555
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 739257600,
+          "hurtbox_center": [
+            42.05125045776367,
+            9.241010665893555
+          ],
+          "hurtbox_size": [
+            2.25,
+            2.875
+          ]
+        },
+        {
+          "entity_id": 32,
+          "type": "PROJECTILE",
+          "position": [
+            34.902400970458984,
+            7.650134086608887
+          ],
+          "velocity": [
+            -28.680004119873047,
+            1.100000023841858
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            34.92070007324219,
+            7.677691459655762
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 31,
+          "type": "PROJECTILE",
+          "position": [
+            -28.068273544311523,
+            6.043954372406006
+          ],
+          "velocity": [
+            -57.71992874145508,
+            -1.100000023841858
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            -28.04997444152832,
+            6.071511745452881
+          ],
+          "hurtbox_size": [
+            4.831096649169922,
+            1.340479850769043
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ],
+      "entities_after_interval": [
+        {
+          "entity_id": 9,
+          "type": "BOSS",
+          "position": [
+            41.77000045776367,
+            9.944135665893555
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 739257600,
+          "hurtbox_center": [
+            42.05125045776367,
+            9.241010665893555
+          ],
+          "hurtbox_size": [
+            2.25,
+            2.875
+          ]
+        },
+        {
+          "entity_id": 32,
+          "type": "PROJECTILE",
+          "position": [
+            31.66240119934082,
+            7.782133102416992
+          ],
+          "velocity": [
+            -25.800006866455078,
+            1.100000023841858
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            31.680700302124023,
+            7.809690475463867
+          ],
+          "hurtbox_size": [
+            4.831096649169922,
+            1.3404803276062012
+          ]
+        },
+        {
+          "entity_id": 31,
+          "type": "PROJECTILE",
+          "position": [
+            -35.196266174316406,
+            5.9119553565979
+          ],
+          "velocity": [
+            -60.59992599487305,
+            -1.100000023841858
+          ],
+          "observed_fsm_state_hash": 755932,
+          "hurtbox_center": [
+            -35.1779670715332,
+            5.939512729644775
+          ],
+          "hurtbox_size": [
+            4.831092834472656,
+            1.340479850769043
+          ]
+        },
+        {
+          "entity_id": 2,
+          "type": "HAZARD",
+          "position": [
+            18.149999618530273,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            18.234651565551758,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139321327209473,
+            1.0463695526123047
+          ]
+        },
+        {
+          "entity_id": 3,
+          "type": "HAZARD",
+          "position": [
+            41.68000030517578,
+            5.5
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "observed_fsm_state_hash": 0,
+          "hurtbox_center": [
+            41.764652252197266,
+            5.159999847412109
+          ],
+          "hurtbox_size": [
+            5.139320373535156,
+            1.0463695526123047
+          ]
+        }
+      ]
+    }
+  ],
+  "heal_event_amount": 7.0,
+  "observed_dash_starts": {
+    "dashing": 8,
+    "shadow_dashing": 8
+  },
+  "last_observed_trio": {
+    "game_time": 172.37998962402344,
+    "observed_hp_by_entity": {
+      "9": 11
+    }
+  },
+  "truncated": false,
+  "speed_counts": {
+    "1.0": 1477
+  },
+  "unity_reset_seed": 10091000,
+  "seed": 10091000,
+  "policy_sha256": "ce5b46bf416e647c5dd45956833f5c19b8e484a369eecd6f37801eb59a069a9c",
+  "mod_sha256": "5f20711d2fdeecb450f61b4f89d7fc614bbdeb7d195d31ab54eb6a38985e51f6",
+  "decisions": 4481,
+  "attack": 279,
+  "cast": 84,
+  "dash": 38,
+  "nail_art": 0,
+  "no_hit_win": false
+}
