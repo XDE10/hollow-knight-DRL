@@ -13,7 +13,10 @@ import numpy as np
 
 
 def pack(
-    manifests: list[Path], output: Path, original_speed_only: bool = False
+    manifests: list[Path],
+    output: Path,
+    original_speed_only: bool = False,
+    block_experiment: Path | None = None,
 ) -> None:
     games: dict[int, tuple[Path, dict]] = {}
     seen = set()
@@ -25,8 +28,13 @@ def pack(
                 seed in seen
                 or game["source"] != f"native-development/{seed}"
                 or meta["win"] != game["won"]
-                or game.get("behavior_policy_sha256") != meta.get("behavior_policy_sha256")
+                or game.get("behavior_policy_sha256")
+                != meta.get("behavior_policy_sha256")
                 or game.get("teacher_labels", True) != meta.get("teacher_labels", True)
+                or any(
+                    game.get(k) != meta.get(k)
+                    for k in ("student_policy_sha256", "teacher_probability")
+                )
             ):
                 raise ValueError("Repeated seed or unmatched development record")
             seen.add(seed)
@@ -37,6 +45,33 @@ def pack(
                 ):
                     continue
             games[seed] = (manifest.parent / game["file"], game)
+    split_by_seed = {}
+    spec = None
+    if block_experiment is not None:
+        spec = json.loads(block_experiment.read_bytes())
+        train, held = spec["train_seeds"], spec["heldout_seeds"]
+        if (
+            not train
+            or not held
+            or len(set(train + held)) != len(train) + len(held)
+            or set(train + held) != set(games)
+            or spec["teacher_probability"] != 0.5
+            or not original_speed_only
+        ):
+            raise ValueError(
+                "The complete registered original-speed block experiment is required"
+            )
+        split_by_seed = {seed: "train" for seed in train} | {
+            seed: "holdout" for seed in held
+        }
+        if any(
+            g.get("student_policy_sha256") != spec["actor_sha256"]
+            or g.get("teacher_probability") != spec["teacher_probability"]
+            for _, g in games.values()
+        ):
+            raise ValueError(
+                "Recorded actor or controller probability differs from the experiment"
+            )
     entries = []
     if output.exists():
         raise FileExistsError(output)
@@ -90,9 +125,16 @@ def pack(
                         or assigned.shape != (len(t),)
                         or student.shape != (len(t), 3)
                         or teacher.shape != student.shape
-                        or not np.array_equal(raw["controls"], np.where(assigned[:, None], teacher, student))
+                        or not np.array_equal(
+                            raw["controls"],
+                            np.where(assigned[:, None], teacher, student),
+                        )
                     ):
-                        raise ValueError(f"Controller assignment differs from applied keys in {path}")
+                        raise ValueError(
+                            f"Controller assignment differs from applied keys in {path}"
+                        )
+                if spec is not None and not assignment_keys:
+                    raise ValueError(f"No recorded controller assignments in {path}")
                 np.savez_compressed(
                     buf,
                     **{
@@ -118,16 +160,29 @@ def pack(
                 {
                     "source": game["source"],
                     "file": name,
-                    "split": "holdout" if (seed % 1000) % 6 == 1 else "train",
+                    "split": split_by_seed.get(
+                        seed, "holdout" if (seed % 1000) % 6 == 1 else "train"
+                    ),
                     "won": game["won"],
                     **({"teacher_labels": False} if not labeled else {}),
-                    **({"behavior_policy_sha256": game["behavior_policy_sha256"]} if online_keys else {}),
+                    **{
+                        k: game[k]
+                        for k in ("student_policy_sha256", "teacher_probability")
+                        if k in game
+                    },
+                    **(
+                        {"behavior_policy_sha256": game["behavior_policy_sha256"]}
+                        if online_keys
+                        else {}
+                    ),
                     "sha256": hashlib.sha256(data).hexdigest(),
                 }
             )
         if {g["split"] for g in entries} != {"train", "holdout"}:
             raise ValueError("Missing fight split")
         archive.writestr("manifest.json", json.dumps(entries, indent=2) + "\n")
+        if spec is not None:
+            archive.writestr("experiment.json", json.dumps(spec, indent=2) + "\n")
     partial.replace(output)
 
 
@@ -136,5 +191,6 @@ if __name__ == "__main__":
     parser.add_argument("--manifests", nargs="+", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--original-speed-only", action="store_true")
+    parser.add_argument("--block-experiment", type=Path, help="Preassigned policy hashes and complete fight splits.")
     args = parser.parse_args()
-    pack(args.manifests, args.output, args.original_speed_only)
+    pack(args.manifests, args.output, args.original_speed_only, args.block_experiment)

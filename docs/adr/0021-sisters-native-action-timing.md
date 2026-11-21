@@ -77,3 +77,26 @@ its baseline. The advantage relative to that baseline multiplies the IQL actor
 weight, bounded between exp(−1) and exp(1). Censored fights retain the ordinary
 IQL weight. The learned world model and twin critics still use the actual
 transition rewards. The exported actor chooses primitive controls as before.
+
+### Randomized recovery blocks
+
+During development the recorder can assign the frozen native policy or a teacher
+to a 0.8-game-second block by a fair draw. The tape keeps the actual controller,
+both proposed inputs and the applied input. The collector checks the native
+policy digest and the number of decisions. The experiment registers entire
+fights for training and holdout before collection. [Recovery experiment](../../configs/experiments/sisters_recovery_blocks.json)
+
+`pack_sisters_timing_replay.py --original-speed-only --block-experiment` packages
+completed manifests using the registered policy and split. The recovery trainer
+reads this ZIP, the parent learner and the deployed parent policy. It fits a
+trio action head on movements actually executed by the teacher, weighting
+control blocks by observed reward and the frozen IQL value at their endpoints.
+Disagreements in ordinary held-out fights measure whether the recovered
+movement was learned. Agreement states measure changes to the parent policy.
+The exported opening network stays byte-identical. [Recovery trainer](../../scripts/train_sisters_recovery_blocks.py)
+
+The teacher's measured return describes the teacher-controlled block.
+The learned recovery policy needs its own games against the frozen parent.
+Record damage through the following block as well as whole-fight results to
+capture delayed collisions, resource costs and the cost of switching policies.
+The two formal cohorts use only frozen neural control. [Acceptance criteria](../../configs/experiments/sisters_acceptance.json)

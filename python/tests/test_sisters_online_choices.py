@@ -34,9 +34,12 @@ def test_record_and_pack_actor_assignment(tmp_path: Path, monkeypatch: pytest.Mo
         if i == 0:
             del fields["teacher_acted"], fields["student_controls"]
         np.savez(path, **fields, time=[0.0], elapsed_ticks=[6], events=np.zeros((1, 8)))
-        meta = {"seed": seed, "win": True}
+        controller = {"student_policy_sha256": "a" * 64, "teacher_probability": 0.5}
+        meta = {"seed": seed, "win": True, "speed_counts": {"1": 3}, **controller}
         (tmp_path / f"episode-{i:03d}.json").write_text(json.dumps(meta))
-        manifests.append({"source": f"native-development/{seed}", "file": path.name, "won": True})
+        manifests.append(
+            {"source": f"native-development/{seed}", "file": path.name, "won": True, **controller}
+        )
     manifest = tmp_path / "manifest.json"
     manifest.write_text(json.dumps(manifests))
     pack([manifest], archive)
@@ -46,6 +49,29 @@ def test_record_and_pack_actor_assignment(tmp_path: Path, monkeypatch: pytest.Mo
         with np.load(io.BytesIO(z.read("fight-1001.npz"))) as new:
             np.testing.assert_array_equal(new["teacher_acted"], [True, False, False])
             np.testing.assert_array_equal(new["student_controls"], rows[:, 63:66])
+    # A registered experiment uses its declared split, even when the
+    # ordinary seed-based development split would give the opposite answer.
+    np.savez(
+        tmp_path / "fight-1000.npz", **data, time=[0.0], elapsed_ticks=[6], events=np.zeros((1, 8))
+    )
+    spec = {
+        "actor_sha256": "a" * 64,
+        "learner_sha256": "b" * 64,
+        "teacher_probability": 0.5,
+        "train_seeds": [1001],
+        "heldout_seeds": [1000],
+    }
+    contract = tmp_path / "experiment.json"
+    contract.write_text(json.dumps(spec))
+    registered = tmp_path / "registered.zip"
+    pack([manifest], registered, original_speed_only=True, block_experiment=contract)
+    with zipfile.ZipFile(registered) as z:
+        assert json.loads(z.read("experiment.json")) == spec
+        assert [row["split"] for row in json.loads(z.read("manifest.json"))] == ["holdout", "train"]
+    spec["actor_sha256"] = "c" * 64
+    contract.write_text(json.dumps(spec))
+    with pytest.raises(ValueError, match="Recorded actor"):
+        pack([manifest], tmp_path / "bad.zip", True, contract)
     rows[1, 66] = 2
     tape.write_bytes(struct.pack("<IQ", 0x32474144, 3) + rows.tobytes())
     with pytest.raises(ValueError, match="controller assignment"):
@@ -56,7 +82,7 @@ def test_student_record_cannot_supply_teacher_labels(tmp_path: Path, monkeypatch
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     read = importlib.import_module("collect_sisters_native_labels").read_decisions
     rows = np.zeros((3, 196), dtype="<f4")
-    rows[:, 0] = [0, .04, .08]
+    rows[:, 0] = [0, 0.04, 0.08]
     rows[:, 1:4] = [[-1, 0, 8], [1, 0, 8], [0, 1, 1]]
     path = tmp_path / "17.native"
     path.write_bytes(struct.pack("<IQ", 0x33474144, 17) + rows.tobytes())

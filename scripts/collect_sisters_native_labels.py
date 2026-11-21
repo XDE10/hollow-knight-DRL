@@ -159,6 +159,9 @@ def main() -> None:
                     or int(receipt[2]) != len(clock)
                 ):
                     raise ValueError("Actor receipt differs")
+                controller: dict[str, str | float] = {"student_policy_sha256": sha}
+                if has_teacher and envs.get("HKRL_NATIVE_DEMO_RATIO"):
+                    controller["teacher_probability"] = float(envs["HKRL_NATIVE_DEMO_RATIO"])
                 file = f"dev-{i:03d}.npz"
                 plans = {}
                 if envs.get("HKRL_NATIVE_PLAN_TRACE") == "1":
@@ -189,6 +192,7 @@ def main() -> None:
                     seed=args.seed + i,
                     teacher_labels=has_teacher,
                     **control_stats,
+                    **controller,
                 )
                 (args.output / f"episode-{i:03d}.json").write_text(
                     json.dumps(result, indent=2) + "\n"
@@ -200,6 +204,7 @@ def main() -> None:
                         "split": "train",
                         "won": result["win"],
                         "teacher_labels": has_teacher,
+                        **controller,
                         **({"behavior_policy_sha256": sha} if online else {}),
                     }
                 )
