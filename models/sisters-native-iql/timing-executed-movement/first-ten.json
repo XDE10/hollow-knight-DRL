@@ -1,0 +1,336 @@
+{
+  "scope": "First 10 consecutive independent fights of the frozen 100-fight cohort. They also count in its subsequent full score.",
+  "plan": {
+    "goal": 1,
+    "first_seed": 9743000,
+    "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+    "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e"
+  },
+  "finished": 10,
+  "wins": 8,
+  "no_hit_wins": 0,
+  "damage_taken": {
+    "BOSS_BODY": 38,
+    "ENEMY_PROJECTILE": 26,
+    "SPIKES": 4
+  },
+  "complete": false,
+  "passed": false,
+  "next_goal": null,
+  "average_damage": 2631.1,
+  "first_sister_cleared": 10,
+  "episodes": [
+    {
+      "seed": 9743000,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2707.0,
+      "damage_taken": {
+        "BOSS_BODY": 5,
+        "ENEMY_PROJECTILE": 3
+      },
+      "minimum_hp": 1,
+      "hp": 1,
+      "trio_entry": {
+        "game_time": 52.07999801635742,
+        "physics_ticks": 2603,
+        "hp": 9,
+        "soul": 99
+      },
+      "damage_after_trio_observed": 2227.0,
+      "physics_ticks": 10310,
+      "decisions": 5155,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1711,
+        "0.554": 1,
+        "0.239": 1,
+        "0.86": 1
+      }
+    },
+    {
+      "seed": 9743001,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2701.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 3,
+        "SPIKES": 1,
+        "BOSS_BODY": 5
+      },
+      "minimum_hp": 1,
+      "hp": 1,
+      "trio_entry": {
+        "game_time": 46.89999771118164,
+        "physics_ticks": 2344,
+        "hp": 9,
+        "soul": 18
+      },
+      "damage_after_trio_observed": 2222.0,
+      "physics_ticks": 9043,
+      "decisions": 4517,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1492,
+        "0.423": 1,
+        "0.652": 1
+      }
+    },
+    {
+      "seed": 9743002,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": false,
+      "no_hit_win": false,
+      "damage": 2069.0,
+      "damage_taken": {
+        "BOSS_BODY": 6,
+        "ENEMY_PROJECTILE": 3
+      },
+      "minimum_hp": 0,
+      "hp": 0,
+      "trio_entry": {
+        "game_time": 63.07999801635742,
+        "physics_ticks": 3153,
+        "hp": 9,
+        "soul": 75
+      },
+      "damage_after_trio_observed": 1583.0,
+      "physics_ticks": 7363,
+      "decisions": 3680,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1221,
+        "0.902": 1,
+        "0.967": 1
+      }
+    },
+    {
+      "seed": 9743003,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2703.0,
+      "damage_taken": {
+        "BOSS_BODY": 3
+      },
+      "minimum_hp": 6,
+      "hp": 6,
+      "trio_entry": {
+        "game_time": 43.23999786376953,
+        "physics_ticks": 2161,
+        "hp": 9,
+        "soul": 51
+      },
+      "damage_after_trio_observed": 2208.0,
+      "physics_ticks": 9012,
+      "decisions": 4507,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1499,
+        "0.568": 1,
+        "0.868": 1
+      }
+    },
+    {
+      "seed": 9743004,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2698.0,
+      "damage_taken": {
+        "BOSS_BODY": 4,
+        "ENEMY_PROJECTILE": 3
+      },
+      "minimum_hp": 2,
+      "hp": 2,
+      "trio_entry": {
+        "game_time": 54.29999923706055,
+        "physics_ticks": 2714,
+        "hp": 9,
+        "soul": 99
+      },
+      "damage_after_trio_observed": 2206.0,
+      "physics_ticks": 9727,
+      "decisions": 4860,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1614,
+        "0.756": 1
+      }
+    },
+    {
+      "seed": 9743005,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2719.0,
+      "damage_taken": {
+        "BOSS_BODY": 3,
+        "ENEMY_PROJECTILE": 4
+      },
+      "minimum_hp": 2,
+      "hp": 2,
+      "trio_entry": {
+        "game_time": 54.18000030517578,
+        "physics_ticks": 2708,
+        "hp": 9,
+        "soul": 89
+      },
+      "damage_after_trio_observed": 2221.0,
+      "physics_ticks": 8579,
+      "decisions": 4289,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1425,
+        "0.807": 1,
+        "0.802": 1,
+        "0.796": 1
+      }
+    },
+    {
+      "seed": 9743006,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2717.0,
+      "damage_taken": {
+        "BOSS_BODY": 4,
+        "ENEMY_PROJECTILE": 1
+      },
+      "minimum_hp": 4,
+      "hp": 4,
+      "trio_entry": {
+        "game_time": 58.19999694824219,
+        "physics_ticks": 2909,
+        "hp": 9,
+        "soul": 99
+      },
+      "damage_after_trio_observed": 2220.0,
+      "physics_ticks": 8668,
+      "decisions": 4330,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1439,
+        "0.725": 1,
+        "0.876": 1
+      }
+    },
+    {
+      "seed": 9743007,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": false,
+      "no_hit_win": false,
+      "damage": 2581.0,
+      "damage_taken": {
+        "SPIKES": 1,
+        "BOSS_BODY": 5,
+        "ENEMY_PROJECTILE": 3
+      },
+      "minimum_hp": 0,
+      "hp": 0,
+      "trio_entry": {
+        "game_time": 54.41999816894531,
+        "physics_ticks": 2720,
+        "hp": 9,
+        "soul": 69
+      },
+      "damage_after_trio_observed": 2083.0,
+      "physics_ticks": 9016,
+      "decisions": 4505,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1497,
+        "0.459": 1
+      }
+    },
+    {
+      "seed": 9743008,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2725.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 2,
+        "BOSS_BODY": 1,
+        "SPIKES": 1
+      },
+      "minimum_hp": 6,
+      "hp": 6,
+      "trio_entry": {
+        "game_time": 60.97999954223633,
+        "physics_ticks": 3048,
+        "hp": 9,
+        "soul": 75
+      },
+      "damage_after_trio_observed": 2234.0,
+      "physics_ticks": 8804,
+      "decisions": 4400,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1463,
+        "0.814": 1
+      }
+    },
+    {
+      "seed": 9743009,
+      "episode_id": 1,
+      "first_cleared": true,
+      "win": true,
+      "no_hit_win": false,
+      "damage": 2691.0,
+      "damage_taken": {
+        "ENEMY_PROJECTILE": 4,
+        "BOSS_BODY": 2,
+        "SPIKES": 1
+      },
+      "minimum_hp": 3,
+      "hp": 3,
+      "trio_entry": {
+        "game_time": 54.81999969482422,
+        "physics_ticks": 2740,
+        "hp": 9,
+        "soul": 41
+      },
+      "damage_after_trio_observed": 2199.0,
+      "physics_ticks": 8542,
+      "decisions": 4271,
+      "truncated": false,
+      "policy_sha256": "14fe210c92809ecdc4eb42bc8fc3bd82103fda2a594e22bb5d822831295c035c",
+      "mod_sha256": "566ca60a655a2e0a510ffcc4e3ab6aa299797feec42bec200ce585deb0eb9b3e",
+      "speed_counts": {
+        "1.0": 1421,
+        "0.376": 1,
+        "0.983": 1
+      }
+    }
+  ]
+}
