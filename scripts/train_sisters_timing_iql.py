@@ -548,14 +548,42 @@ def greedy_motion_loss(logits: Tensor, groups: Tensor, issued: Tensor) -> Tensor
     return F.softplus(competing - best_issued)
 
 
+OPTION_MAGIC = 0x354C5149
+OPTION_FEATURES = 12
+
+
+def _timing_component(component: bytes) -> bool:
+    return (
+        len(component) >= 20
+        and struct.unpack_from("<i", component)[0] in (0x324C5149, 0x344C5149)
+        and struct.unpack_from("<3i", component, 4) == (WIDTH, 256, 192)
+    )
+
+
+def option_components(component: bytes) -> tuple[bytes, bytes, np.ndarray]:
+    """Unpack two history policies and the standardized, clipped projection head."""
+    if len(component) < 12:
+        raise ValueError("Truncated option policy")
+    magic, first, second = struct.unpack_from("<3i", component)
+    size = (WIDTH * OPTION_FEATURES + 3 * OPTION_FEATURES + 1) * 4
+    if magic != OPTION_MAGIC or min(first, second) < 20 or 12 + first + second + size != len(component):
+        raise ValueError("Invalid option policy lengths")
+    primary, alternate = component[12:12 + first], component[12 + first:12 + first + second]
+    for actor in (primary, alternate):
+        if not _timing_component(actor) or struct.unpack_from("<i", actor)[0] != 0x344C5149:
+            raise ValueError("Options require history actors")
+    weights = np.frombuffer(component[-size:], "<f4")
+    scale = weights[(WIDTH+1)*OPTION_FEATURES:(WIDTH+2)*OPTION_FEATURES]
+    if not np.isfinite(weights).all() or np.any(scale <= 0):
+        raise ValueError("Invalid option projection parameters")
+    return primary, alternate, weights
+
+
 def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
-    for component in (opener, trio):
-        if (
-            len(component) < 20
-            or struct.unpack_from("<i", component)[0] not in (0x324C5149, 0x344C5149)
-            or struct.unpack_from("<3i", component, 4) != (WIDTH, 256, 192)
-        ):
-            raise ValueError("Expected a native timing actor for each battle phase")
+    if not _timing_component(opener):
+        raise ValueError("Expected a timing actor for the opening")
+    if not _timing_component(trio):
+        option_components(trio)
     return struct.pack("<3i", 0x334C5149, len(opener), len(trio)) + opener + trio
 
 

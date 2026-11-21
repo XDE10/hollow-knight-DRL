@@ -1,0 +1,87 @@
+{
+  "method": "Whole-training-fight cross-fitted return contrast for a 0.8 second neural option.",
+  "scope": "Single-block estimates under the randomized development distribution. Each row is one held fight.",
+  "extra_mask_cost": 0,
+  "data_sha256": "a9669d60560ff5cbbe439fe0aaad4f6005740dfd16382294fc852e9802b4d61b",
+  "primary_sha256": "e0264023445e61638977a3f5433f70c03c083fd3050dfdad2314360c3bc713f3",
+  "alternate_sha256": "fd51ea7a18e2313850bb936f639212edcf1296211f7d8a8820e740535ed210c8",
+  "source_learner_sha256": "80d31a265f938a354fa51b72685a5f422126f40edd7391a7fe4949c47e028e2e",
+  "policy_sha256": "7d0887b54e52ef0ef25b9c8e8dca0e7f1ddd9e14a497fc1a801f70c6aa206d25",
+  "train_games": 9,
+  "held_games": 3,
+  "train_blocks": 1232,
+  "held_blocks": 408,
+  "results": {
+    "critic_continuation": [
+      {
+        "source": "native-development/9713001",
+        "blocks": 120,
+        "fraction_R": 0.6,
+        "assigned_primary": 52,
+        "assigned_alternate": 68,
+        "vs_fair": 0.04311860038344964,
+        "vs_H": -0.025397934045583867,
+        "vs_R": 0.11163513481248309,
+        "raw_ips_vs_fair": 0.051090872211070254
+      },
+      {
+        "source": "native-development/9713005",
+        "blocks": 135,
+        "fraction_R": 0.6,
+        "assigned_primary": 65,
+        "assigned_alternate": 70,
+        "vs_fair": 0.11271048840259773,
+        "vs_H": 0.11003713821394286,
+        "vs_R": 0.11538383859125265,
+        "raw_ips_vs_fair": 0.10908358082650736
+      },
+      {
+        "source": "native-development/9713009",
+        "blocks": 153,
+        "fraction_R": 0.6470588235294118,
+        "assigned_primary": 75,
+        "assigned_alternate": 78,
+        "vs_fair": 0.015134636968973391,
+        "vs_H": 0.0348906131877442,
+        "vs_R": -0.004621339249797427,
+        "raw_ips_vs_fair": 0.008340364782687588
+      }
+    ],
+    "measured_block_reward": [
+      {
+        "source": "native-development/9713001",
+        "blocks": 120,
+        "fraction_R": 0.6,
+        "assigned_primary": 52,
+        "assigned_alternate": 68,
+        "vs_fair": 0.1125760431659743,
+        "vs_H": 0.14879190857678562,
+        "vs_R": 0.07636017775516298,
+        "raw_ips_vs_fair": 0.10607703576485315
+      },
+      {
+        "source": "native-development/9713005",
+        "blocks": 135,
+        "fraction_R": 0.6,
+        "assigned_primary": 65,
+        "assigned_alternate": 70,
+        "vs_fair": 0.07255632371958436,
+        "vs_H": 0.09986855374746693,
+        "vs_R": 0.04524409369170176,
+        "raw_ips_vs_fair": 0.06138045522901747
+      },
+      {
+        "source": "native-development/9713009",
+        "blocks": 153,
+        "fraction_R": 0.6470588235294118,
+        "assigned_primary": 75,
+        "assigned_alternate": 78,
+        "vs_fair": 0.03602299397804813,
+        "vs_H": 0.11573167561282019,
+        "vs_R": -0.04368568765672394,
+        "raw_ips_vs_fair": 0.006129907821518144
+      }
+    ]
+  },
+  "trial_eligible": true
+}

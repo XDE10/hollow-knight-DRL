@@ -27,6 +27,7 @@ namespace HKRLEnvMod.Action
         private readonly float[] _disc = new float[2];
         private NativeSistersNetwork? _net;
         private NativeSistersNetwork? _trioNet;
+        private SistersOptionRouter? _router;
         private SistersTimingState? _timing;
         private ulong _episode, _tick, _commits;
         private int _count, _attack, _cast, _dash, _art;
@@ -71,7 +72,7 @@ namespace HKRLEnvMod.Action
                 var bytes = File.ReadAllBytes(_path);
                 using (var sha = SHA256.Create())
                     _digest = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
-                _net = NativeSistersNetwork.Load(bytes, out _trioNet);
+                _net = NativeSistersNetwork.Load(bytes, out _trioNet, out _router);
                 _episode = obs.Global.EpisodeId;
                 _count = _attack = _cast = _dash = _art = 0;
                 _demonstrator?.Reset(_episode);
@@ -84,6 +85,7 @@ namespace HKRLEnvMod.Action
             _timing?.Observe(obs);
             var state = _net.UsesTiming ? _timing!.Values : _raw;
             var active = _trioNet != null && state[SistersTimingState.TrioFlag] > .5f ? _trioNet : _net;
+            if (_router != null) active = _router.Select(active, _trioNet!, state, obs.Global.TimeInEpisode);
             if (active != _trioNet) _trioNet?.Remember(state, obs.Global.TimeInEpisode);
             if (_demonstrator?.NeuralTrial != null)
                 active = _demonstrator.NeuralTrial.Select(active, active == _trioNet, state, obs.Global.TimeInEpisode);
@@ -130,6 +132,15 @@ namespace HKRLEnvMod.Action
 
         internal static NativeSistersNetwork Load(byte[] bytes, out NativeSistersNetwork? trio)
         {
+            var opener = Load(bytes, out trio, out var router);
+            if (router != null) throw new InvalidDataException("A routed policy needs its option selector");
+            return opener;
+        }
+
+        internal static NativeSistersNetwork Load(byte[] bytes, out NativeSistersNetwork? trio,
+            out SistersOptionRouter? router)
+        {
+            router = null;
             trio = null;
             using var source = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(source);
@@ -145,7 +156,7 @@ namespace HKRLEnvMod.Action
             using var firstReader = new BinaryReader(new MemoryStream(reader.ReadBytes(firstSize), false));
             using var trioReader = new BinaryReader(new MemoryStream(reader.ReadBytes(trioSize), false));
             var opener = new NativeSistersNetwork(firstReader);
-            trio = new NativeSistersNetwork(trioReader);
+            trio = SistersOptionRouter.Read(trioReader, out router);
             if (!opener.UsesTiming || !trio.UsesTiming)
                 throw new InvalidDataException("Both phase policies require the timing observations");
             return opener;
@@ -193,15 +204,15 @@ namespace HKRLEnvMod.Action
         {
             if (UsesTiming)
             {
-                Array.Copy(raw, _x, SistersTimingState.Width);
-                Pool(raw, 24, 3, 36, _entityWeights[0], _entityWeights[1], 192);
-                Pool(raw, 132, 2, 14, _entityWeights[2], _entityWeights[3], 240);
-                _motionHistory?.Encode(time, _x, 264);
+                TimingEmbedding(raw, time);
                 Remember(raw, time);
             }
-            else PrepareHistory(raw, time);
-            Dense(_x,_w[0],_w[1],_h,true);
-            Dense(_h,_w[2],_w[3],_z,true);
+            else
+            {
+                PrepareHistory(raw, time);
+                Dense(_x,_w[0],_w[1],_h,true);
+                Dense(_h,_w[2],_w[3],_z,true);
+            }
             Dense(_z,_w[4],_w[5],_scores,false);
             int best=0;
             for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
@@ -240,9 +251,20 @@ namespace HKRLEnvMod.Action
             return other >= 0;
         }
 
+        internal float[] TimingEmbedding(float[] raw, float time)
+        {
+            Array.Copy(raw, _x, SistersTimingState.Width);
+            Pool(raw, 24, 3, 36, _entityWeights[0], _entityWeights[1], 192);
+            Pool(raw, 132, 2, 14, _entityWeights[2], _entityWeights[3], 240);
+            _motionHistory?.Encode(time, _x, 264);
+            Dense(_x,_w[0],_w[1],_h,true);
+            Dense(_h,_w[2],_w[3],_z,true);
+            return _z;
+        }
+
         internal void Remember(float[] raw, float time) => _motionHistory?.Remember(raw, time);
 
-        private static float[] ReadWeights(BinaryReader reader, int count)
+        internal static float[] ReadWeights(BinaryReader reader, int count)
         {
             var w = new float[count];
             for (int i=0; i<count; i++)
