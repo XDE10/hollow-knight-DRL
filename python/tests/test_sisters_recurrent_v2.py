@@ -132,3 +132,22 @@ def test_critical_teacher_weight_changes_only_iql_behavior_cloning(trainer) -> N
         )
     assert weighted["teacher_bc"] == pytest.approx(float(expected))
     assert {k: weighted[k] for k in ("q", "v", "awr")} == {k: plain[k] for k in ("q", "v", "awr")}
+
+
+def test_command_history_ablation_survives_training_and_reload(trainer) -> None:
+    entry = importlib.import_module("train_hkrl_wm_recurrent_rl")
+    catalogue = torch.tensor([[0, 0, 0], [1, 0, 4]])
+    actor = entry.RecurrentActor(catalogue, 6)
+    entry.remove_actor_command_history(actor)
+    original = torch.rand(1, 9, 578)
+    changed = original.clone()
+    for offset in (0, entry.WIDTH, 2 * entry.WIDTH + 1):
+        changed[..., offset + entry.CONTROL : offset + entry.WIDTH - 1] += 10
+    optimizer = torch.optim.AdamW(actor.parameters(), lr=0.01)
+    actor(original).square().mean().backward()
+    optimizer.step()
+    torch.testing.assert_close(actor(original), actor(changed), rtol=0, atol=0)
+
+    restored = entry.RecurrentActor(catalogue, 6)
+    restored.load_state_dict(actor.state_dict())
+    torch.testing.assert_close(restored(original), restored(changed), rtol=0, atol=0)
