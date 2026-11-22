@@ -1,4 +1,4 @@
-"""Freeze and score the two successive teacher-free Sisters acceptance cohorts."""
+"""Freeze and score a teacher-free Sisters acceptance cohort."""
 
 from __future__ import annotations
 
@@ -118,7 +118,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="operation", required=True)
     create = sub.add_parser("freeze")
-    create.add_argument("--goal", required=True, type=int, choices=(1, 2))
+    spec = json.loads(SPEC.read_bytes())
+    create.add_argument(
+        "--goal",
+        type=int,
+        choices=[rule["id"] for rule in spec["goals"]],
+        default=spec["active_goal"],
+        help="acceptance rule ID (defaults to the current goal)",
+    )
     create.add_argument("--checkpoint", required=True, type=Path)
     create.add_argument("--game-mod", required=True, type=Path)
     create.add_argument("--first-seed", required=True, type=int)
