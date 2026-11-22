@@ -74,3 +74,42 @@ def test_gae_drops_future_advantages_at_gap_but_keeps_observed_bootstrap(trainer
     timeout, _ = trainer.native_gae(reward, value, clock, True)
     assert len(timeout) == 3
     assert timeout[-1] == pytest.approx(reward[2] + trainer.GAMMA * 5 - 4)
+
+
+def test_teacher_losses_train_iql_without_behavior_cloning(trainer) -> None:
+    entry = importlib.import_module("train_hkrl_wm_recurrent_rl")
+    n = 40
+    observation = np.zeros((n, 192), dtype="f4")
+    observation[:, 23] = 1
+    events = np.zeros((n, 8), dtype="f4")
+    events[-1, 7] = 1
+    terminal = np.arange(n) == n - 1
+    controls = np.zeros((n, 3), dtype="i8")
+    episode = entry.Episode(
+        observation,
+        controls,
+        np.zeros(n, dtype="f4"),
+        events,
+        np.arange(n, dtype="f4") * 0.04,
+        np.r_[np.arange(1, n), -1],
+        terminal,
+        np.zeros(n, dtype=bool),
+        np.full(n, "teacher"),
+    )
+    fight = entry.prepare_fight(episode, {(0, 0, 0): 0})
+    windows = entry.Windows([fight], np.random.default_rng(0), teacher_win_bc=True)
+    *_, learn, behavior_clone = windows.batch(2, 16, teacher_only=False)
+    assert learn.any()
+    assert not behavior_clone.any()
+
+
+def test_teacher_receipt_must_match_next_native_observation(trainer) -> None:
+    pack = importlib.import_module("pack_sisters_teacher_corpus")
+    timing = np.zeros((3, 192), dtype="f4")
+    timing[1, 160:162] = [-1, 1]
+    timing[1, [164, 166]] = 1
+    keys = np.array([[-1, 1, 5], [0, 0, 0], [1, 0, 8]])
+    assert pack.verified_native_commits(timing, keys) == 2
+    timing[1, 166] = 0
+    with pytest.raises(ValueError, match="submitted keys"):
+        pack.verified_native_commits(timing, keys)

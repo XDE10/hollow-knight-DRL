@@ -15,6 +15,15 @@ from audit_sisters_mainline_replay import audit, read_episode
 from train_hkrl_wm_recurrent_rl import sha256
 
 
+def verified_native_commits(timing: np.ndarray, controls: np.ndarray) -> int:
+    """Verify each submitted key from the following timing observation."""
+    buttons = timing[1:, 164:173] @ (1 << np.arange(9))
+    previous = np.column_stack((timing[1:, 160:162], buttons))
+    if not np.array_equal(previous, controls[:-1]):
+        raise ValueError("The next native observation disagrees with the submitted keys")
+    return len(previous)
+
+
 def teacher_fight(
     root: Path, row: dict[str, Any], plan: dict[str, Any], plan_sha: str
 ) -> tuple[dict, bytes]:
@@ -63,6 +72,7 @@ def teacher_fight(
         "split": row["split"],
         "won": receipt["win"],
         "truncated": receipt["truncated"],
+        "death_inferred_from_hp": receipt.get("death_inferred_from_hp"),
         "sha256": tape_sha,
         "unity_reset_seed": seed,
         "teacher_asset_sha256": actual_teacher,
@@ -79,6 +89,10 @@ def teacher_fight(
         episode = read_episode(recorded, member)
         if not (episode.controller == "teacher").all():
             raise ValueError(f"A non-teacher action was taken in {seed}")
+        member["verified_native_commits"] = verified_native_commits(
+            recorded["timing_state"],
+            recorded["controls"],
+        )
         sums = episode.events.sum(axis=0)
         if not np.isclose(sums[0], receipt["damage"]) or not np.isclose(
             sums[1:5].sum(), sum(receipt["damage_taken"].values())
