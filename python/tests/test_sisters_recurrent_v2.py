@@ -113,3 +113,22 @@ def test_teacher_receipt_must_match_next_native_observation(trainer) -> None:
     timing[1, 166] = 0
     with pytest.raises(ValueError, match="submitted keys"):
         pack.verified_native_commits(timing, keys)
+
+
+def test_critical_teacher_weight_changes_only_iql_behavior_cloning(trainer) -> None:
+    entry = importlib.import_module("train_hkrl_wm_recurrent_rl")
+    catalogue = torch.tensor([[0, 0, 0], [1, 0, 4]])
+    actor, values = entry.RecurrentActor(catalogue, 6), entry.RecurrentValues(catalogue, 6)
+    x = torch.zeros(1, 5, 578)
+    actions = torch.tensor([[0, 1, 0, 1]])
+    teacher = torch.tensor([[True, True, True, False]])
+    batch = x, actions, torch.zeros(1, 4), torch.ones(1, 4), torch.ones_like(teacher), teacher
+    _, plain = entry.iql_losses(actor, values, values, batch, 0)
+    _, weighted = entry.iql_losses(actor, values, values, batch, 0, torch.tensor([1.0, 2.0]))
+    with torch.no_grad():
+        logits = actor(x[:, :-1])[teacher]
+        expected = torch.nn.functional.cross_entropy(
+            logits, actions[teacher], weight=torch.tensor([1.0, 2.0])
+        )
+    assert weighted["teacher_bc"] == pytest.approx(float(expected))
+    assert {k: weighted[k] for k in ("q", "v", "awr")} == {k: plain[k] for k in ("q", "v", "awr")}
