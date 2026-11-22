@@ -55,7 +55,7 @@ def test_neural_block_archive_keeps_interventions_and_fight_split(tmp_path, monk
     )
     games = []
     for i in [0, 1]:
-        meta = dict(seed=i, win=False, speed_counts={"1": 30}, **fields)
+        meta = dict(seed=i, win=False, truncated=i == 1, speed_counts={"1": 30}, **fields)
         games.append(dict(source=f"native-development/{i}", won=False, file=f"{i}.npz", **fields))
         (tmp_path / f"episode-{i:03d}.json").write_text(json.dumps(meta))
         np.savez(tmp_path / f"{i}.npz", **data)
@@ -78,6 +78,7 @@ def test_neural_block_archive_keeps_interventions_and_fight_split(tmp_path, monk
     with zipfile.ZipFile(output) as z:
         rows = json.loads(z.read("manifest.json"))
         assert [r["split"] for r in rows] == ["holdout", "train"]
+        assert [r["truncated"] for r in rows] == [False, True]
         for row in rows:
             assert row["alternate_policy_sha256"] == "b" * 64
             with np.load(io.BytesIO(z.read(row["file"]))) as d:
