@@ -33,6 +33,7 @@ namespace HKRLEnvMod.Action
         private ulong _episode, _lastTick, _lastCommit;
         private readonly Dictionary<int,int> _evadeSide = new();
         private float _jumpEnd, _jumpAt, _lastDash, _lastAttack, _lastCast, _healAt, _healHp;
+        private SistersDemonstrationDash _demonstrationDash;
         private int _lastMove, _castAim;
         private float _riskWeight, _attackWeight, _home, _lag, _margin, _hold, _dropGap, _discBias;
         private float _castRisk, _focusHp, _hpPriority, _artAt, _artReleased;
@@ -96,6 +97,7 @@ namespace HKRLEnvMod.Action
             _castRisk=Param("cast_risk",.29f);_focusHp=Param("focus_hp",5);_hpPriority=Param("hp_priority",.6f);
             _discMotion.Clear();_artAt=-10;_artReleased=-10;
             _states.Clear();_discSide.Clear();_jumpEnd=_jumpAt=_lastDash=_lastAttack=_lastCast=_healAt=-10;
+            _demonstrationDash = default;
             _evadeSide.Clear();
             _lastMove=0;_episode=id; Input=PrimitiveInput.Noop;
             File.WriteAllText(_file+".active",id.ToString(CultureInfo.InvariantCulture)+"\n"+File.ReadAllText(_file));
@@ -407,6 +409,27 @@ namespace HKRLEnvMod.Action
         public void Decide(ObservationSnapshot obs,ulong tick)
         {
             if(obs.Global.EpisodeId!=_episode)Reset(obs.Global.EpisodeId);
+            DecideInEpisode(obs, tick);
+        }
+
+        internal PrimitiveInput Demonstrate(ObservationSnapshot obs, ulong tick, PrimitiveInput learner, bool teacherActs)
+        {
+            if (obs.Global.EpisodeId != _episode)
+                Reset(obs.Global.EpisodeId);
+
+            float now = obs.Global.TimeInEpisode;
+            _lastDash = _demonstrationDash.Observe(_lastDash, now, obs.Player.Dashing);
+            float previous = _lastDash;
+            DecideInEpisode(obs, tick);
+            PrimitiveInput executed = teacherActs ? Input : learner;
+            bool canStartDash = obs.Player.CanDash && !obs.Player.Dashing;
+            _lastDash = _demonstrationDash.Commit(
+                previous, _lastDash, now, canStartDash, executed, teacherActs);
+            return Input;
+        }
+
+        private void DecideInEpisode(ObservationSnapshot obs, ulong tick)
+        {
             _lastTick=tick;
             float now=obs.Global.TimeInEpisode;
             var p=obs.Player;
