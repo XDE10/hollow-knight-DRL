@@ -26,8 +26,40 @@ internal static class Program
         }
     }
 
+    private static void TestSistersDemonstrationDash()
+    {
+        var history = new SistersDemonstrationDash();
+        var dash = new PrimitiveInput(1, 0, 1u << ActionMasker.ButtonDash);
+        var idle = PrimitiveInput.Noop;
+
+        Expect(history.Commit(1, 2, 2, true, idle, false) == 1,
+            "discarded teacher dash leaves the timer unchanged");
+        Expect(history.Commit(1, 1, 3, true, dash, false) == 1,
+            "legal learner dash press waits for game evidence");
+        Expect(history.Observe(1, 3.04f, false) == 1,
+            "a legal request without an observed dash does not update the timer");
+        Expect(history.Observe(1, 3.08f, true) == 3,
+            "an observed dash confirms the learner press time");
+        Expect(history.Commit(3, 4, 4, true, dash, false) == 3,
+            "held learner dash leaves the timer unchanged");
+        history.Commit(3, 3, 5, true, idle, false);
+        Expect(history.Commit(3, 6, 6, false, dash, false) == 3,
+            "unavailable learner dash leaves the timer unchanged");
+        Expect(history.Commit(3, 7, 7, true, dash, false) == 3,
+            "availability returning during a hold does not create a new press");
+        history.Commit(3, 3, 7.2f, true, idle, false);
+        history.Commit(3, 3, 7.4f, true, dash, false);
+        Expect(history.Observe(3, 7.6f, true) == 3,
+            "a dash outside the observation window does not confirm an expired press");
+        Expect(history.Commit(3, 8, 8, true, dash, true) == 8,
+            "teacher-controlled action keeps the original planned timer");
+        Expect(history.Commit(8, 9, 9, true, dash, false) == 8,
+            "handover preserves the held dash state");
+    }
+
     private static void Run()
     {
+        TestSistersDemonstrationDash();
         float left = SistersReturnDisc.Sweep(-2.2f, -24f, -24f, 9f);
         float right = SistersReturnDisc.Sweep(-2.2f, 24f, 24f, 9f);
         if (left <= 0 || left != right

@@ -130,3 +130,9 @@ report separates observed onsets, fully sampled windows without an onset, and
 windows affected by gaps, truncation, or a second request. Counts are grouped
 by fight phase and whether the Knight was grounded. The audit records
 observed dash direction and shadow-dash state for locomotion calibration.
+
+During mixed demonstrations the teacher uses its usual dash timer on
+teacher-controlled decisions. A learner dash updates that timer when a legal
+rising input is followed by an observed dash onset within 0.12 game seconds.
+The trace keeps both proposals and the input selected for delivery to the
+game. Use the dash execution audit to check for an onset after delivery.

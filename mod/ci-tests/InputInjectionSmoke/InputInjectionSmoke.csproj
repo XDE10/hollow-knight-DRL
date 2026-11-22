@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\HKRLEnvMod\Action\SistersDemonstrationDash.cs"
+             Link="SistersDemonstrationDash.cs" />
     <Compile Include="..\..\HKRLEnvMod\Action\SistersReturnDisc.cs"
              Link="SistersReturnDisc.cs" />
     <Compile Include="..\..\HKRLEnvMod\Debug\HumanDemonstration.cs" Link="HumanDemonstration.cs" />

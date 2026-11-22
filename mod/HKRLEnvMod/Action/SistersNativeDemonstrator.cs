@@ -106,14 +106,13 @@ namespace HKRLEnvMod.Action
                 foreach (float x in timing!) tape.Write(x);
                 return learner;
             }
-            _teacher.Decide(obs,tick);
-            var label=_teacher.Input;
             if (now>=_until)
             {
                 double teacherProbability=_teacherRatio ?? (_episodes<=4 ? .8 : _episodes<=8 ? .5 : .2);
                 _teacherActs=_random.NextDouble()<teacherProbability;
                 _until=now+.8f;
             }
+            var label=_teacher.Demonstrate(obs,tick,learner,_teacherActs);
             var executed=_teacherActs?label:learner;
             tape.Write(now);
             foreach (float x in raw) tape.Write(x);
