@@ -84,6 +84,15 @@ def read_decisions(
     }
 
 
+def teacher_assets(path: Path) -> dict[str, str]:
+    result = {}
+    for suffix in ("", ".weights", ".wm.weights"):
+        asset = Path(str(path) + suffix)
+        if suffix == "" or asset.is_file():
+            result["teacher.txt" + suffix] = hashlib.sha256(asset.read_bytes()).hexdigest()
+    return result
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--verify-unity-seed", action="store_true")
@@ -159,13 +168,8 @@ def main() -> None:
         if hashlib.sha256(mod.read_bytes()).hexdigest() != args.expected_mod_sha256:
             raise ValueError("Wrong installed development game mod")
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
-    teacher_hashes = {}
-    if has_teacher:
-        teacher_path = Path(envs["HKRL_TACTICS_POLICY"])
-        for suffix in ("", ".weights", ".wm.weights"):
-            asset = Path(str(teacher_path) + suffix)
-            if suffix == "" or asset.is_file():
-                teacher_hashes["teacher.txt" + suffix] = hashlib.sha256(asset.read_bytes()).hexdigest()
+    teacher_path = Path(envs["HKRL_TACTICS_POLICY"]) if has_teacher else None
+    teacher_hashes = teacher_assets(teacher_path) if teacher_path else {}
     if (routing or primitive) and (has_teacher or sampling or candidate or envs.get("HKRL_NATIVE_TIMING") != "1"
                     or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
         raise ValueError("A winning-router rollout requires exclusive student control")
@@ -193,8 +197,15 @@ def main() -> None:
                 mode = max(result["speed_counts"], key=result["speed_counts"].get)
                 if mode != scale:
                     raise RuntimeError("Wrong development speed")
-                if not result["win"] and not result["truncated"] and result["hp"] == 0:
+                if teacher_path and teacher_hashes != teacher_assets(teacher_path):
+                    raise ValueError("Teacher files changed while collecting the fight")
+                inferred_death = (
+                    not result["win"] and not result["truncated"] and result["hp"] == 0
+                    and not any(row[7] for row in events)
+                )
+                if inferred_death:
                     events[-1][7] = 1
+                result["death_inferred_from_hp"] = inferred_death
                 decisions, control_stats = read_decisions(
                     tape_dir / f"{eid}.native", eid, timing, has_teacher
                 )

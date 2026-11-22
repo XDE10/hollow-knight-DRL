@@ -172,9 +172,12 @@ class Windows:
         fights: list[Fight],
         rng: np.random.Generator,
         history: dict[int, np.ndarray] | None = None,
+        *,
+        teacher_win_bc: bool = False,
     ) -> None:
         self.rng = rng
         self.history = history or {}
+        self.teacher_win_bc = teacher_win_bc
         self.pools: dict[tuple[bool, int], list[tuple[Fight, int, int]]] = {}
         for teacher in (True, False):
             for burn in (0, BURN_IN):
@@ -220,7 +223,7 @@ class Windows:
                     tape.reward[scored],
                     fight.discount[scored],
                     mask,
-                    fight.teacher[scored] & mask,
+                    fight.teacher[scored] & mask & (fight.won or not self.teacher_win_bc),
                 )
             )
         return tuple(torch.from_numpy(np.stack(column)) for column in zip(*rows, strict=True))
@@ -384,6 +387,17 @@ def main() -> None:
     device = torch.device(args.device)
     catalogue = native_catalogue(args.parent)
     groups = read_fights(args.archive, args.audit, catalogue)
+    if (
+        args.teacher_curriculum
+        and args.validation_interval
+        and not any(
+            fight.pure_teacher and fight.won and fight.train_rows.any()
+            for fight in groups["holdout"].values()
+        )
+    ):
+        raise ValueError(
+            "Periodic validation needs a held-out pure teacher win with Trio decisions"
+        )
     training = list(groups["train"].values())
     if args.teacher_curriculum:
         training = [fight for fight in training if fight.pure_teacher]
@@ -407,7 +421,7 @@ def main() -> None:
         else None
     )
     rng = np.random.default_rng(args.seed)
-    windows = Windows(training, rng, history)
+    windows = Windows(training, rng, history, teacher_win_bc=args.teacher_curriculum)
     warm_windows = Windows(bc_training, rng, history) if args.teacher_curriculum else windows
     actor = RecurrentActor(catalogue, args.hidden).to(device)
     values = RecurrentValues(catalogue, args.hidden).to(device)
@@ -425,6 +439,8 @@ def main() -> None:
         "planned_iql_updates": args.updates,
         "training_cohorts": cohorts,
         "teacher_curriculum": args.teacher_curriculum,
+        "teacher_win_bc": args.teacher_curriculum,
+        "trainer_source_sha256": sha256(Path(__file__)),
         "archive_sha256": sha256(args.archive),
         "hidden": args.hidden,
         "seed": args.seed,
