@@ -46,7 +46,8 @@ namespace HKRLEnvMod.Action
                 return trained;
             }
             if (magic == SistersDirectionalOptions.Magic) return SistersDirectionalOptions.Read(reader);
-            if (magic == SistersMemoryResidual.Magic) return SistersMemoryResidual.Read(reader);
+            if (magic == SistersMemoryResidual.Magic || magic == SistersMemoryResidual.EncodedMagic)
+                return SistersMemoryResidual.Read(reader);
             if (magic == SistersFocusOption.Magic) return SistersFocusOption.Read(reader);
             if (magic == SistersCompoundOption.Magic || magic == SistersCompoundOption.PolicyGradientMagic)
             {

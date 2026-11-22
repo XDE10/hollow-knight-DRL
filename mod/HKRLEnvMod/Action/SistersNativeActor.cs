@@ -246,7 +246,7 @@ namespace HKRLEnvMod.Action
                 Dense(_h,_w[2],_w[3],_z,true);
             }
             Dense(_z,_w[4],_w[5],_scores,false);
-            Memory?.Adjust(raw, time, _scores);
+            Memory?.Adjust(raw, _z, time, _scores);
             int best=0;
             for(int i=1;i<_scores.Length;i++) if (_scores[i]>_scores[best]) best=i;
             _best = best;

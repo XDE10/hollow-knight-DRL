@@ -35,3 +35,24 @@ Run the same trainer with `--handoff-returns` in a fresh output directory to fit
 Of 148 training fights, 146 reached the trio. Of 277,016 eligible trio input windows, 180,710 used a shorter return at an assignment. Health fell within 0.32 seconds after 105 of 4,150 distinct observed cutoff states with follow-up. Shortening the return places responsibility for such later consequences on the accuracy of the frozen value estimate. Recorded outcomes around risk-triggered movement draws also depend on which states qualified for those experiments.
 
 On the 11 teacher-free held fights, the new recurrent actor changed 1.68% of eligible inputs. Its mean prediction errors for incoming damage and safe outgoing damage improved over the matched instantaneous control by 0.001318 and 0.000044 respectively. Its shift toward actions with higher observed returns was positive in five of the 11 fights. The executable agreed with the Python policy on all 7,013 decisions of three held trio trajectories, including 113 decisions where the trained actor chose a different native input than its parent. Each fresh arena fight records its own count of changed inputs alongside health and victory. [Frozen weights, training report and replay evidence](../../models/sisters-native-iql/timing-handoff-memory/)
+
+## Export of a trainable recurrent encoder
+
+The encoded-GRU format takes the timing encoder's 192 outputs as its input.
+The exporter folds the learned feature projection into the native action
+scores. It preserves the parent's opening bytes and verifies the ordered Trio
+catalogue against both parent actors. Exported weights contain the encoder,
+the GRU and the action head. The critic and the auxiliary dynamics head stay
+in the training checkpoint.
+
+A new component identifier carries the GRU width. The native reader checks
+the dimensions and finite weights before use. The original 24-unit
+raw-observation residual format remains supported. Both formats reset
+recurrent state at Trio entry, after observation gaps above 0.081 game
+seconds, and at the first decision at least 3.2 game seconds into the block.
+
+The encoded actor selects its greedy native input in the local game loop.
+Replay verification compares Python and C# logits and action indices on
+whole held-out fights, including state resets and the preserved opening.
+Formal assessment uses fresh real-game seeds.
+[Exporter](../../scripts/export_sisters_encoded_recurrent.py)

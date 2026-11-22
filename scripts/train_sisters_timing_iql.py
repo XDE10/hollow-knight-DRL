@@ -615,20 +615,29 @@ ROUTER_RESIDUAL_MAGIC = 0x3B4C5149
 FOCUS_MAGIC = 0x374C5149
 FOCUS_FEATURES = 16
 MEMORY_MAGIC = 0x384C5149
+ENCODED_MEMORY_MAGIC = 0x3C4C5149
 
 
 def memory_components(component: bytes) -> tuple[bytes, np.ndarray]:
     if len(component) < 28:
         raise ValueError("Truncated recurrent controller")
     magic, size = struct.unpack_from("<2i", component)
-    leaf = component[8:8 + size]
-    if magic != MEMORY_MAGIC or not _timing_component(leaf) or struct.unpack_from("<i", leaf)[0] != 0x344C5149:
+    if magic == ENCODED_MEMORY_MAGIC:
+        hidden = struct.unpack_from("<i", component, 8)[0]
+        start = 12
+    elif magic == MEMORY_MAGIC:
+        hidden, start = 24, 8
+    else:
+        raise ValueError("Wrong recurrent control format")
+    leaf = component[start:start + size]
+    if not _timing_component(leaf) or struct.unpack_from("<i", leaf)[0] != 0x344C5149:
         raise ValueError("Invalid recurrent control base")
     actions = struct.unpack_from("<i", leaf, 16)[0]
-    count = 3 * 24 * (WIDTH + 24 + 2) + (24 + 1) * actions
-    if size < 20 or not 1 <= actions <= 4096 or len(component) != 8 + size + 4 * count:
+    count = 3 * hidden * (WIDTH + hidden + 2) + (hidden + 1) * actions
+    if (not 1 <= hidden <= 256 or not 1 <= actions <= 4096
+            or len(component) != start + size + 4 * count):
         raise ValueError("Invalid recurrent control weight count")
-    parameters = np.frombuffer(component, "<f4", offset=8 + size)
+    parameters = np.frombuffer(component, "<f4", offset=start + size)
     if not np.isfinite(parameters).all():
         raise ValueError("Non-finite recurrent control parameters")
     return leaf, parameters
@@ -670,7 +679,7 @@ def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
         router_residual_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (POLICY_GRADIENT_MAGIC, DIRECTIONAL_MAGIC):
         policy_gradient_components(trio)
-    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == MEMORY_MAGIC:
+    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (MEMORY_MAGIC, ENCODED_MEMORY_MAGIC):
         memory_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == FOCUS_MAGIC:
         focus_components(trio)
