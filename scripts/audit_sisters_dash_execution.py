@@ -15,6 +15,7 @@ MAX_SAMPLE_GAP_SECONDS = 0.06
 TOLERANCE = 1e-5
 DASH = 1 << 2
 # Indices in SistersTimingState, including the prior native input's dash bit.
+GROUNDED = 7
 DASH_AVAILABLE = 13
 DASHING = 14
 SHADOW_DASHING = 15
@@ -31,6 +32,7 @@ class DashAttempt(TypedDict):
     row: int
     time: float
     phase: Literal["opening", "trio"]
+    grounded: bool
     requested_direction: int
     status: Status
     onset_seconds_after_request: float | None
@@ -96,6 +98,7 @@ def audit_dash_attempts(
                 "row": row,
                 "time": time,
                 "phase": "trio" if trio[row] else "opening",
+                "grounded": bool(state[row, GROUNDED] > 0.5),
                 "requested_direction": int(controls[row, 0]),
                 "status": status,
                 "onset_seconds_after_request": float(clock[onset] - time)
@@ -116,7 +119,10 @@ def main() -> None:
         "tapes", nargs="+", type=Path, help="Native timing recordings (.npz)."
     )
     args = parser.parse_args()
-    counts: dict[str, Counter[str]] = {"opening": Counter(), "trio": Counter()}
+    counts = {
+        phase: {stance: Counter[str]() for stance in ("grounded", "airborne")}
+        for phase in ("opening", "trio")
+    }
     fights = []
     for path in dict.fromkeys(tape.resolve() for tape in args.tapes):
         with np.load(path, allow_pickle=False) as data:
@@ -124,14 +130,19 @@ def main() -> None:
                 data["control_time"], data["timing_state"], data["controls"]
             )
         for attempt in attempts:
-            counts[attempt["phase"]][attempt["status"]] += 1
+            stance = "grounded" if attempt["grounded"] else "airborne"
+            counts[attempt["phase"]][stance][attempt["status"]] += 1
         fights.append({"tape": str(path), "attempts": attempts})
     print(
         json.dumps(
             {
                 "horizon_seconds": HORIZON_SECONDS,
                 "maximum_sample_gap_seconds": MAX_SAMPLE_GAP_SECONDS,
-                "counts_by_phase": counts,
+                "counts_by_phase": {
+                    phase: stance["grounded"] + stance["airborne"]
+                    for phase, stance in counts.items()
+                },
+                "counts_by_phase_and_stance": counts,
                 "fights": fights,
             },
             indent=2,

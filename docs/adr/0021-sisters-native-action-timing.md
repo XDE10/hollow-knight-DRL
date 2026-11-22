@@ -127,5 +127,6 @@ Run [the dash execution audit](../../scripts/audit_sisters_dash_execution.py)
 with one or more native timing `.npz` files to measure how often a legal dash
 request is followed by a sampled in-game onset within 0.12 game seconds. The
 report separates observed onsets, fully sampled windows without an onset, and
-windows affected by gaps, truncation, or a second request. It also records
+windows affected by gaps, truncation, or a second request. Counts are grouped
+by fight phase and whether the Knight was grounded. The audit records
 observed dash direction and shadow-dash state for locomotion calibration.

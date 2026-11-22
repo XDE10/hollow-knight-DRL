@@ -29,6 +29,7 @@ def test_observed_dash_and_held_input_are_attributed_once(dash_audit: ModuleType
     state[1:4, 166] = 1
     state[1:3, 14:16] = 1
     state[1:3, 2] = 2
+    state[0, 7] = 1
     state[:, 23] = 1
 
     (attempt,) = dash_audit.audit_dash_attempts(clock, state, controls)
@@ -36,6 +37,7 @@ def test_observed_dash_and_held_input_are_attributed_once(dash_audit: ModuleType
         "row": 0,
         "time": 0.0,
         "phase": "trio",
+        "grounded": True,
         "requested_direction": -1,
         "status": "onset_observed",
         "onset_seconds_after_request": pytest.approx(0.04),
