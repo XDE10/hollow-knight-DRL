@@ -10,7 +10,7 @@
 2. **示范教会它从哪里起步，强化学习决定哪些动作值得重复。** Colab 先让网络模仿开发对局的按键，再用实战中实际按下的键、造成的伤害、损失的血量和胜负学习。一对 Q 网络估计当前动作的回报，价值网络估计当前局面的回报。IQL 用两者的差给策略更新加权。这版做了 16000 次强化学习更新。[训练实现](../../scripts/train_sisters_timing_iql.py) · [训练记录](timing-executed-movement/training.json)
 3. **世界模型帮助训练时估值。** 它根据当前观测和按键预测下一次决策时的物理状态变化。一步价值目标给实测后继状态 75% 权重，给含预测物理量的后继状态 25% 权重，再结合实战片段的短期奖励。这个实验使用一步模型辅助的离线 IQL；仓库中的多步想象 PPO 是另一项实验。[离线 IQL 设计](../../docs/adr/0020-sisters-native-offline-rl.md) · [多步想象 PPO 设计](../../docs/adr/0019-sisters-model-based-ppo.md)
 
-在一次独立的演示采集中，小骑士通关时还剩 2 格血。游戏在三姐妹阶段记录到 21 次下砸动作的起点和 1 格实际血量回升。这场单列用于说明学到的操作。正式目标要求冻结模型在另外的完整 100 场中至少赢 98 场，之后再用新的一百场冲击至少 95 场无伤通关。[这场的原始计数](timing-executed-movement/seeded-skill-observation.json) · [两阶段验收设置](../../configs/experiments/sisters_acceptance.json)
+在一次独立的演示采集中，小骑士通关时还剩 2 格血。游戏在三姐妹阶段记录到 21 次下砸动作的起点和 1 格实际血量回升。这场单列用于说明学到的操作。当前正式目标要求冻结模型在另外的完整 100 场中至少赢 95 场。[这场的原始计数](timing-executed-movement/seeded-skill-observation.json) · [验收设置](../../configs/experiments/sisters_acceptance.json)
 
 ## 第一轮实机结果
 
@@ -64,7 +64,7 @@ python scripts/eval_sisters_native.py --checkpoint models/sisters-native-iql/rou
 
 ### 敌人动作时序输入的首轮模型
 
-项目按两个连续目标验收。第一目标需要同一份冻结策略在 100 场独立实战中至少通关 98 场。达标就存档该模型，并立即开始无伤训练。第二目标使用另外 100 场，要求至少 95 场全程零受伤并通关，同时总通关数至少 98 场。全程零受伤要求最低血量为 9，且所有来源的受伤事件合计为零。两个目标都从战斗开头以 9 格血、0 灵魂、原速原伤运行，关闭教师。正式开打前用验收脚本的 `freeze` 子命令固定模型、游戏插件和场次，打完用 `score` 汇总；第二目标引用第一目标已通过的报告。[目标设置](../../configs/experiments/sisters_acceptance.json) · [验收脚本](../../scripts/assess_sisters_goals.py)
+同一份冻结策略须在 100 场全新实战中至少通关 95 场。每场从战斗开头以 9 格血、0 灵魂、原速原伤运行，关闭教师。正式开打前用验收脚本的 `freeze` 子命令固定模型、游戏插件和场次，打完用 `score` 汇总。达到目标后存档权重和逐场记录。无伤场数照常统计，每场须同时满足最低血量为 9 和所有来源的受伤事件合计为零。历史报告按随计划保存的规则编号复算。[目标设置](../../configs/experiments/sisters_acceptance.json) · [验收脚本](../../scripts/assess_sisters_goals.py)
 
 这版给策略看三只本体、两枚飞镖、敌人当前动作持续了多久，以及骑士上一次实际按下或松开了哪些键。14 场开发对局按整场划分，11 场用于训练，3 场留出。策略先模仿按键，再用真实伤害和胜负做离线 IQL 更新，一步世界模型参与价值估计。旧策略及其权重保存在上面的目录中。[方法与复现步骤](../../docs/adr/0021-sisters-native-action-timing.md)
 

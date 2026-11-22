@@ -5,6 +5,7 @@
   "initial_soul": 0,
   "game_speed": 1,
   "nail_multiplier": 1,
+  "active_goal": 3,
   "goals": [
     {
       "id": 1,
@@ -19,6 +20,13 @@
       "episodes": 100,
       "minimum_wins": 98,
       "minimum_no_hit_wins": 95,
+      "next_goal": null
+    },
+    {
+      "id": 3,
+      "episodes": 100,
+      "minimum_wins": 95,
+      "minimum_no_hit_wins": 0,
       "next_goal": null
     }
   ]

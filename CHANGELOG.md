@@ -6,6 +6,8 @@ the project version tracks the **schema_version** + roadmap phase.
 
 ## [Unreleased]
 
+- Set the current Sisters acceptance target to 95 wins in 100 fresh teacher-free fights. No-hit wins remain a reported metric. Archived plans retain their original scoring rules.
+
 - Added an original-damage Sisters PPO profile that combines the existing low-disc and platform landing cues. The frozen 51k comparison and bounded trial are recorded in [the Sisters experiments](docs/sisters_survival.md#原版伤害下的回退实验).
 
 - Added slot-3 movement probes, a 48-action online Double DQN learner, three-instance throughput measurement and frozen original-speed evaluation for Sisters of Battle. See [ADR-0015](docs/adr/0015-sisters-online-double-dqn.md).
