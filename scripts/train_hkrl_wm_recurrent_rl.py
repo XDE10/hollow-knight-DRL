@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import struct
 from copy import deepcopy
 from dataclasses import dataclass
@@ -25,10 +26,13 @@ from train_sisters_timing_iql import (
     phase_components,
 )
 
+from hkrl.spaces import BUTTON_BITS
+
 GAP = np.float32(0.081)
 BURN_IN = 16
 UNROLL = 64
 GAMMA = 0.995
+CRITICAL_KEYS = ("jump_tap", "dash", "cast")
 
 
 class RecurrentActor(nn.Module):
@@ -235,6 +239,7 @@ def iql_losses(
     target: RecurrentValues,
     batch: tuple[Tensor, ...],
     burn: int,
+    teacher_class_weight: Tensor | None = None,
 ) -> tuple[Tensor, dict[str, float]]:
     x, action, reward, discount, mask, teacher = batch
     logits = actor(x[:, :-1], burn)
@@ -250,17 +255,34 @@ def iql_losses(
     q_loss = sum(F.smooth_l1_loss(q[mask], td[mask]) for q in picked)
     weight = (3.0 * gap.detach()[mask]).clamp(-12.0, float(np.log(20.0))).exp()
     awr = -(weight * log_prob[mask]).sum() / weight.sum().clamp_min(1e-6)
-    bc = -log_prob[teacher].mean() if teacher.any() else log_prob.new_zeros(())
+    bc = teacher_bc_loss(log_prob[teacher], action[teacher], teacher_class_weight)
     total = q_loss + v_loss + awr + 0.5 * bc
     return total, {
         name: float(part.detach())
-        for name, part in (("q", q_loss), ("v", v_loss), ("awr", awr), ("teacher_bc", bc))
+        for name, part in (
+            ("q", q_loss),
+            ("v", v_loss),
+            ("awr", awr),
+            ("teacher_bc", bc),
+        )
     }
+
+
+def teacher_bc_loss(log_prob: Tensor, action: Tensor, class_weight: Tensor | None) -> Tensor:
+    if not log_prob.numel():
+        return log_prob.new_zeros(())
+    if class_weight is None:
+        return -log_prob.mean()
+    weight = class_weight[action]
+    return -(weight * log_prob).sum() / weight.sum()
 
 
 @torch.inference_mode()
 def holdout(
-    actor: RecurrentActor, values: RecurrentValues, fights: dict[str, Fight], device: torch.device
+    actor: RecurrentActor,
+    values: RecurrentValues,
+    fights: dict[str, Fight],
+    device: torch.device,
 ) -> dict[str, Any]:
     records: dict[str, Any] = {}
     actions_with_keys = actor.encoder.basis.detach().cpu().numpy()[:, 6:].astype(bool)
@@ -370,6 +392,12 @@ def main() -> None:
         action="store_true",
         help="Use only pure-teacher wins in BC and all pure-teacher outcomes in IQL",
     )
+    parser.add_argument(
+        "--critical-teacher-bc-weight",
+        type=float,
+        default=1.0,
+        help="Weight teacher BC rows that tap jump, dash, or cast (teacher curriculum only)",
+    )
     parser.add_argument("--cache-history", action="store_true")
     parser.add_argument("--checkpoint-interval", type=int, default=256)
     parser.add_argument("--validation-interval", type=int, default=0)
@@ -381,11 +409,20 @@ def main() -> None:
         raise ValueError("Invalid checkpoint or validation interval")
     if args.validation_patience and not args.validation_interval:
         raise ValueError("Early stopping needs an independent validation interval")
+    if not math.isfinite(args.critical_teacher_bc_weight) or args.critical_teacher_bc_weight < 1:
+        raise ValueError("Critical teacher BC weight must be finite and at least 1")
+    if args.critical_teacher_bc_weight != 1 and not args.teacher_curriculum:
+        raise ValueError("Critical teacher BC weighting requires the teacher curriculum")
     args.output.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
     device = torch.device(args.device)
     catalogue = native_catalogue(args.parent)
+    teacher_class_weight = None
+    if args.critical_teacher_bc_weight != 1:
+        critical_key_mask = sum(1 << BUTTON_BITS[key] for key in CRITICAL_KEYS)
+        critical_actions = catalogue[:, 2].to(device).bitwise_and(critical_key_mask).ne(0)
+        teacher_class_weight = torch.where(critical_actions, args.critical_teacher_bc_weight, 1.0)
     groups = read_fights(args.archive, args.audit, catalogue)
     if (
         args.teacher_curriculum
@@ -427,7 +464,10 @@ def main() -> None:
     values = RecurrentValues(catalogue, args.hidden).to(device)
     target = deepcopy(values).requires_grad_(False)
     optimizer = torch.optim.AdamW(
-        [{"params": actor.parameters(), "lr": 3e-4}, {"params": values.parameters(), "lr": 3e-4}]
+        [
+            {"params": actor.parameters(), "lr": 3e-4},
+            {"params": values.parameters(), "lr": 3e-4},
+        ]
     )
     parameters = [*actor.parameters(), *values.parameters()]
     provenance = {
@@ -440,6 +480,7 @@ def main() -> None:
         "training_cohorts": cohorts,
         "teacher_curriculum": args.teacher_curriculum,
         "teacher_win_bc": args.teacher_curriculum,
+        "critical_teacher_bc_weight": args.critical_teacher_bc_weight,
         "trainer_source_sha256": sha256(Path(__file__)),
         "archive_sha256": sha256(args.archive),
         "hidden": args.hidden,
@@ -461,10 +502,14 @@ def main() -> None:
         optimizer.zero_grad(set_to_none=True)
         if warm:
             x, selected, _, _, _, teacher = batch
-            total = F.cross_entropy(actor(x[:, :-1], burn)[teacher], selected[teacher])
+            total = F.cross_entropy(
+                actor(x[:, :-1], burn)[teacher],
+                selected[teacher],
+                weight=teacher_class_weight,
+            )
             measures = {"teacher_bc": float(total.detach())}
         else:
-            total, measures = iql_losses(actor, values, target, batch, burn)
+            total, measures = iql_losses(actor, values, target, batch, burn, teacher_class_weight)
         total.backward()
         nn.utils.clip_grad_norm_(parameters, 5.0, error_if_nonfinite=True)
         optimizer.step()
@@ -473,7 +518,11 @@ def main() -> None:
                 for old, new in zip(target.parameters(), values.parameters(), strict=True):
                     old.lerp_(new, 0.01)
         if step % 64 == 0 or step in (1, args.warmup, fit_steps):
-            row = {"step": step, "stage": "behavior-cloning" if warm else "iql", **measures}
+            row = {
+                "step": step,
+                "stage": "behavior-cloning" if warm else "iql",
+                **measures,
+            }
             metrics.append(row)
             print(json.dumps(row), flush=True)
         validate = bool(
