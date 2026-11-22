@@ -13,6 +13,7 @@ import numpy as np
 import psutil
 from eval_sisters_tactics import play_game
 from hkrl.env import HKRLEnv
+from hkrl.protocol import LifecycleState
 from hkrl.protocol import RewardEventKind as K
 from hkrl.training.local_session import exclusive_game_lock
 from hkrl.transport.factory import make_transport
@@ -21,6 +22,7 @@ from hkrl.utils.config import load_task_config, load_train_config
 
 def transition_recorder():
     starts = []
+    ends = []
     elapsed = []
     events = []
 
@@ -38,10 +40,28 @@ def transition_recorder():
             elif e.kind == K.PLAYER_DEATH:
                 row[7] = 1
         starts.append(start)
+        ends.append(end)
         elapsed.append(int(info["elapsed_ticks"]))
         events.append(row)
 
-    return starts, elapsed, events, record
+    return starts, ends, elapsed, events, record
+
+
+def ppo_timeout_prefix(
+    decisions: dict[str, np.ndarray],
+    draws: dict[str, np.ndarray],
+    cutoff: float,
+    final_step_start: float,
+) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
+    """Keep the last observed state for bootstrap and exclude later native rows."""
+    clock = decisions["control_time"]
+    count = int(np.searchsorted(clock, np.float32(cutoff), side="right"))
+    if count < 2 or not clock[count - 1] > np.float32(final_step_start):
+        raise ValueError("Timeout has no native boundary observation from the final STEP")
+    keep = draws["ppo_rows"] < count
+    return {key: rows[:count] for key, rows in decisions.items()}, {
+        key: rows[keep] for key, rows in draws.items()
+    }
 
 
 def read_decisions(
@@ -187,13 +207,20 @@ def main() -> None:
     task.time_limit_seconds = 480
     with exclusive_game_lock(Path(f"runs/training/sisters-actor-{args.port}.lock")):
         game = HKRLEnv(make_transport(cfg, port=args.port), task, step_timeout_s=25)
+        paused_for_timeout = False
         try:
             for i in range(args.episodes):
-                starts, elapsed, events, record = transition_recorder()
+                starts, ends, elapsed, events, record = transition_recorder()
                 wall_start = time.monotonic()
                 result = play_game(game, args.seed + i, scale=scale, on_transition=record)
                 play_wall_seconds = time.monotonic() - wall_start
                 eid = result["episode_id"]
+                if ppo and result["truncated"]:
+                    paused_for_timeout = True
+                    ack = game.pause()
+                    if ack["episode_id"] != eid or ack["lifecycle_state"] != LifecycleState.RUNNING:
+                        raise ValueError("Timeout pause did not acknowledge the active PPO episode")
+                    result["ppo_timeout_game_seconds"] = ends[-1]
                 mode = max(result["speed_counts"], key=result["speed_counts"].get)
                 if mode != scale:
                     raise RuntimeError("Wrong development speed")
@@ -255,6 +282,10 @@ def main() -> None:
                     temperature = float(envs["HKRL_NATIVE_PPO_TEMPERATURE"])
                     online = read_native_draws(tape_dir / f"{eid}.ppo", eid, sha, seed, temperature,
                                                clock, decisions["timing_state"])
+                    if result["truncated"]:
+                        decisions, online = ppo_timeout_prefix(decisions, online, ends[-1], starts[-1])
+                        result["timeout_discarded_native_rows"] = len(clock) - len(decisions["control_time"])
+                        clock = decisions["control_time"]
                     controller.update(ppo_temperature=temperature, sampler_draw_seed=seed)
                     result.update(behavior_policy_sha256=sha, mod_sha256=args.expected_mod_sha256,
                                   game_speed=scale, native_inputs=len(clock), ppo_decisions=len(online["ppo_rows"]))
@@ -363,7 +394,11 @@ def main() -> None:
                 if result["win"]:
                     time.sleep(6)
         finally:
-            game.close()
+            try:
+                if paused_for_timeout:
+                    game.resume()
+            finally:
+                game.close()
 
 
 if __name__ == "__main__":

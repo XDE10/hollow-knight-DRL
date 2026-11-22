@@ -533,6 +533,8 @@ namespace HKRLEnvMod.Env
                         break;
                     case HKRL.Command.Pause:
                         _simControl.Pause();
+                        if (_lifecycle.IsRunning)
+                            (_tactics as SistersNativeActor)?.FlushPpoSnapshot();
                         break;
                     case HKRL.Command.Resume:
                         _simControl.Resume();

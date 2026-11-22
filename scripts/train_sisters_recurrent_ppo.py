@@ -16,7 +16,6 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from train_hkrl_wm_recurrent_rl import (
     GAMMA,
-    GAP,
     RecurrentActor,
     RecurrentValues,
     prepare_fight,
@@ -93,34 +92,45 @@ class Rollout:
     advantage: Tensor
     returns: Tensor
     world_rows: Tensor
+    train_rows: Tensor
 
 
 def native_gae(
     reward: np.ndarray,
     value: np.ndarray,
     clock: np.ndarray,
-    timeout: bool,
+    valid: np.ndarray,
+    terminated: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Cut the trace at recurrent resets and bootstrap from the next observed value."""
-    count = len(clock) - int(timeout)
-    intervals = np.diff(clock)
-    truncated = np.r_[intervals > GAP, False][:count]
-    truncated[-1] = timeout
-    done = truncated.copy()
-    done[-1] = True
-    exponent = np.r_[intervals / 0.04, 1.0][:count]
-    next_observed = np.r_[value[1:], 0.0][:count]
-    advantage, returns = compute_gae(
-        reward[:count, None],
-        value[:count, None],
-        done[:, None],
-        truncated[:, None],
-        np.zeros(1, dtype="f4"),
-        gamma=GAMMA,
-        discount_exponents=exponent[:, None],
-        truncation_values=next_observed[:, None],
-    )
-    return advantage[:, 0], returns[:, 0]
+    """Compute targets for valid transitions within one native recurrent segment."""
+    advantage = np.zeros(len(clock), dtype="f4")
+    returns = np.zeros_like(advantage)
+    intervals = np.r_[np.diff(clock) / 0.04, 1.0]
+    boundaries = np.flatnonzero(np.diff(np.r_[False, valid, False]))
+    for lo, hi in boundaries.reshape(-1, 2):
+        # An excluded action can still carry the observed successor of the
+        # previous valid action. Use its value and stop the advantage trace there.
+        terminal = bool(terminated[hi - 1])
+        last_value = np.zeros(1, dtype="f4")
+        if not terminal:
+            if hi == len(clock):
+                raise ValueError("A nonterminal transition needs an observed successor")
+            last_value[0] = value[hi]
+        done = np.zeros((hi - lo, 1), dtype=bool)
+        done[-1] = True
+        truncated = done & (not terminal)
+        adv, target = compute_gae(
+            reward[lo:hi, None],
+            value[lo:hi, None],
+            done,
+            truncated,
+            last_value,
+            gamma=GAMMA,
+            discount_exponents=intervals[lo:hi, None],
+        )
+        advantage[lo:hi] = adv[:, 0]
+        returns[lo:hi] = target[:, 0]
+    return advantage, returns
 
 
 @torch.no_grad()
@@ -180,6 +190,8 @@ def verified_rollouts(
             or not np.array_equal(catalogue.numpy()[actions], episode.action[rows])
         ):
             raise ValueError(f"Sampled PPO keys disagree with applied keys for fight {seed}")
+        if len(rows) and rows[-1] != len(episode.clock) - 1:
+            raise ValueError(f"PPO fight {seed} lacks a Trio end boundary")
         stats = {
             "seed": seed,
             "win": receipt["win"],
@@ -187,6 +199,8 @@ def verified_rollouts(
             "decisions": len(rows),
             "max_logp_error": 0.0,
             "masks_lost": sum(receipt["damage_taken"].values()),
+            "valid_decisions": int(fight.train_rows.sum()),
+            "excluded_decisions": int(len(rows) - fight.train_rows.sum()),
         }
         evidence.append(stats)
         if not len(rows):
@@ -215,54 +229,58 @@ def verified_rollouts(
             )
         stats["max_logp_error"] = log_error
 
-        # Native sampling logs each decision. At a time limit the last pre-action
-        # observation is the bootstrap; the unresolved action itself is discarded.
-        truncation = bool(episode.truncated[-1])
-        count = len(rows) - int(truncation)
-        if count <= 0:
-            continue
-        advantage, returns = native_gae(
-            episode.reward[rows], value, episode.clock[rows], truncation
-        )
         stats["gap_boundaries"] = len(fight.segments) - 1
         offset = 0
         for x, log_dist, val, (lo, hi) in zip(
             observations, logits, values, fight.segments, strict=True
         ):
-            length = min(hi - lo, count - offset)
-            if length <= 0:
-                break
+            length = hi - lo
             section = slice(offset, offset + length)
-            exact = np.abs(np.diff(episode.clock[lo : lo + length]) - 0.04) < 1e-4
+            offset += length
+            valid = fight.train_rows[lo:hi]
+            if not valid.any():
+                continue
+            clock = episode.clock[lo:hi]
+            advantage, returns = native_gae(
+                episode.reward[lo:hi],
+                val.numpy(),
+                clock,
+                valid,
+                episode.terminated[lo:hi],
+            )
+            exact = (np.abs(np.diff(clock) - 0.04) < 1e-4) & valid[:-1]
             consecutive = np.r_[0, np.cumsum(~exact)]
             possible = np.arange(max(0, length - STEPS))
             world_rows = possible[consecutive[possible] == consecutive[possible + STEPS]][::4]
             rollouts.append(
                 Rollout(
-                    x[:length],
+                    x,
                     torch.from_numpy(actions[section]).long(),
                     log_dist[:length].float(),
-                    val[:length],
-                    torch.from_numpy(advantage[section]),
-                    torch.from_numpy(returns[section]),
+                    val,
+                    torch.from_numpy(advantage),
+                    torch.from_numpy(returns),
                     torch.from_numpy(world_rows),
+                    torch.from_numpy(valid),
                 )
             )
-            offset += length
     if not rollouts:
         raise ValueError("The cohort contains no verified Trio actions")
     return rollouts, evidence
 
 
 def load_world(
-    path: Path, validation: Path, offline: Path, latent: int, actions: int
+    path: Path, validation: Path, offline_sha256: str, audit_sha256: str, latent: int, actions: int
 ) -> tuple[list[World], Tensor]:
     report = json.loads(validation.read_bytes())
-    expected = sha256(offline)
-    if report["actor_sha256"] != expected or report["world_sha256"] != sha256(path):
+    if (
+        report["actor_sha256"] != offline_sha256
+        or report["audit_sha256"] != audit_sha256
+        or report["world_sha256"] != sha256(path)
+    ):
         raise ValueError("World model must descend from the frozen offline actor")
     data = torch.load(path, map_location="cpu", weights_only=True)
-    if data["actor_sha256"] != expected:
+    if data["actor_sha256"] != offline_sha256 or tuple(data["horizons"]) != HORIZONS:
         raise ValueError("Unexpected world-weight lineage")
     m = report["measures"]["equal_fight_means"]
     error = np.asarray(m["world_mae_xy"])
@@ -289,7 +307,7 @@ def optimize(
     optimizer = torch.optim.AdamW(
         [{"params": actor.parameters(), "lr": 7e-5}, {"params": critic.parameters(), "lr": 2e-4}]
     )
-    all_advantages = torch.cat([r.advantage for r in rollouts])
+    all_advantages = torch.cat([r.advantage[r.train_rows] for r in rollouts])
     mean, scale = all_advantages.mean(), all_advantages.std(unbiased=False).clamp_min(0.05)
     samples = len(all_advantages)
     progress = []
@@ -302,29 +320,31 @@ def optimize(
                 actor.encoder, actor.memory, rollout.inputs[None], 0
             )
             logits = actor.encoder.heads(features + actor.memory_projection(hidden))[0][0]
-            log_p = (logits / temperature).log_softmax(-1)
-            chosen = rollout.action[:, None]
+            valid = rollout.train_rows
+            log_p = (logits[valid] / temperature).log_softmax(-1)
+            old_log_p = rollout.old_log_distribution[valid]
+            chosen = rollout.action[valid, None]
             ratio = (
-                (log_p.gather(1, chosen) - rollout.old_log_distribution.gather(1, chosen))
+                (log_p.gather(1, chosen) - old_log_p.gather(1, chosen))
                 .flatten()
                 .exp()
             )
-            advantage = ((rollout.advantage - mean) / scale).clamp(-5, 5)
+            advantage = ((rollout.advantage[valid] - mean) / scale).clamp(-5, 5)
             ppo = (
                 -torch.minimum(ratio * advantage, ratio.clamp(0.9, 1.1) * advantage).sum() / samples
             )
-            value = critic(rollout.inputs[None])[2][0]
-            clipped = rollout.old_value + (value - rollout.old_value).clamp(-0.2, 0.2)
+            value = critic(rollout.inputs[None])[2][0][valid]
+            old_value = rollout.old_value[valid]
+            returns = rollout.returns[valid]
+            clipped = old_value + (value - old_value).clamp(-0.2, 0.2)
             value_loss = (
                 0.5
                 * torch.maximum(
-                    (value - rollout.returns).square(), (clipped - rollout.returns).square()
+                    (value - returns).square(), (clipped - returns).square()
                 ).sum()
                 / samples
             )
-            anchor = (
-                rollout.old_log_distribution.exp() * (rollout.old_log_distribution - log_p)
-            ).sum() / samples
+            anchor = (old_log_p.exp() * (old_log_p - log_p)).sum() / samples
             aux = ppo.new_zeros(())
             if len(rollout.world_rows):
                 start = rollout.world_rows
@@ -356,16 +376,9 @@ def optimize(
         with torch.no_grad():
             kl = 0.0
             for rollout in rollouts:
-                new = (actor(rollout.inputs[None])[0] / temperature).log_softmax(-1)
-                kl += (
-                    float(
-                        (
-                            rollout.old_log_distribution.exp()
-                            * (rollout.old_log_distribution - new)
-                        ).sum()
-                    )
-                    / samples
-                )
+                new = (actor(rollout.inputs[None])[0][rollout.train_rows] / temperature).log_softmax(-1)
+                old = rollout.old_log_distribution[rollout.train_rows]
+                kl += float((old.exp() * (old - new)).sum()) / samples
         accepted = np.isfinite(kl) and kl <= 0.015
         progress.append(
             {
@@ -393,20 +406,43 @@ def main() -> None:
     args = parser.parse_args()
     torch.set_num_threads(3)
     plan = json.loads(args.plan.read_bytes())
+    offline_sha256 = sha256(args.offline)
+    behavior_sha256 = sha256(args.behavior)
+    world_sha256 = sha256(args.world)
     if (
         sha256(args.native) != plan["actor_sha256"]
-        or sha256(args.behavior) != plan["learner_sha256"]
+        or behavior_sha256 != plan["learner_sha256"]
+        or offline_sha256 != plan.get("offline_sha256", offline_sha256)
+        or world_sha256 != plan.get("world_sha256", world_sha256)
+        or (
+            "world_validation_sha256" in plan
+            and sha256(args.world_validation) != plan["world_validation_sha256"]
+        )
         or args.updates < 1
     ):
         raise ValueError("The native PPO policy and Python weights must match their frozen plan")
     saved = torch.load(args.behavior, map_location="cpu", weights_only=True)
+    audit_sha256 = saved["provenance"]["audit_sha256"]
+    if audit_sha256 != plan.get("audit_sha256", audit_sha256):
+        raise ValueError("The PPO behavior audit does not match the frozen plan")
+    parent = saved.get("ppo")
+    if parent is None:
+        same_lineage = behavior_sha256 == offline_sha256
+    else:
+        same_lineage = (
+            parent.get("offline_sha256", parent["parent_sha256"]) == offline_sha256
+            and parent["world_sha256"] == world_sha256
+        )
+    if not same_lineage:
+        raise ValueError("PPO behavior and world must share the frozen offline actor")
     catalogue = saved["catalogue"]
     hidden = saved["provenance"]["hidden"]
     actor, critic = RecurrentActor(catalogue, hidden), RecurrentValues(catalogue, hidden)
     actor.load_state_dict(saved["state"])
     critic.load_state_dict(saved["critic"])
     worlds, validated = load_world(
-        args.world, args.world_validation, args.offline, 192 + hidden, len(catalogue)
+        args.world, args.world_validation, offline_sha256,
+        audit_sha256, 192 + hidden, len(catalogue),
     )
     rollouts, evidence = verified_rollouts(args.rollout, plan, actor, critic, catalogue)
     progress = optimize(
@@ -423,7 +459,8 @@ def main() -> None:
                 "critic": critic.state_dict(),
                 "ppo": {
                     "parent_sha256": plan["learner_sha256"],
-                    "world_sha256": sha256(args.world),
+                    "offline_sha256": offline_sha256,
+                    "world_sha256": world_sha256,
                     "plan_sha256": sha256(args.plan),
                     "accepted_updates": accepted,
                 },

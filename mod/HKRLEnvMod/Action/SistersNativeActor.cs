@@ -136,6 +136,11 @@ namespace HKRLEnvMod.Action
 
         public void Record(float time) { }
 
+        internal void FlushPpoSnapshot()
+        {
+            if (_ppoSampler != null) Flush();
+        }
+
         public void Flush()
         {
             _demonstrator?.Flush();
