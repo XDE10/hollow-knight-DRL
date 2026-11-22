@@ -24,8 +24,10 @@ def test_deterministic_native_trace_preserves_real_keys_and_behavior(
     rows[:, 1:4] = [[-1, 0, 8], [1, 0, 0], [1, 0, 16]]
     rows[:, 4 + 24] = 1
     fields = {
-        "teacher_labels": False, "deterministic_native_trace": True,
-        "student_policy_sha256": actor, "behavior_policy_sha256": actor,
+        "teacher_labels": False,
+        "deterministic_native_trace": True,
+        "student_policy_sha256": actor,
+        "behavior_policy_sha256": actor,
     }
     entries = []
     for seed in (0, 1):
@@ -33,16 +35,31 @@ def test_deterministic_native_trace_preserves_real_keys_and_behavior(
         tape.write_bytes(struct.pack("<IQ", 0x33474144, seed) + rows.tobytes())
         decisions, stats = read(tape, seed, True, False)
         np.savez(
-            tmp_path / f"{seed}.npz", **decisions, time=rows[:, 0],
-            events=np.zeros((3, 8)), elapsed_ticks=np.full(3, 2),
+            tmp_path / f"{seed}.npz",
+            **decisions,
+            time=rows[:, 0],
+            events=np.zeros((3, 8)),
+            elapsed_ticks=np.full(3, 2),
         )
-        (tmp_path / f"episode-{seed:03d}.json").write_text(json.dumps({
-            **fields, **stats, "seed": seed, "win": False, "speed_counts": {"1": 3},
-        }))
-        entries.append({
-            **fields, "source": f"native-development/{seed}", "won": False,
-            "file": f"{seed}.npz",
-        })
+        (tmp_path / f"episode-{seed:03d}.json").write_text(
+            json.dumps(
+                {
+                    **fields,
+                    **stats,
+                    "seed": seed,
+                    "win": False,
+                    "speed_counts": {"1": 3},
+                }
+            )
+        )
+        entries.append(
+            {
+                **fields,
+                "source": f"native-development/{seed}",
+                "won": False,
+                "file": f"{seed}.npz",
+            }
+        )
     manifest = tmp_path / "manifest.json"
     manifest.write_text(json.dumps(entries))
     archive = tmp_path / "development.zip"

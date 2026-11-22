@@ -214,6 +214,11 @@ namespace UnityEngine
         }
     }
 
+    public static class Random
+    {
+        public static void InitState(int seed) { }
+    }
+
     public static class Time
     {
         public static float fixedDeltaTime { get; set; } = 0.02f;

@@ -45,3 +45,13 @@ namespace On
         public static event hook_TakeDamage? TakeDamage { add { } remove { } }
     }
 }
+
+namespace On
+{
+    public static class HealthManager
+    {
+        public delegate void orig_Hit(global::HealthManager self, global::HitInstance hit);
+        public delegate void hook_Hit(orig_Hit orig, global::HealthManager self, global::HitInstance hit);
+        public static event hook_Hit? Hit { add { } remove { } }
+    }
+}
