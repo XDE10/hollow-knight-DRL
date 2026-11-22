@@ -20,6 +20,8 @@ from audit_sisters_mainline_replay import Episode, iter_episodes
 from torch import Tensor, nn
 from torch.nn import functional as F
 from train_sisters_timing_iql import (
+    CONTROL,
+    WIDTH,
     TimingPolicy,
     motion_history,
     option_components,
@@ -82,6 +84,18 @@ def recurrent_features(
     encoded = encoder.encode(learning.flatten(0, 1)).unflatten(0, learning.shape[:2])
     remembered, _ = memory(encoded, state)
     return encoded, remembered
+
+
+def remove_actor_command_history(actor: RecurrentActor) -> None:
+    """Zero previous-command inputs in both the learner and its exported weights."""
+    for layer in (actor.encoder.dense[0], actor.encoder.past):
+        assert isinstance(layer, nn.Linear)
+        mask = layer.weight.new_ones(layer.in_features)
+        # The final field is the live CanNailCharge observation.
+        mask[CONTROL : WIDTH - 1] = 0
+        with torch.no_grad():
+            layer.weight.mul_(mask)
+        layer.weight.register_hook(lambda gradient, mask=mask: gradient * mask)
 
 
 @dataclass(frozen=True)
@@ -398,6 +412,11 @@ def main() -> None:
         default=1.0,
         help="Weight teacher BC rows that tap jump, dash, or cast (teacher curriculum only)",
     )
+    parser.add_argument(
+        "--actor-without-command-history",
+        action="store_true",
+        help="Ablate prior-command inputs in the Trio actor and its native export",
+    )
     parser.add_argument("--cache-history", action="store_true")
     parser.add_argument("--checkpoint-interval", type=int, default=256)
     parser.add_argument("--validation-interval", type=int, default=0)
@@ -461,6 +480,8 @@ def main() -> None:
     windows = Windows(training, rng, history, teacher_win_bc=args.teacher_curriculum)
     warm_windows = Windows(bc_training, rng, history) if args.teacher_curriculum else windows
     actor = RecurrentActor(catalogue, args.hidden).to(device)
+    if args.actor_without_command_history:
+        remove_actor_command_history(actor)
     values = RecurrentValues(catalogue, args.hidden).to(device)
     target = deepcopy(values).requires_grad_(False)
     optimizer = torch.optim.AdamW(
@@ -481,6 +502,7 @@ def main() -> None:
         "teacher_curriculum": args.teacher_curriculum,
         "teacher_win_bc": args.teacher_curriculum,
         "critical_teacher_bc_weight": args.critical_teacher_bc_weight,
+        "actor_without_command_history": args.actor_without_command_history,
         "trainer_source_sha256": sha256(Path(__file__)),
         "archive_sha256": sha256(args.archive),
         "hidden": args.hidden,
