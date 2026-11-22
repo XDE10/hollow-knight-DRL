@@ -8,10 +8,9 @@ import sys
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
+import hkrl.spaces as hkrl_spaces
 import numpy as np
 import pytest
-
-import hkrl.spaces as hkrl_spaces
 
 # Independent verified bit masks from python/hkrl/spaces.py BUTTON_BITS.
 DASH_MASK = 1 << 2  # dash == 2
