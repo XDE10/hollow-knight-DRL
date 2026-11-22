@@ -122,3 +122,10 @@ occurred in 59,051 of 242,894 vulnerable decisions. It appeared within the
 masks lost to body contact. The same
 counts in 27 held-out fights were 13,633 of 56,543 decisions and 66 of 97
 masks lost. Model selection uses independent full fights.
+
+Run [the dash execution audit](../../scripts/audit_sisters_dash_execution.py)
+with one or more native timing `.npz` files to measure how often a legal dash
+request is followed by a sampled in-game onset within 0.12 game seconds. The
+report separates observed onsets, fully sampled windows without an onset, and
+windows affected by gaps, truncation, or a second request. It also records
+observed dash direction and shadow-dash state for locomotion calibration.
