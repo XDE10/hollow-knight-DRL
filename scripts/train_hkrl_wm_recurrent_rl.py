@@ -89,6 +89,14 @@ class Fight:
     discount: np.ndarray
     segments: tuple[tuple[int, int], ...]
 
+    @property
+    def pure_teacher(self) -> bool:
+        return bool(self.teacher.all())
+
+    @property
+    def won(self) -> bool:
+        return bool(self.episode.events[-1, 6])
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -159,8 +167,14 @@ def read_fights(archive: Path, audit: Path, catalogue: Tensor) -> dict[str, dict
 
 
 class Windows:
-    def __init__(self, fights: list[Fight], rng: np.random.Generator) -> None:
+    def __init__(
+        self,
+        fights: list[Fight],
+        rng: np.random.Generator,
+        history: dict[int, np.ndarray] | None = None,
+    ) -> None:
         self.rng = rng
+        self.history = history or {}
         self.pools: dict[tuple[bool, int], list[tuple[Fight, int, int]]] = {}
         for teacher in (True, False):
             for burn in (0, BURN_IN):
@@ -196,9 +210,12 @@ class Windows:
             scored = clipped[burn:-1]
             mask = (indices[burn:-1] < hi) & fight.train_rows[scored]
             tape = fight.episode
+            cached = self.history.get(id(fight))
             rows.append(
                 (
-                    motion_history(tape.clock, tape.observation, clipped),
+                    cached[clipped]
+                    if cached is not None
+                    else motion_history(tape.clock, tape.observation, clipped),
                     fight.action[scored].clip(0),
                     tape.reward[scored],
                     fight.discount[scored],
@@ -243,10 +260,14 @@ def holdout(
     actor: RecurrentActor, values: RecurrentValues, fights: dict[str, Fight], device: torch.device
 ) -> dict[str, Any]:
     records: dict[str, Any] = {}
+    actions_with_keys = actor.encoder.basis.detach().cpu().numpy()[:, 6:].astype(bool)
+    key_columns = {"jump": 0, "dash": 2, "attack": 3, "cast": 4, "focus": 5}
     for source, fight in fights.items():
         tape = fight.episode
         report: dict[str, Any] = {}
         score = {name: np.zeros(3) for name in ("teacher", "student", "unknown")}
+        key_counts = np.zeros((3, actions_with_keys.shape[1]), dtype=np.int64)
+        closest_fsm = np.zeros((2, 16), dtype=np.int64)
         value_sum = value_square = 0.0
         count = 0
         for lo, hi in fight.segments:
@@ -267,6 +288,21 @@ def holdout(
                     (actions == logits[mask].argmax(-1).numpy()).sum(),
                     float(-log_prob[mask, actions].sum()),
                 )
+            mentor_rows = fight.teacher[rows] & fight.train_rows[rows]
+            wanted = fight.action[rows[mentor_rows]]
+            guessed = logits[mentor_rows].argmax(-1).numpy()
+            expected_keys = actions_with_keys[wanted]
+            predicted_keys = actions_with_keys[guessed]
+            key_counts += np.stack(
+                (
+                    expected_keys.sum(0),
+                    predicted_keys.sum(0),
+                    (expected_keys & predicted_keys).sum(0),
+                )
+            )
+            # The nearest boss slot contains a masked one-hot FSM value, zero for unknown.
+            fsm = tape.observation[rows[mentor_rows], 44:60] > 0.5
+            closest_fsm += np.stack((fsm.sum(0), (fsm & (wanted == guessed)[:, None]).sum(0)))
             count += len(value)
             value_sum += value.sum(dtype="f8")
             value_square += np.square(value, dtype="f8").sum()
@@ -277,6 +313,17 @@ def holdout(
             mean = value_sum / count
             report["value_mean"] = mean
             report["value_std"] = np.sqrt(max(0.0, value_square / count - mean * mean))
+        if key_counts.any():
+            report["teacher_key_counts"] = {
+                name: {"labeled": int(n), "predicted": int(p), "matches": int(m)}
+                for name, column in key_columns.items()
+                for n, p, m in [key_counts[:, column]]
+            }
+            report["teacher_nearest_boss_fsm"] = {
+                str(i): {"rows": int(n), "top1": float(m / n)}
+                for i, (n, m) in enumerate(closest_fsm.T)
+                if n
+            }
         records[source] = report
     means = {}
     for key in ("teacher", "student", "unknown"):
@@ -285,6 +332,15 @@ def holdout(
             means[key] = {
                 metric: float(np.mean([row[metric] for row in group])) for metric in ("top1", "nll")
             }
+    mentor_wins = [
+        records[source]["teacher"]
+        for source, fight in fights.items()
+        if fight.pure_teacher and fight.won and "teacher" in records[source]
+    ]
+    if mentor_wins:
+        means["teacher_wins"] = {
+            key: float(np.mean([r[key] for r in mentor_wins])) for key in ("top1", "nll")
+        }
     return {"equal_fight_means": means, "fights": records}
 
 
@@ -306,17 +362,53 @@ def main() -> None:
     parser.add_argument("--threads", type=int, default=3)
     parser.add_argument("--seed", type=int, default=10576000)
     parser.add_argument("--device", default="cpu")
+    parser.add_argument(
+        "--teacher-curriculum",
+        action="store_true",
+        help="Use only pure-teacher wins in BC and all pure-teacher outcomes in IQL",
+    )
+    parser.add_argument("--cache-history", action="store_true")
+    parser.add_argument("--checkpoint-interval", type=int, default=256)
+    parser.add_argument("--validation-interval", type=int, default=0)
+    parser.add_argument("--validation-patience", type=int, default=0)
     args = parser.parse_args()
     if args.warmup < 1 or args.updates < 1 or args.batch_size < 2 or args.threads < 1:
         raise ValueError("Use positive update and thread counts and at least two windows per batch")
+    if args.checkpoint_interval < 1 or args.validation_interval < 0 or args.validation_patience < 0:
+        raise ValueError("Invalid checkpoint or validation interval")
+    if args.validation_patience and not args.validation_interval:
+        raise ValueError("Early stopping needs an independent validation interval")
     args.output.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
     device = torch.device(args.device)
     catalogue = native_catalogue(args.parent)
     groups = read_fights(args.archive, args.audit, catalogue)
-    print(json.dumps({name: len(fights) for name, fights in groups.items()}), flush=True)
-    windows = Windows(list(groups["train"].values()), np.random.default_rng(args.seed))
+    training = list(groups["train"].values())
+    if args.teacher_curriculum:
+        training = [fight for fight in training if fight.pure_teacher]
+    bc_training = (
+        [fight for fight in training if fight.won] if args.teacher_curriculum else training
+    )
+    cohorts = {
+        "bc_fights": len(bc_training),
+        "iql_fights": len(training),
+        "iql_wins": sum(fight.won for fight in training),
+        "archive_train_fights": len(groups["train"]),
+        "holdout_fights": len(groups["holdout"]),
+    }
+    print(json.dumps(cohorts), flush=True)
+    history = (
+        {
+            id(fight): motion_history(fight.episode.clock, fight.episode.observation)
+            for fight in training
+        }
+        if args.cache_history
+        else None
+    )
+    rng = np.random.default_rng(args.seed)
+    windows = Windows(training, rng, history)
+    warm_windows = Windows(bc_training, rng, history) if args.teacher_curriculum else windows
     actor = RecurrentActor(catalogue, args.hidden).to(device)
     values = RecurrentValues(catalogue, args.hidden).to(device)
     target = deepcopy(values).requires_grad_(False)
@@ -330,18 +422,26 @@ def main() -> None:
         "audit_sha256": sha256(args.audit),
         "opening_parent_sha256": sha256(args.parent),
         "warmup": args.warmup,
-        "iql_updates": args.updates,
+        "planned_iql_updates": args.updates,
+        "training_cohorts": cohorts,
+        "teacher_curriculum": args.teacher_curriculum,
+        "archive_sha256": sha256(args.archive),
         "hidden": args.hidden,
         "seed": args.seed,
         "batch_size": args.batch_size,
         "gap_seconds": float(GAP),
     }
     metrics = []
+    validation_steps = []
+    validations_without_gain = 0
+    best_nll = float("inf")
+    best = None
     fit_steps = args.warmup + args.updates
     for step in range(1, fit_steps + 1):
         burn = 0 if step % 4 == 1 else BURN_IN
         warm = step <= args.warmup
-        batch = tuple(x.to(device) for x in windows.batch(args.batch_size, burn, warm))
+        pool = warm_windows if warm else windows
+        batch = tuple(x.to(device) for x in pool.batch(args.batch_size, burn, warm))
         optimizer.zero_grad(set_to_none=True)
         if warm:
             x, selected, _, _, _, teacher = batch
@@ -360,7 +460,14 @@ def main() -> None:
             row = {"step": step, "stage": "behavior-cloning" if warm else "iql", **measures}
             metrics.append(row)
             print(json.dumps(row), flush=True)
-        if step % 256 == 0 or step in (args.warmup, fit_steps):
+        validate = bool(
+            args.validation_interval
+            and (
+                step in (args.warmup, fit_steps, min(args.warmup, 384))
+                or (not warm and (step - args.warmup) % args.validation_interval == 0)
+            )
+        )
+        if step % args.checkpoint_interval == 0 or step in (args.warmup, fit_steps) or validate:
             destination = args.output / f"step-{step:05d}.pt"
             partial = destination.with_suffix(".partial")
             torch.save(
@@ -375,13 +482,39 @@ def main() -> None:
                 partial,
             )
             partial.replace(destination)
-    validation = holdout(actor.eval(), values.eval(), groups["holdout"], device)
+        if validate:
+            current = holdout(actor, values, groups["holdout"], device)
+            means = current["equal_fight_means"]
+            metric_name = "teacher_wins" if args.teacher_curriculum else "teacher"
+            nll = means[metric_name]["nll"]
+            validation_steps.append({"step": step, "nll": nll, "means": means})
+            print(json.dumps({"step": step, "validation": means}), flush=True)
+            if not warm:
+                if nll < best_nll - 0.001:
+                    best_nll = nll
+                    best = destination, current, step
+                    validations_without_gain = 0
+                else:
+                    validations_without_gain += 1
+                    if (
+                        args.validation_patience
+                        and validations_without_gain >= args.validation_patience
+                    ):
+                        break
+    if best is None:
+        validation = holdout(actor.eval(), values.eval(), groups["holdout"], device)
+        selected_step = step
+    else:
+        destination, validation, selected_step = best
     report = {
         **provenance,
         "checkpoint": destination.name,
         "checkpoint_sha256": sha256(destination),
         "splits": {name: len(fights) for name, fights in groups.items()},
         "metrics": metrics,
+        "iql_updates": step - args.warmup,
+        "selected_iql_update": selected_step - args.warmup,
+        "validation_steps": validation_steps,
         "holdout": validation,
     }
     (args.output / "training.json").write_text(

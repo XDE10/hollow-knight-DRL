@@ -16,6 +16,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from train_hkrl_wm_recurrent_rl import (
     GAMMA,
+    GAP,
     RecurrentActor,
     RecurrentValues,
     prepare_fight,
@@ -92,6 +93,34 @@ class Rollout:
     advantage: Tensor
     returns: Tensor
     world_rows: Tensor
+
+
+def native_gae(
+    reward: np.ndarray,
+    value: np.ndarray,
+    clock: np.ndarray,
+    timeout: bool,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Cut the trace at recurrent resets and bootstrap from the next observed value."""
+    count = len(clock) - int(timeout)
+    intervals = np.diff(clock)
+    truncated = np.r_[intervals > GAP, False][:count]
+    truncated[-1] = timeout
+    done = truncated.copy()
+    done[-1] = True
+    exponent = np.r_[intervals / 0.04, 1.0][:count]
+    next_observed = np.r_[value[1:], 0.0][:count]
+    advantage, returns = compute_gae(
+        reward[:count, None],
+        value[:count, None],
+        done[:, None],
+        truncated[:, None],
+        np.zeros(1, dtype="f4"),
+        gamma=GAMMA,
+        discount_exponents=exponent[:, None],
+        truncation_values=next_observed[:, None],
+    )
+    return advantage[:, 0], returns[:, 0]
 
 
 @torch.no_grad()
@@ -192,21 +221,10 @@ def verified_rollouts(
         count = len(rows) - int(truncation)
         if count <= 0:
             continue
-        done = np.zeros(count, dtype=bool)
-        truncated = done.copy()
-        done[-1] = True
-        truncated[-1] = truncation
-        exponent = np.r_[np.diff(episode.clock[rows]) / 0.04, 1.0][:count]
-        last = np.asarray([value[-1] if truncation else 0.0], dtype="f4")
-        advantage, returns = compute_gae(
-            episode.reward[rows[:count], None],
-            value[:count, None],
-            done[:, None],
-            truncated[:, None],
-            last,
-            gamma=GAMMA,
-            discount_exponents=exponent[:, None],
+        advantage, returns = native_gae(
+            episode.reward[rows], value, episode.clock[rows], truncation
         )
+        stats["gap_boundaries"] = len(fight.segments) - 1
         offset = 0
         for x, log_dist, val, (lo, hi) in zip(
             observations, logits, values, fight.segments, strict=True
@@ -225,8 +243,8 @@ def verified_rollouts(
                     torch.from_numpy(actions[section]).long(),
                     log_dist[:length].float(),
                     val[:length],
-                    torch.from_numpy(advantage[section, 0]),
-                    torch.from_numpy(returns[section, 0]),
+                    torch.from_numpy(advantage[section]),
+                    torch.from_numpy(returns[section]),
                     torch.from_numpy(world_rows),
                 )
             )

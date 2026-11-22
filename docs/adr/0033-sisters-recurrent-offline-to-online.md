@@ -8,8 +8,10 @@
 
 Unity 先编码当前观测，再更新历史并选择动作。新二进制格式取消旧版每 3.2 秒清空隐藏状态的行为。首个 Trio 决策、时间回退及超过 0.081 秒的记录断档触发重置。Python 和 C# 采用相同边界。旧格式继续使用原来的重置规则。[导出器](../../scripts/export_sisters_encoded_recurrent.py) · [原生 GRU](../../mod/HKRLEnvMod/Action/SistersMemoryResidual.cs)
 
+教师课程模式用完整纯教师胜局预热，在 IQL 阶段加入纯教师败局。师生混合及学生轨迹仍保留在原归档中。新录制按预先登记的种子和整局划分追加，检查教师权重、应用按键、游戏奖励、终局、游戏构建和存档恢复。GPU 训练按固定间隔在教师留出胜局上比较 NLL，保存最佳 IQL 检查点及逐场动作诊断。[教师回放打包](../../scripts/pack_sisters_teacher_corpus.py)
+
 ## 世界模型与实机更新
 
 三个动力学网络接收冻结 IQL 演员的状态表示和记录中的原生动作序列，预测 0.08、0.20、0.36 游戏秒后的骑士运动、受伤和输出。用同一批留出动作窗口对比静止、匀速和打乱动作。实机 PPO 只对通过这三项对照的空间预测分量施加表征辅助损失。当前训练仍使用实测游戏奖励计算折扣回报和优势。[世界模型](../../scripts/train_sisters_recurrent_world.py)
 
-训练专用开关让 Unity 从局部温度 Categorical 分布采样。回执写入模型哈希、随机数种子、游戏时间、所选动作及其对数概率。训练前按整局重放观测和循环隐态，比对实际按键、随机数和概率。截断时以最后一个已观测状态自举，未观测到后继的末端动作不进入更新。PPO 更新独立的 Critic 和完整的 Trio 演员，对行为分布的 KL 超出训练阈值时回滚。正式评估关闭采样及录制，由冻结演员贪婪选键。[原生采样](../../mod/HKRLEnvMod/Action/SistersPpoSampler.cs) · [PPO 训练](../../scripts/train_sisters_recurrent_ppo.py)
+训练专用开关让 Unity 从局部温度 Categorical 分布采样。回执写入模型哈希、随机数种子、游戏时间、所选动作及其对数概率。训练前按整局重放观测和循环隐态，比对实际按键、随机数和概率。记录断档处停止 GAE 的优势传播，并以实际录到的后继观测自举。时间上限截断时以最后一个已观测状态自举，未观测到后继的末端动作不进入更新。PPO 更新独立的 Critic 和完整的 Trio 演员，对行为分布的 KL 超出训练阈值时回滚。正式评估关闭采样及录制，由冻结演员贪婪选键。[原生采样](../../mod/HKRLEnvMod/Action/SistersPpoSampler.cs) · [PPO 训练](../../scripts/train_sisters_recurrent_ppo.py)
