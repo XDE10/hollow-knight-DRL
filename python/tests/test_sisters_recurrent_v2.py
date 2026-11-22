@@ -45,14 +45,21 @@ def test_ppo_updates_recurrence_with_validated_world_auxiliary(trainer) -> None:
     with torch.no_grad():
         logits = (actor(x[None])[0] / 0.55).log_softmax(-1)
         values = critic(x[None])[2][0]
+    actions = torch.arange(episode_steps) % 2
+    advantage = torch.linspace(-1, 1, episode_steps)
+    actions[-1] = -1
+    advantage[-1] = float("nan")
+    values[-1] = float("nan")
+    logits[-1] = float("nan")
     rollout = trainer.Rollout(
         x,
-        torch.arange(episode_steps) % 2,
+        actions,
         logits,
         values,
-        torch.linspace(-1, 1, episode_steps),
+        advantage,
         values + 0.2,
         torch.arange(2),
+        torch.arange(episode_steps) != episode_steps - 1,
     )
     mask = torch.tensor([[True, False], [True, True], [True, True]])
     progress = trainer.optimize(actor, critic, [rollout], [world], mask, 0.55, 1)
@@ -61,19 +68,47 @@ def test_ppo_updates_recurrence_with_validated_world_auxiliary(trainer) -> None:
     torch.testing.assert_close(world.head.weight, before)
 
 
-def test_gae_drops_future_advantages_at_gap_but_keeps_observed_bootstrap(trainer) -> None:
-    clock = np.array([0.00, 0.04, 0.16, 0.20], dtype="f4")
+@pytest.mark.parametrize("invalid_interval", [0.02, 0.12])
+def test_gae_excludes_invalid_reward_and_stops_before_gap(trainer, invalid_interval) -> None:
+    clock = np.array([0.0, 0.04, 0.04 + invalid_interval, 0.08 + invalid_interval], dtype="f4")
     reward = np.array([1.0, 3.0, 2.0, 7.0], dtype="f4")
     value = np.array([2.0, 3.0, 4.0, 5.0], dtype="f4")
-    before, _ = trainer.native_gae(reward, value, clock, False)
-    reward[2:] += 100
-    after, _ = trainer.native_gae(reward, value, clock, False)
-    np.testing.assert_array_equal(before[:2], after[:2])
-    assert before[1] == pytest.approx(3 + trainer.GAMMA**3 * 4 - 3)
+    valid = np.array([True, False, True, True])
+    terminated = np.array([False, False, False, True])
+    before, target = trainer.native_gae(reward, value, clock, valid, terminated)
+    reward[1:] += 100
+    after, _ = trainer.native_gae(reward, value, clock, valid, terminated)
+    assert before[0] == after[0] == pytest.approx(1 + trainer.GAMMA * 3 - 2)
+    assert before[1] == after[1] == target[1] == 0
     assert before[-1] == pytest.approx(7 - 5)
-    timeout, _ = trainer.native_gae(reward, value, clock, True)
-    assert len(timeout) == 3
-    assert timeout[-1] == pytest.approx(reward[2] + trainer.GAMMA * 5 - 4)
+    assert target[-1] == pytest.approx(7)
+
+
+def test_timeout_bootstraps_only_from_a_valid_adjacent_observation(trainer) -> None:
+    reward = np.array([1.0, 3.0, 99.0], dtype="f4")
+    value = np.array([2.0, 3.0, 5.0], dtype="f4")
+    clock = np.array([0.0, 0.04, 0.08], dtype="f4")
+    terminated = np.zeros(3, dtype=bool)
+    timeout, _ = trainer.native_gae(reward, value, clock, np.array([True, True, False]), terminated)
+    assert timeout[1] == pytest.approx(3 + trainer.GAMMA * 5 - 3)
+    assert timeout[2] == 0
+    clock[-1] = 0.16
+    gap, _ = trainer.native_gae(reward, value, clock, np.array([True, False, False]), terminated)
+    assert gap[0] == pytest.approx(1 + trainer.GAMMA * 3 - 2)
+    np.testing.assert_array_equal(gap[1:], 0)
+
+
+def test_timeout_prefix_keeps_only_observed_native_rows(trainer) -> None:
+    collector = importlib.import_module("collect_sisters_native_labels")
+    clock = np.arange(6, dtype="f4") * 0.04
+    decisions = {"control_time": clock, "timing_state": np.zeros((6, 192), dtype="f4")}
+    draws = {"ppo_rows": np.arange(2, 6), "ppo_action": np.arange(4)}
+    trace, ppo = collector.ppo_timeout_prefix(decisions, draws, float(clock[3]), float(clock[2]))
+    np.testing.assert_array_equal(trace["control_time"], clock[:4])
+    np.testing.assert_array_equal(ppo["ppo_rows"], [2, 3])
+    np.testing.assert_array_equal(ppo["ppo_action"], [0, 1])
+    with pytest.raises(ValueError, match="boundary observation"):
+        collector.ppo_timeout_prefix(decisions, draws, float(clock[3]), float(clock[3]))
 
 
 def test_teacher_losses_train_iql_without_behavior_cloning(trainer) -> None:
