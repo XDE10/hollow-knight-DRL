@@ -137,19 +137,21 @@ def teacher_history_age(
     return times - np.r_[-np.inf, last_mismatch[:-1]]
 
 
-def motion_history(times: np.ndarray, state: np.ndarray) -> np.ndarray:
+def motion_history(times: np.ndarray, state: np.ndarray, rows: np.ndarray | None = None) -> np.ndarray:
     """Attach the last observation available at each lag on this uninterrupted tape."""
     clock = times.astype("f8")
-    rows = np.arange(len(clock))
+    all_rows = np.arange(len(clock))
+    if rows is None:
+        rows = all_rows
     segment = np.maximum.accumulate(
-        np.where(np.r_[True, np.diff(clock) > 0.24001], rows, 0)
+        np.where(np.r_[True, np.diff(clock) > 0.24001], all_rows, 0)
     )
-    blocks = [state]
+    blocks = [state[rows]]
     for lag in HISTORY_LAGS:
-        j = np.searchsorted(clock, clock - lag + 0.00001, side="right") - 1
-        age = clock - clock[j.clip(0)]
-        known = (j >= segment) & (age <= lag + 0.24001)
-        block = np.zeros((len(clock), HISTORY_BLOCK), dtype="f4")
+        j = np.searchsorted(clock, clock[rows] - lag + 0.00001, side="right") - 1
+        age = clock[rows] - clock[j.clip(0)]
+        known = (j >= segment[rows]) & (age <= lag + 0.24001)
+        block = np.zeros((len(rows), HISTORY_BLOCK), dtype="f4")
         block[known, :WIDTH] = state[j[known]]
         block[known, -1] = age[known]
         blocks.append(block)
@@ -616,13 +618,14 @@ FOCUS_MAGIC = 0x374C5149
 FOCUS_FEATURES = 16
 MEMORY_MAGIC = 0x384C5149
 ENCODED_MEMORY_MAGIC = 0x3C4C5149
+CONTINUOUS_MEMORY_MAGIC = 0x3D4C5149
 
 
 def memory_components(component: bytes) -> tuple[bytes, np.ndarray]:
     if len(component) < 28:
         raise ValueError("Truncated recurrent controller")
     magic, size = struct.unpack_from("<2i", component)
-    if magic == ENCODED_MEMORY_MAGIC:
+    if magic in (ENCODED_MEMORY_MAGIC, CONTINUOUS_MEMORY_MAGIC):
         hidden = struct.unpack_from("<i", component, 8)[0]
         start = 12
     elif magic == MEMORY_MAGIC:
@@ -679,7 +682,9 @@ def phase_checkpoint(opener: bytes, trio: bytes) -> bytes:
         router_residual_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (POLICY_GRADIENT_MAGIC, DIRECTIONAL_MAGIC):
         policy_gradient_components(trio)
-    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (MEMORY_MAGIC, ENCODED_MEMORY_MAGIC):
+    elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] in (
+        MEMORY_MAGIC, ENCODED_MEMORY_MAGIC, CONTINUOUS_MEMORY_MAGIC,
+    ):
         memory_components(trio)
     elif len(trio) >= 4 and struct.unpack_from("<i", trio)[0] == FOCUS_MAGIC:
         focus_components(trio)

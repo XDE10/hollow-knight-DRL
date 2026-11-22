@@ -27,6 +27,7 @@ INTERVENTION_FIELDS = {
     "pair_rows",
     "plan_costs",
     "plan_choice",
+    "ppo_rows",
 }
 
 

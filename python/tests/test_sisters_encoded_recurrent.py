@@ -47,6 +47,12 @@ def test_encoded_gru_export_preserves_opening_and_unfolded_logits(
         binary = export.export(parent, cats, state)
         frozen_opening, trio = timing.phase_components(binary)
         assert frozen_opening == opening
+        continuous_opening, continuous_trio = timing.phase_components(
+            export.export(parent, cats, state, continuous=True)
+        )
+        assert continuous_opening == opening
+        assert struct.unpack_from("<i", continuous_trio)[0] == timing.CONTINUOUS_MEMORY_MAGIC
+        assert continuous_trio[4:] == trio[4:]
         assert struct.unpack_from("<i", trio, 8)[0] == memory.hidden_size
         materialized, parameters = timing.memory_components(trio)
         leaf, exported_cats = native.read_leaf(materialized)
