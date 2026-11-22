@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from train_sisters_timing_iql import (
+    CONTINUOUS_MEMORY_MAGIC,
     ENCODED_MEMORY_MAGIC,
     TimingPolicy,
     memory_components,
@@ -24,28 +25,28 @@ from train_sisters_timing_iql import (
 )
 
 
-def export(parent: bytes, catalogue: Tensor, state: Mapping[str, Tensor]) -> bytes:
+def export(
+    parent: bytes,
+    catalogue: Tensor,
+    state: Mapping[str, Tensor],
+    *,
+    continuous: bool = False,
+) -> bytes:
     opening, trio = phase_components(parent)
     left, right, _ = option_components(trio)
     for arm in (left, right):
         count = struct.unpack_from("<i", arm, 16)[0]
         keys = np.frombuffer(arm, "<i4", count=3 * count, offset=20).reshape(-1, 3)
         if not np.array_equal(keys, catalogue.numpy()):
-            raise ValueError(
-                "The trained actor must retain the parent's original Trio catalogue"
-            )
+            raise ValueError("The trained actor must retain the parent's original Trio catalogue")
     encoder = TimingPolicy(catalogue, history=True)
     encoder_state = {key: state[f"encoder.{key}"] for key in encoder.state_dict()}
     if not torch.equal(encoder_state["basis"], encoder.basis):
-        raise ValueError(
-            "The encoded actor's factor basis does not match the catalogue"
-        )
+        raise ValueError("The encoded actor's factor basis does not match the catalogue")
     encoder.load_state_dict(encoder_state, strict=True)
     projection = state["memory_projection.weight"]
     if projection.ndim != 2 or projection.shape[0] != 192:
-        raise ValueError(
-            "Expected the recurrent projection to use the 192-feature encoder"
-        )
+        raise ValueError("Expected the recurrent projection to use the 192-feature encoder")
     hidden = projection.shape[1]
     if not 1 <= hidden <= 256:
         raise ValueError("Unsupported native recurrent hidden size")
@@ -83,12 +84,9 @@ def export(parent: bytes, catalogue: Tensor, state: Mapping[str, Tensor]) -> byt
         recurrence_weights,
         torch.zeros(len(catalogue), dtype=torch.float32),
     ]
-    data = b"".join(
-        v.detach().numpy().astype("<f4", copy=False).tobytes() for v in values
-    )
-    component = (
-        struct.pack("<3i", ENCODED_MEMORY_MAGIC, len(leaf), hidden) + leaf + data
-    )
+    data = b"".join(v.detach().numpy().astype("<f4", copy=False).tobytes() for v in values)
+    magic = CONTINUOUS_MEMORY_MAGIC if continuous else ENCODED_MEMORY_MAGIC
+    component = struct.pack("<3i", magic, len(leaf), hidden) + leaf + data
     memory_components(component)
     return phase_checkpoint(opening, component)
 
@@ -100,7 +98,10 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     saved = torch.load(args.learner, map_location="cpu", weights_only=True)
-    data = export(args.parent.read_bytes(), saved["catalogue"], saved["state"])
+    continuous = saved.get("provenance", {}).get("method") == "recurrent-iql-v2"
+    data = export(
+        args.parent.read_bytes(), saved["catalogue"], saved["state"], continuous=continuous
+    )
     with args.output.open("xb") as stream:
         stream.write(data)
     opening, _ = phase_components(data)

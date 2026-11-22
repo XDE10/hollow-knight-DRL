@@ -29,6 +29,7 @@ namespace HKRLEnvMod.Action
         private NativeSistersNetwork? _trioNet;
         private SistersOptionRouter? _router;
         private SistersPrimitiveSampler? _primitiveSampler;
+        private SistersPpoSampler? _ppoSampler;
         private SistersTimingState? _timing;
         private ulong _episode, _tick, _commits;
         private int _count, _attack, _cast, _dash, _art;
@@ -71,12 +72,26 @@ namespace HKRLEnvMod.Action
             if (_net == null || _episode != obs.Global.EpisodeId)
             {
                 var bytes = File.ReadAllBytes(_path);
+                byte[] digest;
                 using (var sha = SHA256.Create())
-                    _digest = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+                    digest = sha.ComputeHash(bytes);
+                _digest = BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
                 _router?.Sampler?.Dispose();
                 _primitiveSampler?.Dispose();
+                _ppoSampler?.Dispose();
                 _net = NativeSistersNetwork.Load(bytes, out _trioNet, out _router);
                 _episode = obs.Global.EpisodeId;
+                if (Environment.GetEnvironmentVariable(SistersPpoSampler.Flag) == "1")
+                {
+                    if (_demonstrator == null || _router != null || _trioNet?.Memory?.Continuous != true ||
+                        !int.TryParse(Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_SEED"),
+                            NumberStyles.Integer, CultureInfo.InvariantCulture, out int seed) ||
+                        !double.TryParse(Environment.GetEnvironmentVariable("HKRL_NATIVE_PPO_TEMPERATURE"),
+                            NumberStyles.Float, CultureInfo.InvariantCulture, out double temperature))
+                        throw new InvalidOperationException("Expected a continuous recurrent PPO development actor");
+                    _ppoSampler = new SistersPpoSampler(Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_DIR")!,
+                        _episode, digest, seed, temperature, _trioNet.ActionCount);
+                }
                 if (Environment.GetEnvironmentVariable("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1")
                 {
                     if (_demonstrator == null || _router == null) throw new InvalidOperationException("Missing native training controller");
@@ -108,6 +123,7 @@ namespace HKRLEnvMod.Action
                 active = _demonstrator.NeuralTrial.Select(active, active == _trioNet, state, obs.Global.TimeInEpisode);
             Input = active.Choose(state, obs.Global.TimeInEpisode);
             if (_primitiveSampler != null) Input = _primitiveSampler.Choose(active, Input, state, obs.Global.TimeInEpisode);
+            if (_ppoSampler != null && active == _trioNet) Input = _ppoSampler.Choose(active, obs.Global.TimeInEpisode);
             if (_demonstrator != null) Input = _demonstrator.Label(obs, tick, _raw, Input, _timing?.Values, active);
             _timing?.Commit(Input, obs.Global.TimeInEpisode);
             if (!_net.UsesTiming) _net.Commit(Input, obs.Global.TimeInEpisode);
@@ -125,6 +141,7 @@ namespace HKRLEnvMod.Action
             _demonstrator?.Flush();
             _router?.Sampler?.Flush();
             _primitiveSampler?.Flush();
+            _ppoSampler?.Flush();
             if (_count == 0) return;
             _trioNet?.Focus?.WriteReceipt(_ledger + ".focus", _episode);
             _trioNet?.Memory?.WriteReceipt(_ledger + ".memory", _episode);
@@ -134,7 +151,7 @@ namespace HKRLEnvMod.Action
                 _digest, _count, _attack, _cast, _dash, _art));
         }
 
-        public void Dispose() { _primitiveSampler?.Dispose(); _router?.Sampler?.Dispose(); _demonstrator?.Dispose(); }
+        public void Dispose() { _ppoSampler?.Dispose(); _primitiveSampler?.Dispose(); _router?.Sampler?.Dispose(); _demonstrator?.Dispose(); }
     }
 
     internal sealed class NativeSistersNetwork

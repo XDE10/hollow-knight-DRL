@@ -92,6 +92,7 @@ def main() -> None:
     ap.add_argument("--seed", required=True, type=int)
     ap.add_argument("--episodes", type=int, default=12)
     ap.add_argument("--checkpoint", required=True, type=Path)
+    ap.add_argument("--expected-mod-sha256")
     ap.add_argument(
         "--yield-file", type=Path,
         help="Release this game copy after saving a completed fight when the reservation file exists.",
@@ -116,6 +117,7 @@ def main() -> None:
     trace_only = envs.get("HKRL_NATIVE_TRACE_ONLY") == "1"
     routing = envs.get("HKRL_NATIVE_ROUTER_ROLLOUT") == "1"
     primitive = envs.get("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1"
+    ppo = envs.get("HKRL_NATIVE_PPO_ROLLOUT") == "1"
     if primitive and routing:
         raise ValueError("Select one behavior policy")
     sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
@@ -137,7 +139,7 @@ def main() -> None:
         raise ValueError("Trace-only recording requires exclusive deterministic neural control")
     if (
         proc.name().lower() != "hollow_knight.exe"
-        or not (has_teacher or sampling or candidate or routing or primitive or trace_only)
+        or not (has_teacher or sampling or candidate or routing or primitive or trace_only or ppo)
         or float(envs.get("HKRL_SISTERS_NAIL_MULTIPLIER", "1")) != 1
     ):
         raise RuntimeError("Wrong development game mode")
@@ -147,6 +149,14 @@ def main() -> None:
     scale = float(envs.get("HKRL_DEVELOPMENT_SPEED", "2"))
     if scale not in (1.0, 2.0):
         raise ValueError("Development collection supports 1x or 2x speed")
+    if ppo:
+        if (has_teacher or sampling or candidate or routing or primitive or trace_only or not timing
+                or scale != 1 or not args.verify_unity_seed or not args.expected_mod_sha256
+                or args.episodes != 1 or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
+            raise ValueError("PPO requires a single original-speed, teacher-free seeded fight")
+        mod = (Path(proc.exe()).parent / "hollow_knight_Data/Managed/Mods/HKRLEnvMod/HKRLEnvMod.dll")
+        if hashlib.sha256(mod.read_bytes()).hexdigest() != args.expected_mod_sha256:
+            raise ValueError("Wrong installed PPO game mod")
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
     if (routing or primitive) and (has_teacher or sampling or candidate or envs.get("HKRL_NATIVE_TIMING") != "1"
                     or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
@@ -219,6 +229,16 @@ def main() -> None:
 
                     plans = read_plans(tape_dir / f"{eid}.plans", eid, clock)
                 online = {}
+                if ppo:
+                    from train_sisters_recurrent_ppo import read_native_draws
+
+                    seed = int(envs["HKRL_NATIVE_DEMO_SEED"])
+                    temperature = float(envs["HKRL_NATIVE_PPO_TEMPERATURE"])
+                    online = read_native_draws(tape_dir / f"{eid}.ppo", eid, sha, seed, temperature,
+                                               clock, decisions["timing_state"])
+                    controller.update(ppo_temperature=temperature, sampler_draw_seed=seed)
+                    result.update(behavior_policy_sha256=sha, mod_sha256=args.expected_mod_sha256,
+                                  game_speed=scale, native_inputs=len(clock), ppo_decisions=len(online["ppo_rows"]))
                 if routing or primitive:
                     from sisters_primitive_rollout import read_keys
                     from sisters_router_rollout import read_routes
@@ -288,6 +308,8 @@ def main() -> None:
                     **control_stats,
                     **controller,
                 )
+                if ppo:
+                    result["tape_sha256"] = hashlib.sha256((args.output / file).read_bytes()).hexdigest()
                 (args.output / f"episode-{i:03d}.json").write_text(
                     json.dumps(result, indent=2) + "\n"
                 )
@@ -298,6 +320,7 @@ def main() -> None:
                         "split": "train",
                         "won": result["win"],
                         "teacher_labels": has_teacher,
+                        **({"truncated": result["truncated"], "tape_sha256": result["tape_sha256"]} if ppo else {}),
                         **controller,
                         **({"behavior_policy_sha256": sha} if online or trace_only else {}),
                     }

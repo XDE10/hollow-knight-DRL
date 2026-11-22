@@ -9,9 +9,12 @@ namespace HKRLEnvMod.Action
     {
         internal const int Magic = 0x384C5149;
         internal const int EncodedMagic = 0x3C4C5149;
+        internal const int ContinuousMagic = 0x3D4C5149;
         private const int Width = 192, LegacyHidden = 24;
         private readonly int _hidden;
         private readonly bool _encoded;
+        private readonly bool _continuous;
+        internal bool Continuous => _continuous;
         private readonly float[] _input, _recurrent, _inputBias, _recurrentBias, _head, _headBias;
         private readonly float[] _h, _xGates, _hGates;
         private readonly float[] _delta;
@@ -23,10 +26,11 @@ namespace HKRLEnvMod.Action
             File.WriteAllText(path, string.Join("\n", episode, _decisions, _changed));
         }
 
-        private SistersMemoryResidual(BinaryReader reader, int actions, int hidden, bool encoded)
+        private SistersMemoryResidual(BinaryReader reader, int actions, int hidden, bool encoded, bool continuous)
         {
             _hidden = hidden;
             _encoded = encoded;
+            _continuous = continuous;
             int gates = 3 * hidden;
             _h = new float[hidden];
             _xGates = new float[gates];
@@ -43,7 +47,8 @@ namespace HKRLEnvMod.Action
         internal static NativeSistersNetwork Read(BinaryReader reader)
         {
             int magic = reader.ReadInt32();
-            bool encoded = magic == EncodedMagic;
+            bool continuous = magic == ContinuousMagic;
+            bool encoded = magic == EncodedMagic || continuous;
             if (!encoded && magic != Magic) throw new InvalidDataException("Wrong recurrent control policy");
             int n = reader.ReadInt32();
             int hidden = encoded ? reader.ReadInt32() : LegacyHidden;
@@ -57,7 +62,7 @@ namespace HKRLEnvMod.Action
             long count = 3L * hidden * (Width + hidden + 2) + (hidden + 1L) * actor.ActionCount;
             if (reader.BaseStream.Length - reader.BaseStream.Position != count * sizeof(float))
                 throw new InvalidDataException("Invalid recurrent control weights");
-            actor.Memory = new SistersMemoryResidual(reader, actor.ActionCount, hidden, encoded);
+            actor.Memory = new SistersMemoryResidual(reader, actor.ActionCount, hidden, encoded, continuous);
             return actor;
         }
 
@@ -65,7 +70,7 @@ namespace HKRLEnvMod.Action
 
         internal void Adjust(float[] state, float[] embedding, float time, float[] scores)
         {
-            if (_previous < 0 || time <= _previous || time - _previous > .081f || time >= _start + 3.2f)
+            if (_previous < 0 || time <= _previous || time - _previous > .081f || (!_continuous && time >= _start + 3.2f))
             {
                 Array.Clear(_h, 0, _hidden);
                 _start = time;
