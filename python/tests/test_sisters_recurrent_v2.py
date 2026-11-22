@@ -59,3 +59,18 @@ def test_ppo_updates_recurrence_with_validated_world_auxiliary(trainer) -> None:
     assert progress[0]["accepted"] and progress[0]["world_aux"] > 0
     assert not torch.equal(actor.memory.weight_hh_l0, state)
     torch.testing.assert_close(world.head.weight, before)
+
+
+def test_gae_drops_future_advantages_at_gap_but_keeps_observed_bootstrap(trainer) -> None:
+    clock = np.array([0.00, 0.04, 0.16, 0.20], dtype="f4")
+    reward = np.array([1.0, 3.0, 2.0, 7.0], dtype="f4")
+    value = np.array([2.0, 3.0, 4.0, 5.0], dtype="f4")
+    before, _ = trainer.native_gae(reward, value, clock, False)
+    reward[2:] += 100
+    after, _ = trainer.native_gae(reward, value, clock, False)
+    np.testing.assert_array_equal(before[:2], after[:2])
+    assert before[1] == pytest.approx(3 + trainer.GAMMA**3 * 4 - 3)
+    assert before[-1] == pytest.approx(7 - 5)
+    timeout, _ = trainer.native_gae(reward, value, clock, True)
+    assert len(timeout) == 3
+    assert timeout[-1] == pytest.approx(reward[2] + trainer.GAMMA * 5 - 4)

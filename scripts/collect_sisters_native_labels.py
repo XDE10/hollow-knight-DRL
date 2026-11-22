@@ -154,10 +154,18 @@ def main() -> None:
                 or scale != 1 or not args.verify_unity_seed or not args.expected_mod_sha256
                 or args.episodes != 1 or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
             raise ValueError("PPO requires a single original-speed, teacher-free seeded fight")
+    if args.expected_mod_sha256:
         mod = (Path(proc.exe()).parent / "hollow_knight_Data/Managed/Mods/HKRLEnvMod/HKRLEnvMod.dll")
         if hashlib.sha256(mod.read_bytes()).hexdigest() != args.expected_mod_sha256:
-            raise ValueError("Wrong installed PPO game mod")
+            raise ValueError("Wrong installed development game mod")
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
+    teacher_hashes = {}
+    if has_teacher:
+        teacher_path = Path(envs["HKRL_TACTICS_POLICY"])
+        for suffix in ("", ".weights", ".wm.weights"):
+            asset = Path(str(teacher_path) + suffix)
+            if suffix == "" or asset.is_file():
+                teacher_hashes["teacher.txt" + suffix] = hashlib.sha256(asset.read_bytes()).hexdigest()
     if (routing or primitive) and (has_teacher or sampling or candidate or envs.get("HKRL_NATIVE_TIMING") != "1"
                     or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
         raise ValueError("A winning-router rollout requires exclusive student control")
@@ -305,11 +313,18 @@ def main() -> None:
                 result.update(
                     seed=args.seed + i,
                     teacher_labels=has_teacher,
+                    game_speed=scale,
+                    play_wall_seconds=play_wall_seconds,
+                    native_inputs=len(clock),
+                    control_game_seconds=float(clock[-1] - clock[0]),
                     **control_stats,
                     **controller,
                 )
-                if ppo:
-                    result["tape_sha256"] = hashlib.sha256((args.output / file).read_bytes()).hexdigest()
+                if args.expected_mod_sha256:
+                    result["mod_sha256"] = args.expected_mod_sha256
+                if teacher_hashes:
+                    result["teacher_asset_sha256"] = teacher_hashes
+                result["tape_sha256"] = hashlib.sha256((args.output / file).read_bytes()).hexdigest()
                 (args.output / f"episode-{i:03d}.json").write_text(
                     json.dumps(result, indent=2) + "\n"
                 )
@@ -320,7 +335,8 @@ def main() -> None:
                         "split": "train",
                         "won": result["win"],
                         "teacher_labels": has_teacher,
-                        **({"truncated": result["truncated"], "tape_sha256": result["tape_sha256"]} if ppo else {}),
+                        "truncated": result["truncated"],
+                        "tape_sha256": result["tape_sha256"],
                         **controller,
                         **({"behavior_policy_sha256": sha} if online or trace_only else {}),
                     }
