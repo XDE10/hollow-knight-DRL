@@ -44,6 +44,7 @@ def pack(
                 or game.get("behavior_policy_sha256")
                 != meta.get("behavior_policy_sha256")
                 or game.get("teacher_labels", True) != meta.get("teacher_labels", True)
+                or ("truncated" in game and game["truncated"] != meta.get("truncated"))
                 or any(game.get(k) != meta.get(k) for k in CONTROLLER_FIELDS)
                 or (game.get("deterministic_native_trace") and meta.get("teacher_fraction") != 0)
             ):
@@ -55,7 +56,12 @@ def pack(
                     float(v) > 1.001 for v in speeds
                 ):
                     continue
-            games[seed] = (manifest.parent / game["file"], game)
+            outcome = {}
+            if "truncated" in meta:
+                if type(meta["truncated"]) is not bool or (meta["truncated"] and meta["win"]):
+                    raise ValueError(f"Invalid episode outcome for seed {seed}")
+                outcome["truncated"] = meta["truncated"]
+            games[seed] = (manifest.parent / game["file"], {**game, **outcome})
     split_by_seed = {}
     spec = None
     neural_trial = False
@@ -290,6 +296,7 @@ def pack(
                         seed, "holdout" if (seed % 1000) % 6 == 1 else "train"
                     ),
                     "won": game["won"],
+                    **({"truncated": game["truncated"]} if "truncated" in game else {}),
                     **({"teacher_labels": False} if not labeled else {}),
                     **{k: game[k] for k in CONTROLLER_FIELDS if k in game},
                     **(
