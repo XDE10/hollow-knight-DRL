@@ -13,7 +13,7 @@ def test_plan_trace_alignment_overrides_and_supported_motions(tmp_path, monkeypa
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     plans = importlib.import_module("sisters_plan_labels")
     fit = importlib.import_module("train_sisters_timing_iql")
-    times = np.array([.1, .2, .3], dtype="f4")
+    times = np.array([0.1, 0.2, 0.3], dtype="f4")
     tape = np.zeros(2, dtype=plans.PLAN_ROW)
     tape["time"] = times[[0, 2]]
     tape["cost"] = np.inf
@@ -24,10 +24,10 @@ def test_plan_trace_alignment_overrides_and_supported_motions(tmp_path, monkeypa
     np.testing.assert_array_equal(table["plan_choice"], [0, -1, 0])
     labels = np.array([[-1, 0, 8], [-1, 0, 0], [1, 0, 8]])
     weights = plans.plan_preferences(table["plan_costs"], table["plan_choice"], labels)
-    np.testing.assert_array_equal(weights[0, [0, 4, 8]], [0, .5, 1])
+    np.testing.assert_array_equal(weights[0, [0, 4, 8]], [0, 0.5, 1])
     assert np.count_nonzero(weights) == 2
     with pytest.raises(ValueError, match="timestamps"):
-        plans.read_plans(path, 1, times + .01)
+        plans.read_plans(path, 1, times + 0.01)
     # Different attack or aim keys can contribute to the same motion probability.
     commands = torch.tensor([[-1, 0, 0], [-1, 1, 8], [1, 0, 0], [0, 0, 7]])
     groups = fit.movement_groups(commands)

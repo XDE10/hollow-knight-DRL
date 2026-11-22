@@ -19,8 +19,13 @@ def test_ppo_rejects_invalid_alternate_learning_rate(tmp_path, monkeypatch, rate
     source = tmp_path / "unused"
     with pytest.raises(ValueError, match="learning rate"):
         api.train(
-            source, source, source, source, tmp_path / "output",
-            temperature=1.0, alternate_learning_rate=rate,
+            source,
+            source,
+            source,
+            source,
+            tmp_path / "output",
+            temperature=1.0,
+            alternate_learning_rate=rate,
         )
 
 

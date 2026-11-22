@@ -86,8 +86,11 @@ def test_second_phase_damage_and_health_use_observed_intervals() -> None:
 
     k = protocol.RewardEventKind
     incoming = protocol.RewardEvent(
-        kind=k.DAMAGE_TAKEN, entity_id=11, aux_int=2,
-        aux_int2=protocol.DamageSource.ENEMY_PROJECTILE, amount=1,
+        kind=k.DAMAGE_TAKEN,
+        entity_id=11,
+        aux_int=2,
+        aux_int2=protocol.DamageSource.ENEMY_PROJECTILE,
+        amount=1,
     )
     outgoing = SimpleNamespace(kind=k.DAMAGE_DEALT, amount=21)
     heal = SimpleNamespace(kind=k.HEAL, amount=1)
@@ -99,8 +102,12 @@ def test_second_phase_damage_and_health_use_observed_intervals() -> None:
     projectiles = np.zeros((4, 24))
     projectiles[:, 0] = [10, 11, 12, 13]
     projectiles[:, 1] = protocol.EntityType.PROJECTILE
-    projectiles[:, 2] = [protocol.Team.ENEMY, protocol.Team.ENEMY,
-                         protocol.Team.PLAYER_CREATED, protocol.Team.ENEMY]
+    projectiles[:, 2] = [
+        protocol.Team.ENEMY,
+        protocol.Team.ENEMY,
+        protocol.Team.PLAYER_CREATED,
+        protocol.Team.ENEMY,
+    ]
     projectiles[1, 6:8] = [23, 10]
     before["entities"] = np.vstack([before["entities"], projectiles])
     before["entity_mask"] = np.array([1, 1, 1, 1, 0], dtype=bool)

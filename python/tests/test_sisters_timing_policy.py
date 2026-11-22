@@ -129,7 +129,7 @@ def test_opening_target_uses_only_resources_at_first_trio(monkeypatch) -> None:
     mod = importlib.import_module("train_sisters_timing_iql")
     s = np.zeros((5, mod.WIDTH), dtype="f4")
     s[:, 4] = np.array([9, 8, 9, 9, 1]) / 9
-    s[:, 5] = [0, 0, 1/3, 1/3, 0]
+    s[:, 5] = [0, 0, 1 / 3, 1 / 3, 0]
     s[3:, 23] = 1
     r, done = mod.opening_rewards(s, np.zeros(5, "f4"), np.zeros(5, bool))
     np.testing.assert_allclose(r, [-1.25, 1.75, 10, 0, 0], atol=1e-6)
@@ -201,14 +201,24 @@ def test_entry_replay_mask_preserves_whole_fight_splits_and_mirroring(
         path = tmp_path / f"{split}.npz"
         keys = np.zeros((len(t), 3), dtype="i2")
         np.savez(
-            path, timing_state=state, control_time=t, controls=keys,
-            teacher_controls=keys, time=t, elapsed_ticks=np.full(len(t), 2),
+            path,
+            timing_state=state,
+            control_time=t,
+            controls=keys,
+            teacher_controls=keys,
+            time=t,
+            elapsed_ticks=np.full(len(t), 2),
             events=np.zeros((len(t), 8), dtype="f4"),
         )
-        records.append({
-            "file": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-            "source": f"native-development/{split}", "split": split, "won": False,
-        })
+        records.append(
+            {
+                "file": path.name,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "source": f"native-development/{split}",
+                "split": split,
+                "won": False,
+            }
+        )
     (tmp_path / "manifest.json").write_text(json.dumps(records))
     data, _, _ = mod.build_data(tmp_path, "cpu", return_seconds=0.32, entry_replay=True)
     np.testing.assert_array_equal(data["train"][-4], np.tile(mask, 2))
@@ -219,7 +229,7 @@ def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, m
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")
     records = []
-    for i, (won, dt) in enumerate(((True, .04), (False, .04), (True, .08), (True, .04))):
+    for i, (won, dt) in enumerate(((True, 0.04), (False, 0.04), (True, 0.08), (True, 0.04))):
         t = np.arange(5, dtype="f4") * dt
         state = np.zeros((len(t), mod.WIDTH), dtype="f4")
         state[:, 23] = 1
@@ -227,11 +237,25 @@ def test_winning_teacher_filter_keeps_all_real_critic_examples(tmp_path: Path, m
         events = np.zeros((len(t), 8), dtype="f4")
         events[1, 1] = int(not won)
         path = tmp_path / f"test-{i}.npz"
-        np.savez(path, timing_state=state, control_time=t, controls=keys, teacher_controls=keys,
-                 time=t, elapsed_ticks=np.full(len(t), 2), events=events)
-        records.append({"file": path.name, "source": f"native-development/test-{i}",
-                        "won": won, "split": "holdout" if i == 3 else "train",
-                        "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+        np.savez(
+            path,
+            timing_state=state,
+            control_time=t,
+            controls=keys,
+            teacher_controls=keys,
+            time=t,
+            elapsed_ticks=np.full(len(t), 2),
+            events=events,
+        )
+        records.append(
+            {
+                "file": path.name,
+                "source": f"native-development/test-{i}",
+                "won": won,
+                "split": "holdout" if i == 3 else "train",
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
     (tmp_path / "manifest.json").write_text(json.dumps(records))
     data, _, stats = mod.build_data(
         tmp_path, "cpu", mirror=False, trio_only=True, teacher_win_min_hz=23
@@ -307,19 +331,19 @@ def test_teacher_free_transitions_have_real_actions_and_no_imitation_target(
 def test_motion_history_masks_gaps_and_only_reads_past(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")
-    clock = np.array([0, .08, .16, .24, .32, .40, .48, 1., 1.08, 1.16], dtype="f4")
+    clock = np.array([0, 0.08, 0.16, 0.24, 0.32, 0.40, 0.48, 1.0, 1.08, 1.16], dtype="f4")
     state = np.zeros((len(clock), mod.WIDTH), dtype="f4")
     state[:, 0] = np.arange(len(clock)) + 1
     x = mod.motion_history(clock, state)
-    short = x[:, mod.WIDTH:mod.WIDTH + mod.HISTORY_BLOCK]
-    long = x[:, mod.WIDTH + mod.HISTORY_BLOCK:]
+    short = x[:, mod.WIDTH : mod.WIDTH + mod.HISTORY_BLOCK]
+    long = x[:, mod.WIDTH + mod.HISTORY_BLOCK :]
     np.testing.assert_array_equal(short[:, 0], [0, 0, 1, 2, 3, 4, 5, 0, 0, 8])
     np.testing.assert_array_equal(long[:, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
-    np.testing.assert_allclose([short[3, -1], long[6, -1]], [.16, .48], atol=1e-6)
+    np.testing.assert_allclose([short[3, -1], long[6, -1]], [0.16, 0.48], atol=1e-6)
     policy = mod.TimingPolicy(torch.tensor([[-1, 0, 2], [1, 0, 8]]), history=True)
     raw = torch.from_numpy(x)
     expected = policy(raw)[0]
-    raw[:, mod.WIDTH + 25:mod.WIDTH + 60] = 100
+    raw[:, mod.WIDTH + 25 : mod.WIDTH + 60] = 100
     torch.testing.assert_close(expected, policy(raw)[0])
 
 
@@ -407,7 +431,7 @@ def test_future_box_labels_respect_family_position_and_episode_end(monkeypatch) 
 def test_future_movements_require_observed_matching_inputs_in_one_phase(monkeypatch) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     mod = importlib.import_module("train_sisters_timing_iql")
-    t = np.array([0, .04, .08, .12, .16, .20, .24, .28, .40, .44], dtype="f4")
+    t = np.array([0, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.40, 0.44], dtype="f4")
     keys = np.zeros((len(t), 3), dtype="i2")
     keys[1] = [1, 0, 1]  # right and jump
     keys[3] = [-1, 0, 4]  # left and dash

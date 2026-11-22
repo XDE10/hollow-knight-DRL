@@ -192,6 +192,17 @@ public sealed class BossSceneController : MonoBehaviour
 
 public interface IHitResponder { }
 
+public enum AttackTypes
+{
+    Nail,
+}
+
+public struct HitInstance
+{
+    public AttackTypes AttackType;
+    public int DamageDealt;
+}
+
 public sealed class HealthManager : MonoBehaviour, IHitResponder
 {
     public bool isActiveAndEnabled { get; set; } = true;
