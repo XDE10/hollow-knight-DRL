@@ -17,7 +17,6 @@ from zipfile import ZipFile
 import numpy as np
 import torch
 from audit_sisters_mainline_replay import Episode, iter_episodes
-from hkrl.spaces import BUTTON_BITS
 from torch import Tensor, nn
 from torch.nn import functional as F
 from train_sisters_timing_iql import (
@@ -26,6 +25,8 @@ from train_sisters_timing_iql import (
     option_components,
     phase_components,
 )
+
+from hkrl.spaces import BUTTON_BITS
 
 GAP = np.float32(0.081)
 BURN_IN = 16
@@ -60,9 +61,7 @@ class RecurrentValues(nn.Module):
         self.value = nn.Linear(width, 1)
 
     def forward(self, inputs: Tensor, burn: int = 0) -> tuple[Tensor, Tensor, Tensor]:
-        features = torch.cat(
-            recurrent_features(self.encoder, self.memory, inputs, burn), dim=-1
-        )
+        features = torch.cat(recurrent_features(self.encoder, self.memory, inputs, burn), dim=-1)
         return self.q1(features), self.q2(features), self.value(features).squeeze(-1)
 
 
@@ -117,36 +116,26 @@ def native_catalogue(parent: Path) -> Tensor:
     catalogues = []
     for leaf in (left, right):
         n = struct.unpack_from("<i", leaf, 16)[0]
-        catalogues.append(
-            np.frombuffer(leaf, "<i4", count=n * 3, offset=20).reshape(n, 3)
-        )
+        catalogues.append(np.frombuffer(leaf, "<i4", count=n * 3, offset=20).reshape(n, 3))
     if not np.array_equal(*catalogues):
         raise ValueError("Frozen Trio action catalogues differ")
     return torch.from_numpy(catalogues[0].astype("i8"))
 
 
 def prepare_fight(episode: Episode, lookup: dict[tuple[int, ...], int]) -> Fight:
-    action = np.array(
-        [lookup.get(tuple(key), -1) for key in episode.action], dtype="i8"
-    )
+    action = np.array([lookup.get(tuple(key), -1) for key in episode.action], dtype="i8")
     phase = episode.observation[:, 23] > 0.5
     delta = np.diff(episode.clock)
-    boundaries = np.r_[
-        0, np.flatnonzero((delta > GAP) | (phase[1:] != phase[:-1])) + 1, len(phase)
-    ]
+    boundaries = np.r_[0, np.flatnonzero((delta > GAP) | (phase[1:] != phase[:-1])) + 1, len(phase)]
     segments = tuple((int(lo), int(hi)) for lo, hi in pairwise(boundaries) if phase[lo])
     discount = np.zeros(len(phase), dtype="f4")
     has_next = (episode.next_row[:-1] >= 0) & (delta <= GAP) & phase[:-1] & phase[1:]
     discount[:-1][has_next] = GAMMA ** (delta[has_next] / 0.04)
     valid = (episode.terminated | (discount > 0)) & (action >= 0) & phase
-    return Fight(
-        episode, action, valid, episode.controller == "teacher", discount, segments
-    )
+    return Fight(episode, action, valid, episode.controller == "teacher", discount, segments)
 
 
-def read_fights(
-    archive: Path, audit: Path, catalogue: Tensor
-) -> dict[str, dict[str, Fight]]:
+def read_fights(archive: Path, audit: Path, catalogue: Tensor) -> dict[str, dict[str, Fight]]:
     report = json.loads(audit.read_bytes())
     if sha256(archive) != report["archive_sha256"]:
         raise ValueError("Replay archive differs from the verified report")
@@ -170,14 +159,12 @@ def read_fights(
                 continue
             if (
                 "rows" not in audited
-                or int(episode.valid_transition.sum())
-                != audited["rows"]["valid_transitions"]
+                or int(episode.valid_transition.sum()) != audited["rows"]["valid_transitions"]
             ):
                 raise ValueError(f"Transition count changed for {source}")
             groups[item["split"]][source] = prepare_fight(episode, lookup)
     if expected or any(
-        len(fights) != report["splits"][name]["episodes"]
-        for name, fights in groups.items()
+        len(fights) != report["splits"][name]["episodes"] for name, fights in groups.items()
     ):
         raise ValueError("Replay fights differ from the audited splits")
     return groups
@@ -200,11 +187,7 @@ class Windows:
             for burn in (0, BURN_IN):
                 pool = []
                 for fight in fights:
-                    valid = (
-                        fight.train_rows & fight.teacher
-                        if teacher
-                        else fight.train_rows
-                    )
+                    valid = fight.train_rows & fight.teacher if teacher else fight.train_rows
                     for lo, hi in fight.segments:
                         if burn:
                             if valid[lo + burn : hi].any():
@@ -244,14 +227,10 @@ class Windows:
                     tape.reward[scored],
                     fight.discount[scored],
                     mask,
-                    fight.teacher[scored]
-                    & mask
-                    & (fight.won or not self.teacher_win_bc),
+                    fight.teacher[scored] & mask & (fight.won or not self.teacher_win_bc),
                 )
             )
-        return tuple(
-            torch.from_numpy(np.stack(column)) for column in zip(*rows, strict=True)
-        )
+        return tuple(torch.from_numpy(np.stack(column)) for column in zip(*rows, strict=True))
 
 
 def iql_losses(
@@ -268,9 +247,7 @@ def iql_losses(
     q1, q2, value = values(x, burn)
     with torch.no_grad():
         old_q1, old_q2, _ = target(x[:, :-1], burn)
-        low_q = (
-            torch.minimum(old_q1, old_q2).gather(-1, action.unsqueeze(-1)).squeeze(-1)
-        )
+        low_q = torch.minimum(old_q1, old_q2).gather(-1, action.unsqueeze(-1)).squeeze(-1)
         td = reward + discount * value[:, 1:]
     gap = low_q - value[:, :-1]
     v_loss = (torch.where(gap >= 0, 0.7, 0.3) * gap.square())[mask].mean()
@@ -291,9 +268,7 @@ def iql_losses(
     }
 
 
-def teacher_bc_loss(
-    log_prob: Tensor, action: Tensor, class_weight: Tensor | None
-) -> Tensor:
+def teacher_bc_loss(log_prob: Tensor, action: Tensor, class_weight: Tensor | None) -> Tensor:
     if not log_prob.numel():
         return log_prob.new_zeros(())
     if class_weight is None:
@@ -322,9 +297,9 @@ def holdout(
         count = 0
         for lo, hi in fight.segments:
             rows = np.arange(lo, hi)
-            x = torch.from_numpy(motion_history(tape.clock, tape.observation, rows)).to(
-                device
-            )[None]
+            x = torch.from_numpy(motion_history(tape.clock, tape.observation, rows)).to(device)[
+                None
+            ]
             logits = actor(x)[0].cpu()
             value = values(x)[2][0].cpu().numpy()[fight.train_rows[rows]]
             if not torch.isfinite(logits).all() or not np.isfinite(value).all():
@@ -352,9 +327,7 @@ def holdout(
             )
             # The nearest boss slot contains a masked one-hot FSM value, zero for unknown.
             fsm = tape.observation[rows[mentor_rows], 44:60] > 0.5
-            closest_fsm += np.stack(
-                (fsm.sum(0), (fsm & (wanted == guessed)[:, None]).sum(0))
-            )
+            closest_fsm += np.stack((fsm.sum(0), (fsm & (wanted == guessed)[:, None]).sum(0)))
             count += len(value)
             value_sum += value.sum(dtype="f8")
             value_square += np.square(value, dtype="f8").sum()
@@ -382,8 +355,7 @@ def holdout(
         group = [row[key] for row in records.values() if key in row]
         if group:
             means[key] = {
-                metric: float(np.mean([row[metric] for row in group]))
-                for metric in ("top1", "nll")
+                metric: float(np.mean([row[metric] for row in group])) for metric in ("top1", "nll")
             }
     mentor_wins = [
         records[source]["teacher"]
@@ -392,8 +364,7 @@ def holdout(
     ]
     if mentor_wins:
         means["teacher_wins"] = {
-            key: float(np.mean([r[key] for r in mentor_wins]))
-            for key in ("top1", "nll")
+            key: float(np.mean([r[key] for r in mentor_wins])) for key in ("top1", "nll")
         }
     return {"equal_fight_means": means, "fights": records}
 
@@ -433,26 +404,15 @@ def main() -> None:
     parser.add_argument("--validation-patience", type=int, default=0)
     args = parser.parse_args()
     if args.warmup < 1 or args.updates < 1 or args.batch_size < 2 or args.threads < 1:
-        raise ValueError(
-            "Use positive update and thread counts and at least two windows per batch"
-        )
-    if (
-        args.checkpoint_interval < 1
-        or args.validation_interval < 0
-        or args.validation_patience < 0
-    ):
+        raise ValueError("Use positive update and thread counts and at least two windows per batch")
+    if args.checkpoint_interval < 1 or args.validation_interval < 0 or args.validation_patience < 0:
         raise ValueError("Invalid checkpoint or validation interval")
     if args.validation_patience and not args.validation_interval:
         raise ValueError("Early stopping needs an independent validation interval")
-    if (
-        not math.isfinite(args.critical_teacher_bc_weight)
-        or args.critical_teacher_bc_weight < 1
-    ):
+    if not math.isfinite(args.critical_teacher_bc_weight) or args.critical_teacher_bc_weight < 1:
         raise ValueError("Critical teacher BC weight must be finite and at least 1")
     if args.critical_teacher_bc_weight != 1 and not args.teacher_curriculum:
-        raise ValueError(
-            "Critical teacher BC weighting requires the teacher curriculum"
-        )
+        raise ValueError("Critical teacher BC weighting requires the teacher curriculum")
     args.output.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
@@ -461,12 +421,8 @@ def main() -> None:
     teacher_class_weight = None
     if args.critical_teacher_bc_weight != 1:
         critical_key_mask = sum(1 << BUTTON_BITS[key] for key in CRITICAL_KEYS)
-        critical_actions = (
-            catalogue[:, 2].to(device).bitwise_and(critical_key_mask).ne(0)
-        )
-        teacher_class_weight = torch.where(
-            critical_actions, args.critical_teacher_bc_weight, 1.0
-        )
+        critical_actions = catalogue[:, 2].to(device).bitwise_and(critical_key_mask).ne(0)
+        teacher_class_weight = torch.where(critical_actions, args.critical_teacher_bc_weight, 1.0)
     groups = read_fights(args.archive, args.audit, catalogue)
     if (
         args.teacher_curriculum
@@ -483,9 +439,7 @@ def main() -> None:
     if args.teacher_curriculum:
         training = [fight for fight in training if fight.pure_teacher]
     bc_training = (
-        [fight for fight in training if fight.won]
-        if args.teacher_curriculum
-        else training
+        [fight for fight in training if fight.won] if args.teacher_curriculum else training
     )
     cohorts = {
         "bc_fights": len(bc_training),
@@ -505,9 +459,7 @@ def main() -> None:
     )
     rng = np.random.default_rng(args.seed)
     windows = Windows(training, rng, history, teacher_win_bc=args.teacher_curriculum)
-    warm_windows = (
-        Windows(bc_training, rng, history) if args.teacher_curriculum else windows
-    )
+    warm_windows = Windows(bc_training, rng, history) if args.teacher_curriculum else windows
     actor = RecurrentActor(catalogue, args.hidden).to(device)
     values = RecurrentValues(catalogue, args.hidden).to(device)
     target = deepcopy(values).requires_grad_(False)
@@ -557,17 +509,13 @@ def main() -> None:
             )
             measures = {"teacher_bc": float(total.detach())}
         else:
-            total, measures = iql_losses(
-                actor, values, target, batch, burn, teacher_class_weight
-            )
+            total, measures = iql_losses(actor, values, target, batch, burn, teacher_class_weight)
         total.backward()
         nn.utils.clip_grad_norm_(parameters, 5.0, error_if_nonfinite=True)
         optimizer.step()
         if not warm:
             with torch.no_grad():
-                for old, new in zip(
-                    target.parameters(), values.parameters(), strict=True
-                ):
+                for old, new in zip(target.parameters(), values.parameters(), strict=True):
                     old.lerp_(new, 0.01)
         if step % 64 == 0 or step in (1, args.warmup, fit_steps):
             row = {
@@ -584,11 +532,7 @@ def main() -> None:
                 or (not warm and (step - args.warmup) % args.validation_interval == 0)
             )
         )
-        if (
-            step % args.checkpoint_interval == 0
-            or step in (args.warmup, fit_steps)
-            or validate
-        ):
+        if step % args.checkpoint_interval == 0 or step in (args.warmup, fit_steps) or validate:
             destination = args.output / f"step-{step:05d}.pt"
             partial = destination.with_suffix(".partial")
             torch.save(
