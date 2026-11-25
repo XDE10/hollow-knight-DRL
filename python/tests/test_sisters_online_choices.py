@@ -315,14 +315,21 @@ def test_corrective_labels_keep_student_keys_and_exclude_invalid_supervision(
 
 
 def test_corrective_tape_cannot_enter_ppo(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
     ppo = importlib.import_module("train_sisters_recurrent_ppo")
     (tmp_path / "manifest.json").write_text(json.dumps([{"file": "fight.npz"}]))
-    receipt = dict(seed=123, unity_reset_seed=123, behavior_policy_sha256="a" * 64,
-                   mod_sha256="b" * 64, teacher_fraction=0, teacher_labels=True,
-                   corrective_labels=True)
+    receipt = dict(
+        seed=123,
+        unity_reset_seed=123,
+        behavior_policy_sha256="a" * 64,
+        mod_sha256="b" * 64,
+        teacher_fraction=0,
+        teacher_labels=True,
+        corrective_labels=True,
+    )
     (tmp_path / "episode-000.json").write_text(json.dumps(receipt))
     plan = {"seeds": [123], "actor_sha256": "a" * 64, "mod_sha256": "b" * 64}
     with pytest.raises(ValueError, match="does not match its registered rollout"):
