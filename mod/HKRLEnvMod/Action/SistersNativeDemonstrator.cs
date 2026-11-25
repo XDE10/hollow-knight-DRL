@@ -9,6 +9,7 @@ namespace HKRLEnvMod.Action
     // are written separately so that Bellman updates use the executed controls.
     internal sealed class SistersNativeDemonstrator : IDisposable
     {
+        internal const string CorrectiveFlag = "HKRL_NATIVE_CORRECTIVE_LABELS";
         private readonly string _folder;
         private readonly SistersTactics? _teacher;
         private readonly Random _random;
@@ -26,6 +27,7 @@ namespace HKRLEnvMod.Action
         {
             _folder=folder;
             _teacher=teacher;
+            CorrectiveLabels = Environment.GetEnvironmentVariable(CorrectiveFlag) == "1";
             _recordTiming = Environment.GetEnvironmentVariable("HKRL_NATIVE_TIMING") == "1";
             _recordPlans = Environment.GetEnvironmentVariable("HKRL_NATIVE_PLAN_TRACE") == "1";
             var ratio = Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_RATIO");
@@ -56,19 +58,22 @@ namespace HKRLEnvMod.Action
             bool routing = Environment.GetEnvironmentVariable("HKRL_NATIVE_ROUTER_ROLLOUT") == "1";
             bool primitive = Environment.GetEnvironmentVariable("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1";
             bool ppo = Environment.GetEnvironmentVariable(SistersPpoSampler.Flag) == "1";
-            bool traceOnly = Environment.GetEnvironmentVariable("HKRL_NATIVE_TRACE_ONLY") == "1";
+            TraceOnly = Environment.GetEnvironmentVariable("HKRL_NATIVE_TRACE_ONLY") == "1";
             if (routing && primitive) throw new InvalidOperationException("Select one stochastic controller");
-            if (ppo && (teacher != null || _online != null || NeuralTrial != null || routing || primitive || traceOnly ||
+            if (CorrectiveLabels && (teacher == null || _online != null || NeuralTrial != null || routing ||
+                primitive || TraceOnly || _recordPlans || !_recordTiming || _teacherRatio != 0))
+                throw new InvalidOperationException("Corrective recording requires labels with exclusive neural control");
+            if (ppo && ((teacher != null && !CorrectiveLabels) || _online != null || NeuralTrial != null || routing || primitive || TraceOnly ||
                 _recordPlans || !_recordTiming || _teacherRatio != 0))
                 throw new InvalidOperationException("PPO rollout requires an exclusive teacher-free timing trace");
             if ((routing || primitive) && (teacher != null || _online != null || NeuralTrial != null || _recordPlans || !_recordTiming || _teacherRatio != 0))
                 throw new InvalidOperationException("A router rollout must use its own neural actors exclusively");
-            if (traceOnly &&
+            if (TraceOnly &&
                 (teacher != null || _online != null || NeuralTrial != null || routing ||
                  primitive || _recordPlans || !_recordTiming || _teacherRatio != 0))
                 throw new InvalidOperationException("Trace-only recording requires exclusive deterministic neural control");
             if (teacher == null &&
-                (_recordPlans || (_online == null && NeuralTrial == null && !routing && !primitive && !traceOnly && !ppo)))
+                (_recordPlans || (_online == null && NeuralTrial == null && !routing && !primitive && !TraceOnly && !ppo)))
                 throw new InvalidOperationException("Teacher-free recording requires an explicit development mode without plan labels");
         }
 
@@ -93,6 +98,8 @@ namespace HKRLEnvMod.Action
             _episodes++;
         }
 
+        internal bool CorrectiveLabels { get; }
+        internal bool TraceOnly { get; }
         internal bool RecordsTiming => _recordTiming;
         internal bool RecordsRawFeatures => _teacher != null;
 
@@ -110,20 +117,21 @@ namespace HKRLEnvMod.Action
                 foreach (float x in timing!) tape.Write(x);
                 return learner;
             }
-            if (now>=_until)
+            if (!CorrectiveLabels && now>=_until)
             {
                 double teacherProbability=_teacherRatio ?? (_episodes<=4 ? .8 : _episodes<=8 ? .5 : .2);
                 _teacherActs=_random.NextDouble()<teacherProbability;
                 _until=now+.8f;
             }
-            var label=_teacher.Demonstrate(obs,tick,learner,_teacherActs);
-            var executed=_teacherActs?label:learner;
+            bool teacherActs = !CorrectiveLabels && _teacherActs;
+            var label=_teacher.Demonstrate(obs,tick,learner,teacherActs);
+            var executed=teacherActs?label:learner;
             tape.Write(now);
             foreach (float x in raw) tape.Write(x);
             Write(tape,executed);
             Write(tape,label);
             Write(tape,learner);
-            tape.Write(_teacherActs?1f:0f);
+            tape.Write(teacherActs?1f:0f);
             if (_recordTiming) foreach (float x in timing!) tape.Write(x);
             return executed;
         }

@@ -17,7 +17,7 @@ namespace HKRLEnvMod.Action
         private const int WallWait = -1368652544, WallEnd = 1871902336;
         private readonly string _file;
         private readonly SistersPolicyHead _head = new();
-        private bool _physicsModel, _sequence, _groundTakeoff;
+        private bool _physicsModel, _sequence;
         private bool _resource, _trioSeen, _spacing, _recover, _timedSkills;
         private float _reserve, _lastOpener;
         private int _openerHp;
@@ -32,11 +32,10 @@ namespace HKRLEnvMod.Action
         private readonly int[] _count = new int[Frames];
         private ulong _episode, _lastTick, _lastCommit;
         private readonly Dictionary<int,int> _evadeSide = new();
-        private float _jumpEnd, _jumpAt, _lastDash, _lastAttack, _lastCast, _healAt, _healHp;
+        private SistersTeacherActionHistory _history;
         private SistersDemonstrationDash _demonstrationDash;
-        private int _lastMove, _castAim;
         private float _riskWeight, _attackWeight, _home, _lag, _margin, _hold, _dropGap, _discBias;
-        private float _castRisk, _focusHp, _hpPriority, _artAt, _artReleased;
+        private float _castRisk, _focusHp, _hpPriority;
         private bool _heal, _dash, _cast, _smart, _arts;
         public PrimitiveInput Input { get; private set; }
 
@@ -84,7 +83,7 @@ namespace HKRLEnvMod.Action
             _heal=Param("heal",1)>0;_dash=Param("dash",1)>0;_cast=Param("cast",1)>0;
             _smart=Param("smart",0)>0;_arts=Param("arts",0)>0;
             _physicsModel=Param("physics",0)>0;
-            _sequence=Param("sequence",0)>0;_groundTakeoff=false;
+            _sequence=Param("sequence",0)>0;
             _resource=Param("resource",0)>0;_trioSeen=false;_reserve=Param("reserve",66);
             _spacing=Param("spacing",0)>0;
             _recover=Param("recovery",0)>0;
@@ -95,11 +94,12 @@ namespace HKRLEnvMod.Action
             _head.Reset(_file,id,Param("head_weight",0),Param("world_weight",0));
             _dropGap=Param("drop_gap",4.9f);_discBias=Param("disc_bias",.08f);
             _castRisk=Param("cast_risk",.29f);_focusHp=Param("focus_hp",5);_hpPriority=Param("hp_priority",.6f);
-            _discMotion.Clear();_artAt=-10;_artReleased=-10;
-            _states.Clear();_discSide.Clear();_jumpEnd=_jumpAt=_lastDash=_lastAttack=_lastCast=_healAt=-10;
+            _discMotion.Clear();
+            _states.Clear();_discSide.Clear();
+            _history = SistersTeacherActionHistory.Initial;
             _demonstrationDash = default;
             _evadeSide.Clear();
-            _lastMove=0;_episode=id; Input=PrimitiveInput.Noop;
+            _episode=id; Input=PrimitiveInput.Noop;
             File.WriteAllText(_file+".active",id.ToString(CultureInfo.InvariantCulture)+"\n"+File.ReadAllText(_file));
         }
 
@@ -246,7 +246,7 @@ namespace HKRLEnvMod.Action
                 float goal=x+side*_dropGap;
                 float value=.20f*Clip((p.PosX-x)*side,-3,3)
                     +.72f*Clip(p.VelX*side/8.3f,-1,1)
-                    +(_lastMove==side?.55f:0);
+                    +(_history.LastMove==side?.55f:0);
                 value-=2.8f*Math.Max(0,Math.Max(22-goal,goal-38));
                 foreach(var other in obs.Entities)
                 {
@@ -276,10 +276,10 @@ namespace HKRLEnvMod.Action
             return Math.Max(ground,y);
         }
 
-        private float ForecastHeight(PlayerObservation p,float now,float t,float delay,float hold,bool plan)
+        private static float ForecastHeight(in SistersTeacherActionHistory history, PlayerObservation p,float now,float t,float delay,float hold,bool plan)
         {
-            float existingLift=p.VelY>14.8f?Math.Max(0,.22f-(now-_jumpAt)):0;
-            float existingRelease=p.VelY>0 && now<_jumpEnd+.035f?Math.Max(0,_jumpEnd+.025f-now):2;
+            float existingLift=p.VelY>14.8f?Math.Max(0,.22f-(now-history.JumpAt)):0;
+            float existingRelease=p.VelY>0 && now<history.JumpEnd+.035f?Math.Max(0,history.JumpEnd+.025f-now):2;
             float currentTime=plan?Math.Min(t,delay):t;
             float y=p.OnGround?7.41f:Flight(p.PosY,p.VelY,currentTime,existingLift,existingRelease);
             if(!plan || t<=delay)return y;
@@ -294,7 +294,7 @@ namespace HKRLEnvMod.Action
             return Flight(y,p.OnGround?15.7f:16.8f,elapsed-windup,.205f,Math.Max(0,hold-windup));
         }
 
-        private float PathCost(PlayerObservation p,float now,int move,float moveTime,float jumpDelay,float hold,bool dash,
+        private float PathCost(in SistersTeacherActionHistory history, PlayerObservation p,float now,int move,float moveTime,float jumpDelay,float hold,bool dash,
                                out float immediateRisk,int followMove=0)
         {
             float cost=0,worst=0, closeRisk=0;
@@ -317,13 +317,13 @@ namespace HKRLEnvMod.Action
                     y+=v*lift;air-=lift;
                     if(t-delay>hold && hold<.27f){float rest=Math.Max(0,hold-lift); y+=v*rest-23.7f*rest*rest;v=0;air=t-delay-hold;}
                 }
-                else if(!p.OnGround && p.VelY>0 && now<_jumpEnd)
+                else if(!p.OnGround && p.VelY>0 && now<history.JumpEnd)
                 {
-                    float lift=Math.Min(t,Math.Min(.16f,_jumpEnd-now));
+                    float lift=Math.Min(t,Math.Min(.16f,history.JumpEnd-now));
                     if(p.VelY>14){y+=p.VelY*lift;air-=lift;}
                 }
                 y=Math.Max(7.41f,y+v*air-23.7f*air*air);
-                if(_physicsModel)y=ForecastHeight(p,now,t,delay,hold,jumpPlanned);
+                if(_physicsModel)y=ForecastHeight(history,p,now,t,delay,hold,jumpPlanned);
                 float risk=0,opportunity=0,bestGap=13;
                 for(int n=0;n<_count[i];n++)
                 {
@@ -354,7 +354,7 @@ namespace HKRLEnvMod.Action
             if(jumpPlanned)cost+=1.6f*(1-jumpDelay*.6f);
             if(dash)cost+=5;
             if(move!=0)cost+=.23f;
-            if(move!=_lastMove)cost+=.22f;
+            if(move!=history.LastMove)cost+=.22f;
             return cost;
         }
 
@@ -409,7 +409,7 @@ namespace HKRLEnvMod.Action
         public void Decide(ObservationSnapshot obs,ulong tick)
         {
             if(obs.Global.EpisodeId!=_episode)Reset(obs.Global.EpisodeId);
-            DecideInEpisode(obs, tick);
+            Input = DecideInEpisode(obs, tick, ref _history);
         }
 
         internal PrimitiveInput Demonstrate(ObservationSnapshot obs, ulong tick, PrimitiveInput learner, bool teacherActs)
@@ -417,18 +417,26 @@ namespace HKRLEnvMod.Action
             if (obs.Global.EpisodeId != _episode)
                 Reset(obs.Global.EpisodeId);
 
+            var player = obs.Player;
             float now = obs.Global.TimeInEpisode;
-            _lastDash = _demonstrationDash.Observe(_lastDash, now, obs.Player.Dashing);
-            float previous = _lastDash;
-            DecideInEpisode(obs, tick);
+            _history.LastDash = _demonstrationDash.Observe(_history.LastDash, now,
+                player.Dashing || (!teacherActs && player.ShadowDashing));
+            var planned = _history;
+            Input = DecideInEpisode(obs, tick, ref planned);
+
+            bool canStartDash = player.CanDash && !player.Dashing && (teacherActs || !player.ShadowDashing);
             PrimitiveInput executed = teacherActs ? Input : learner;
-            bool canStartDash = obs.Player.CanDash && !obs.Player.Dashing;
-            _lastDash = _demonstrationDash.Commit(
-                previous, _lastDash, now, canStartDash, executed, teacherActs);
+            planned.LastDash = _demonstrationDash.Commit(
+                _history.LastDash, planned.LastDash, now, canStartDash, executed, teacherActs);
+            if (teacherActs)
+                _history = planned;
+            else
+                _history.CommitLearner(player, now, executed, Input, planned, _sequence);
+            _history.PreviousButtons = executed.Buttons;
             return Input;
         }
 
-        private void DecideInEpisode(ObservationSnapshot obs, ulong tick)
+        private PrimitiveInput DecideInEpisode(ObservationSnapshot obs, ulong tick, ref SistersTeacherActionHistory history)
         {
             _lastTick=tick;
             float now=obs.Global.TimeInEpisode;
@@ -447,11 +455,11 @@ namespace HKRLEnvMod.Action
             Predict(obs,now);
             float best=float.MaxValue, chosenRisk=0;
             int chosenMove=0;float chosenDelay=2,chosenHold=0;bool chosenDash=false;
-            bool canJump=p.OnGround || (p.DoubleJumpAvailable && p.VelY<2 && now-_jumpAt>.32f);
-            bool releaseMissedTakeoff=_sequence && _groundTakeoff && p.OnGround && now-_jumpAt>.10f && now<_jumpEnd;
-            if(!p.OnGround)_groundTakeoff=false;
-            if(releaseMissedTakeoff){_jumpEnd=now-.06f;_groundTakeoff=false;}
-            if(now < _jumpEnd+.04f)canJump=false;
+            bool canJump=p.OnGround || (p.DoubleJumpAvailable && p.VelY<2 && now-history.JumpAt>.32f);
+            bool releaseMissedTakeoff=_sequence && history.GroundTakeoff && p.OnGround && now-history.JumpAt>.10f && now<history.JumpEnd;
+            if(!p.OnGround)history.GroundTakeoff=false;
+            if(releaseMissedTakeoff){history.JumpEnd=now-.06f;history.GroundTakeoff=false;}
+            if(now < history.JumpEnd+.04f)canJump=false;
             if(releaseMissedTakeoff)canJump=false;
             if(Param("mode",0)>0)
             {
@@ -493,7 +501,7 @@ namespace HKRLEnvMod.Action
                 }
                 if(canJump && soon<lead){chosenDelay=0;chosenHold=_hold;}
                 chosenRisk=Clip((.38f-soon)*3,0,1);
-                if(_dash && p.CanDash && now-_lastDash>1.55f && Abs(err)>8 && soon>.45f &&
+                if(_dash && p.CanDash && now-history.LastDash>1.55f && Abs(err)>8 && soon>.45f &&
                     p.PosX+Sign(err)*5.8f>21.8f && p.PosX+Sign(err)*5.8f<38.2f)chosenDash=true;
             }
             else foreach(int m in Moves)
@@ -507,31 +515,31 @@ namespace HKRLEnvMod.Action
                     {
                         if(jd>=1 && h!=Holds[0])continue;
                         float hold=h>.35f?h:(h<.2f?h:_hold);
-                        float cost=PathCost(p,now,m,stop,jd,hold,false,out float risk);
+                        float cost=PathCost(history,p,now,m,stop,jd,hold,false,out float risk);
                         if(_sequence && m!=0 && stop<.5f)
                         {
-                            float reverse=PathCost(p,now,m,stop,jd,hold,false,out float reverseRisk,-m)+1.4f;
+                            float reverse=PathCost(history,p,now,m,stop,jd,hold,false,out float reverseRisk,-m)+1.4f;
                             if(reverse<cost){cost=reverse;risk=reverseRisk;}
                         }
-                        cost-=_head.Preference(m,jd==0 || now<_jumpEnd,false);
-                        _head.Compare(cost,m,jd==0 || now<_jumpEnd,false);
+                        cost-=_head.Preference(m,jd==0 || now<history.JumpEnd,false);
+                        _head.Compare(cost,m,jd==0 || now<history.JumpEnd,false);
                         if(cost<best) {best=cost;chosenMove=m;chosenDelay=jd;chosenHold=hold;chosenDash=false;chosenRisk=risk;}
                     }
                 }
-                if(_dash && m!=0 && p.CanDash && now-_lastDash>1.60f)
+                if(_dash && m!=0 && p.CanDash && now-history.LastDash>1.60f)
                 {
-                    float cost=PathCost(p,now,m,stop,2,0,true,out float risk);
-                    cost-=_head.Preference(m,now<_jumpEnd,true);
-                    _head.Compare(cost,m,now<_jumpEnd,true);
+                    float cost=PathCost(history,p,now,m,stop,2,0,true,out float risk);
+                    cost-=_head.Preference(m,now<history.JumpEnd,true);
+                    _head.Compare(cost,m,now<history.JumpEnd,true);
                     if(cost<best) {best=cost;chosenMove=m;chosenDelay=2;chosenDash=true;chosenRisk=risk;}
                 }
             }
-            _head.FinalizeChoice(chosenMove,chosenDelay==0 || now<_jumpEnd,chosenDash);
+            _head.FinalizeChoice(chosenMove,chosenDelay==0 || now<history.JumpEnd,chosenDash);
             uint buttons=0;int aim=0;
-            if(chosenDelay==0){_jumpAt=now;_jumpEnd=now+chosenHold;_groundTakeoff=p.OnGround;buttons|=1;}
-            if(now<_jumpEnd)buttons|=2;
-            if(chosenDash){_lastDash=now;buttons|=4;}
-            if(now-_lastDash<.075f)buttons|=4;
+            if(chosenDelay==0){history.JumpAt=now;history.JumpEnd=now+chosenHold;history.GroundTakeoff=p.OnGround;buttons|=1;}
+            if(now<history.JumpEnd)buttons|=2;
+            if(chosenDash){history.LastDash=now;buttons|=4;}
+            if(now-history.LastDash<.075f)buttons|=4;
             float targetScore=-1,darkScore=0,artScore=-100;int facing=-Sign(p.Facing),artFacing=0;
             int wantedFacing=0,wantedAim=0, potentialCast=9; bool safeHeal=false;
             int live=0, dropMove=0, landedSide=0, safeWallActors=0;
@@ -592,18 +600,18 @@ namespace HKRLEnvMod.Action
             bool transitionBreak=_resource && !_trioSeen && _openerHp<=110 && live==0 && now-_lastOpener>.48f;
             bool pairedWallWindow=_recover && _trioSeen && live>=2 && live==safeWallActors &&
                                   !discInArena && Abs(p.PosX-30)<3.5f;
-            if(_healAt>=0 && (p.Hp!=_healHp || now-_healAt>1.40f || stationarySafe<Math.Max(.18f,1.12f-(now-_healAt)) || dropUrgency>0))_healAt=-10;
+            if(history.HealAt>=0 && (p.Hp!=history.HealHp || now-history.HealAt>1.40f || stationarySafe<Math.Max(.18f,1.12f-(now-history.HealAt)) || dropUrgency>0))history.HealAt=-10;
             bool focusWindow=_spacing?(transitionBreak || pairedWallWindow):(safeHeal || transitionBreak || (live==0 && nearest>15));
-            if(_heal && p.Hp<p.MaxHp && p.Soul>=33 && p.CanFocus && p.OnGround && now-_lastCast>.7f && _healAt<0 &&
+            if(_heal && p.Hp<p.MaxHp && p.Soul>=33 && p.CanFocus && p.OnGround && now-history.LastCast>.7f && history.HealAt<0 &&
                stationarySafe>=.99f && dropUrgency<=0 && focusWindow)
-            {_healAt=now;_healHp=p.Hp;}
-            if(_healAt>=0)
-            {Input=new PrimitiveInput(0,0,32);_lastMove=0;return;}
+            {history.HealAt=now;history.HealHp=p.Hp;}
+            if(history.HealAt>=0)
+            {history.LastMove=0;return new PrimitiveInput(0,0,32);}
             if(targetScore>=0 && wantedAim==0 && facing!=wantedFacing && wantedFacing!=0 && chosenRisk<.4f &&
                (wantedFacing>0?p.PosX<38.35f:p.PosX>21.65f))chosenMove=wantedFacing;
-            if(targetScore>=0 && p.CanAttack && now-_lastAttack>.25f)
-            {_lastAttack=now;aim=wantedAim;}
-            if(now-_lastAttack<.072f){buttons|=8;aim=wantedAim;}
+            if(targetScore>=0 && p.CanAttack && now-history.LastAttack>.25f)
+            {history.LastAttack=now;aim=wantedAim;}
+            if(now-history.LastAttack<.072f){buttons|=8;aim=wantedAim;}
             bool fastThreat=false;
             float quakeStartup=20,quakeRelease=20;
             if(_timedSkills)
@@ -611,7 +619,7 @@ namespace HKRLEnvMod.Action
                 AssessQuake(p,out quakeStartup,out quakeRelease);
                 fastThreat=chosenRisk>.38f && (stationarySafe<=.24f || quakeStartup<.10f);
             }
-            if(_cast && p.Soul>=33 && p.CanCast && now-_lastCast>.50f && !chosenDash)
+            if(_cast && p.Soul>=33 && p.CanCast && now-history.LastCast>.50f && !chosenDash)
             {
                 if(darkScore>=1 && (chosenRisk>(_smart?_castRisk:.25f) || darkScore>=2 || !p.OnGround))potentialCast=-1;
                 if(_smart && stationarySafe<.26f && darkScore>=1 && (p.Soul>=55 || p.Hp<=3))potentialCast=-1;
@@ -623,23 +631,23 @@ namespace HKRLEnvMod.Action
                 if(_recover && potentialCast==-1 && (landingX<21.95f || landingX>38.05f))potentialCast=9;
                 if(_timedSkills && potentialCast==-1 && (quakeStartup<.05f || quakeRelease<.05f))potentialCast=9;
                 if(potentialCast!=9 && (escape || p.Hp>=(_smart?_focusHp:4) || p.Soul>=55 || darkScore>=2 || (_smart && potentialCast==-1 && stationarySafe<.26f)))
-                {_castAim=potentialCast;_lastCast=now;}
+                {history.CastAim=potentialCast;history.LastCast=now;}
             }
-            if(now-_lastCast<.080f){buttons=(buttons & ~8u)|16;aim=_castAim;}
+            if(now-history.LastCast<.080f){buttons=(buttons & ~8u)|16;aim=history.CastAim;}
             if(dropUrgency>0 && Param("drop_guard",1)>0)
             {
                 bool follow=true;
                 if(_sequence && live>=2 && chosenMove!=dropMove)
                 {
-                    PathCost(p,now,dropMove,.48f,chosenDelay,chosenHold,chosenDash,out float alternativeRisk);
+                    PathCost(history,p,now,dropMove,.48f,chosenDelay,chosenHold,chosenDash,out float alternativeRisk);
                     follow=alternativeRisk<chosenRisk+.26f;
                 }
                 if(follow)chosenMove=dropMove;
                 if(_sequence && dropUrgency>1.5f && aim==0 && facing==chosenMove)
                     buttons&=~8u;
-                if(p.OnGround && stationarySafe>.12f && (!_smart || (chosenRisk<.24f && live<=1))) {buttons &= ~3u;_jumpEnd=-10;}
-                if(dropUrgency>2.5f && stationarySafe<.24f && _dash && p.CanDash && now-_lastDash>1.55f)
-                {buttons|=4;_lastDash=now;}
+                if(p.OnGround && stationarySafe>.12f && (!_smart || (chosenRisk<.24f && live<=1))) {buttons &= ~3u;history.JumpEnd=-10;}
+                if(dropUrgency>2.5f && stationarySafe<.24f && _dash && p.CanDash && now-history.LastDash>1.55f)
+                {buttons|=4;history.LastDash=now;}
             }
             if(p.PosX<21.4f && chosenMove<0 || p.PosX>38.6f && chosenMove>0)chosenMove=0;
             if(_recover && !p.OnGround && (p.PosX<21.10f || p.PosX>38.90f))
@@ -648,10 +656,10 @@ namespace HKRLEnvMod.Action
                 // airtime to recover; a downward cast here commits to the spike pit.
                 chosenMove=Sign(30-p.PosX);
                 buttons&=~16u;
-                if(p.CanDash && now-_lastDash>1.60f && p.PosY>8.45f)
-                {buttons|=4;_lastDash=now;}
-                else if(p.DoubleJumpAvailable && p.VelY<0 && now-_jumpAt>.34f)
-                {_jumpAt=now;_jumpEnd=now+.27f;buttons|=3;}
+                if(p.CanDash && now-history.LastDash>1.60f && p.PosY>8.45f)
+                {buttons|=4;history.LastDash=now;}
+                else if(p.DoubleJumpAvailable && p.VelY<0 && now-history.JumpAt>.34f)
+                {history.JumpAt=now;history.JumpEnd=now+.27f;buttons|=3;}
             }
             if(_spacing && dropUrgency<=0 && landedSide!=0 && now-_hurtAt>1 &&
                ((landedSide>0 && p.PosX<38) || (landedSide<0 && p.PosX>22)))
@@ -662,33 +670,33 @@ namespace HKRLEnvMod.Action
                 if(landedGap<.48f)chosenMove=landedSide;
                 else if(landedGap<braking && chosenMove==-landedSide)chosenMove=0;
             }
-            if(_timedSkills && fastThreat && !p.Invulnerable && p.CanDash && now-_lastDash>1.65f &&
-               now-_lastCast>.30f && now-_hurtAt>.9f && (buttons&16)==0)
+            if(_timedSkills && fastThreat && !p.Invulnerable && p.CanDash && now-history.LastDash>1.65f &&
+               now-history.LastCast>.30f && now-_hurtAt>.9f && (buttons&16)==0)
             {
                 int side=DefensiveDash(p,chosenMove);
                 if(side!=0)
                 {
                     chosenMove=side;
                     buttons=(buttons&~11u)|4u;
-                    _lastDash=now;
-                    _jumpEnd=-10;
+                    history.LastDash=now;
+                    history.JumpEnd=-10;
                 }
             }
-            if(_arts && (buttons&16)==0 && now-_artReleased>.12f)
+            if(_arts && (buttons&16)==0 && now-history.ArtReleased>.12f)
             {
-                bool charging=_artAt>=0;
-                if(charging && (now-_artAt>=1.4f || p.NailChargeTimer>=1.35f) && artScore>0)
+                bool charging=history.ArtAt>=0;
+                if(charging && (now-history.ArtAt>=1.4f || p.NailChargeTimer>=1.35f) && artScore>0)
                 {
                     buttons=(buttons&~8u)|256u;aim=0;
                     if(artFacing!=0 && artFacing!=facing && chosenRisk<.24f)chosenMove=artFacing;
-                    _artReleased=now;_artAt=-10;_lastAttack=now;
+                    history.ArtReleased=now;history.ArtAt=-10;history.LastAttack=now;
                 }
-                else if(charging && now-_artAt>3 && targetScore>=0 && artScore<=0)
-                {_artReleased=now;_artAt=-10;buttons&=~8u;}
-                else if(charging || (p.CanNailCharge && targetScore<0 && nearest>8 && now-_lastAttack>.35f))
-                {if(!charging)_artAt=now;buttons|=128u;}
+                else if(charging && now-history.ArtAt>3 && targetScore>=0 && artScore<=0)
+                {history.ArtReleased=now;history.ArtAt=-10;buttons&=~8u;}
+                else if(charging || (p.CanNailCharge && targetScore<0 && nearest>8 && now-history.LastAttack>.35f))
+                {if(!charging)history.ArtAt=now;buttons|=128u;}
             }
-            _lastMove=chosenMove;Input=new PrimitiveInput(chosenMove,aim,buttons);
+            history.LastMove=chosenMove;return new PrimitiveInput(chosenMove,aim,buttons);
         }
         private static readonly int[] Moves={0,-1,1};
         private static readonly float[] Stops={.20f,.48f,1};

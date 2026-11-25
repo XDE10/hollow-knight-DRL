@@ -46,8 +46,15 @@ namespace HKRLEnvMod.Action
         public static ISistersLocalActor? FromEnvironment()
         {
             var policy = Environment.GetEnvironmentVariable("HKRL_NATIVE_ACTOR");
-            if (string.IsNullOrWhiteSpace(policy)) return SistersTactics.FromEnvironment();
+            bool corrective = Environment.GetEnvironmentVariable(SistersNativeDemonstrator.CorrectiveFlag) == "1";
+            if (string.IsNullOrWhiteSpace(policy))
+            {
+                if (corrective) throw new InvalidOperationException("Corrective recording requires a native actor");
+                return SistersTactics.FromEnvironment();
+            }
             var demonstrator = SistersNativeDemonstrator.FromEnvironment();
+            if (corrective && demonstrator == null)
+                throw new InvalidOperationException("Corrective recording requires a native tape");
             if (demonstrator == null && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HKRL_TACTICS_POLICY")))
                 throw new InvalidOperationException("Select only one local Sisters actor");
             var ledger = Environment.GetEnvironmentVariable("HKRL_NATIVE_ACTOR_LEDGER");
@@ -81,9 +88,12 @@ namespace HKRLEnvMod.Action
                 _ppoSampler?.Dispose();
                 _net = NativeSistersNetwork.Load(bytes, out _trioNet, out _router);
                 _episode = obs.Global.EpisodeId;
+                if (_demonstrator?.CorrectiveLabels == true &&
+                    (_router != null || _trioNet?.IsContinuousRecurrent != true))
+                    throw new InvalidOperationException("Corrective recording requires a continuous recurrent Trio actor");
                 if (Environment.GetEnvironmentVariable(SistersPpoSampler.Flag) == "1")
                 {
-                    if (_demonstrator == null || _router != null || _trioNet?.Memory?.Continuous != true ||
+                    if (_demonstrator == null || _router != null || _trioNet?.IsContinuousRecurrent != true ||
                         !int.TryParse(Environment.GetEnvironmentVariable("HKRL_NATIVE_DEMO_SEED"),
                             NumberStyles.Integer, CultureInfo.InvariantCulture, out int seed) ||
                         !double.TryParse(Environment.GetEnvironmentVariable("HKRL_NATIVE_PPO_TEMPERATURE"),
@@ -138,7 +148,7 @@ namespace HKRLEnvMod.Action
 
         internal void FlushPpoSnapshot()
         {
-            if (_ppoSampler != null) Flush();
+            if (_ppoSampler != null || _demonstrator?.CorrectiveLabels == true || _demonstrator?.TraceOnly == true) Flush();
         }
 
         public void Flush()
@@ -150,6 +160,7 @@ namespace HKRLEnvMod.Action
             if (_count == 0) return;
             _trioNet?.Focus?.WriteReceipt(_ledger + ".focus", _episode);
             _trioNet?.Memory?.WriteReceipt(_ledger + ".memory", _episode);
+            _trioNet?.Scaled?.WriteReceipt(_ledger + ".memory", _episode);
             _trioNet?.Compound?.WriteReceipt(_ledger + ".options", _episode);
             _trioNet?.Directional?.WriteReceipt(_ledger + ".options", _episode);
             File.WriteAllText(_ledger, string.Join("\n", _episode.ToString(CultureInfo.InvariantCulture),
@@ -179,10 +190,23 @@ namespace HKRLEnvMod.Action
         internal SistersDirectionalOptions? Directional { get; set; }
         internal SistersFocusOption? Focus { get; set; }
         internal SistersMemoryResidual? Memory { get; set; }
+        internal SistersScaledRecurrent? Scaled { get; }
+        internal bool IsContinuousRecurrent => Memory?.Continuous == true || Scaled != null;
         internal int ActionCount => _actions.Length;
         internal int BestIndex => _best;
         internal float Score(int index) => _scores[index];
-        internal float[] Embedding => _z;
+        internal float[] Embedding => Scaled != null ? Scaled.Embedding : _z;
+
+        internal NativeSistersNetwork(SistersScaledRecurrent scaled)
+        {
+            UsesTiming = true;
+            Scaled = scaled;
+            _actions = scaled.Actions;
+            _scores = scaled.Scores;
+            _x = Array.Empty<float>();
+            _h = Array.Empty<float>();
+            _z = scaled.Embedding;
+        }
 
         internal static NativeSistersNetwork Load(byte[] bytes, out NativeSistersNetwork? trio)
         {
@@ -199,6 +223,11 @@ namespace HKRLEnvMod.Action
             using var source = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(source);
             int magic = reader.ReadInt32();
+            if (magic == SistersScaledRecurrent.Magic || magic == SistersScaledRecurrent.MagicV2)
+            {
+                source.Position = 0;
+                return new NativeSistersNetwork(SistersScaledRecurrent.Read(reader));
+            }
             if (magic != 0x334C5149)
             {
                 source.Position = 0;
@@ -209,7 +238,11 @@ namespace HKRLEnvMod.Action
                 throw new InvalidDataException("Invalid Sisters phase checkpoint lengths");
             using var firstReader = new BinaryReader(new MemoryStream(reader.ReadBytes(firstSize), false));
             using var trioReader = new BinaryReader(new MemoryStream(reader.ReadBytes(trioSize), false));
-            var opener = new NativeSistersNetwork(firstReader);
+            int firstMagic = firstReader.ReadInt32();
+            firstReader.BaseStream.Position = 0;
+            var opener = (firstMagic == SistersScaledRecurrent.Magic || firstMagic == SistersScaledRecurrent.MagicV2)
+                ? new NativeSistersNetwork(SistersScaledRecurrent.Read(firstReader))
+                : new NativeSistersNetwork(firstReader);
             trio = SistersOptionRouter.Read(trioReader, out router);
             if (!opener.UsesTiming || !trio.UsesTiming)
                 throw new InvalidDataException("Both phase policies require the timing observations");
@@ -256,6 +289,12 @@ namespace HKRLEnvMod.Action
 
         internal PrimitiveInput Choose(float[] raw, float time)
         {
+            if (Scaled != null)
+            {
+                _best = Scaled.Choose(raw, time);
+                _index++;
+                return _actions[_best];
+            }
             if (UsesTiming)
             {
                 TimingEmbedding(raw, time);
@@ -345,7 +384,11 @@ namespace HKRLEnvMod.Action
             return _z;
         }
 
-        internal void Remember(float[] raw, float time) => _motionHistory?.Remember(raw, time);
+        internal void Remember(float[] raw, float time)
+        {
+            if (Scaled != null) Scaled.Remember(raw, time);
+            else _motionHistory?.Remember(raw, time);
+        }
 
         internal static float[] ReadWeights(BinaryReader reader, int count)
         {
