@@ -60,6 +60,7 @@ internal static class Program
     private static void Run()
     {
         TestSistersDemonstrationDash();
+        SistersTeacherHistorySmoke.Run();
         float left = SistersReturnDisc.Sweep(-2.2f, -24f, -24f, 9f);
         float right = SistersReturnDisc.Sweep(-2.2f, 24f, 24f, 9f);
         if (left <= 0 || left != right

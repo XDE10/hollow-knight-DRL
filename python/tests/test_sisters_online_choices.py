@@ -281,3 +281,56 @@ def test_online_fit_preserves_parent_when_neither_arm_earns_reward(
     result = mod.fit(tmp_path, parent, learner, out)
     assert min(result["trials"].values()) > 0 and result["selected"]["scale"] == 0
     assert (out / "world_iql.bin").read_bytes() == parent.read_bytes()
+
+
+def test_corrective_labels_keep_student_keys_and_exclude_invalid_supervision(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    collector = importlib.import_module("collect_sisters_native_labels")
+    catalogue = np.array([[0, 0, 0], [-1, 0, 8]], dtype="i2")
+    state = np.zeros((4, 192), dtype="f4")
+    state[:, 4] = 1
+    state[1:, 23] = 1
+    state[:3, [24, 37, 38]] = 1
+    student = np.zeros((4, 3), dtype="i2")
+    values = {
+        "timing_state": state,
+        "teacher_controls": np.array([[-1, 0, 8], [-1, 0, 8], [1, -1, 4], [0, 0, 0]]),
+        "controls": student.copy(),
+        "student_controls": student,
+        "teacher_acted": np.zeros(4, dtype=bool),
+    }
+    np.testing.assert_array_equal(
+        collector.corrective_label_mask(values, catalogue), [False, True, False, False]
+    )
+    np.testing.assert_array_equal(values["controls"], student)
+    values["teacher_acted"][1] = True
+    with pytest.raises(ValueError, match="teacher-controlled"):
+        collector.corrective_label_mask(values, catalogue)
+    values["teacher_acted"][1] = False
+    values["controls"][1, 0] = -1
+    with pytest.raises(ValueError, match="teacher-controlled"):
+        collector.corrective_label_mask(values, catalogue)
+
+
+def test_corrective_tape_cannot_enter_ppo(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "scripts"))
+    ppo = importlib.import_module("train_sisters_recurrent_ppo")
+    (tmp_path / "manifest.json").write_text(json.dumps([{"file": "fight.npz"}]))
+    receipt = dict(
+        seed=123,
+        unity_reset_seed=123,
+        behavior_policy_sha256="a" * 64,
+        mod_sha256="b" * 64,
+        teacher_fraction=0,
+        teacher_labels=True,
+        corrective_labels=True,
+    )
+    (tmp_path / "episode-000.json").write_text(json.dumps(receipt))
+    plan = {"seeds": [123], "actor_sha256": "a" * 64, "mod_sha256": "b" * 64}
+    with pytest.raises(ValueError, match="does not match its registered rollout"):
+        ppo.verified_rollouts([tmp_path], plan, None, None, None)

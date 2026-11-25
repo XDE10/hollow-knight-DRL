@@ -154,6 +154,10 @@ def verified_rollouts(
                 or receipt["behavior_policy_sha256"] != plan["actor_sha256"]
                 or receipt["mod_sha256"] != plan["mod_sha256"]
                 or receipt["teacher_fraction"] != 0
+                or receipt.get("teacher_labels", False)
+                or receipt.get("corrective_labels", False)
+                or item.get("teacher_labels", False)
+                or item.get("corrective_labels", False)
                 or receipt["game_speed"] != 1
                 or not all(float(k) <= 1.001 for k in receipt["speed_counts"])
                 or receipt["ppo_temperature"] != plan["temperature"]
@@ -174,6 +178,8 @@ def verified_rollouts(
         source, receipt = found[seed]
         with np.load(source, allow_pickle=False) as tape:
             arrays = {k: tape[k] for k in tape.files}
+        if {"teacher_controls", "corrective_label_valid"} & arrays.keys():
+            raise ValueError(f"PPO fight {seed} contains teacher supervision")
         episode = read_episode(
             {k: v for k, v in arrays.items() if not k.startswith("ppo_")},
             {"won": receipt["win"], "truncated": receipt["truncated"]},
@@ -192,8 +198,15 @@ def verified_rollouts(
             raise ValueError(f"Sampled PPO keys disagree with applied keys for fight {seed}")
         if len(rows) and rows[-1] != len(episode.clock) - 1:
             raise ValueError(f"PPO fight {seed} lacks a Trio end boundary")
+        valid_events = episode.events[fight.train_rows]
         stats = {
             "seed": seed,
+            "effective_rewards": float(episode.reward[fight.train_rows].sum()),
+            "effective_event_totals": dict(zip(
+                ("damage_dealt", "boss_body", "projectile", "spikes", "other_damage",
+                 "heal", "arena_win", "death"),
+                map(float, valid_events.sum(0)), strict=True,
+            )),
             "win": receipt["win"],
             "truncated": receipt["truncated"],
             "decisions": len(rows),
@@ -397,6 +410,29 @@ def optimize(
     return progress
 
 
+def validate_behavior_lineage(
+    saved: dict,
+    behavior_sha256: str,
+    offline_sha256: str,
+    world_sha256: str,
+    expected_audit_sha256: str | None,
+) -> str:
+    audit_sha256 = saved["provenance"]["audit_sha256"]
+    if audit_sha256 != (expected_audit_sha256 if expected_audit_sha256 is not None else audit_sha256):
+        raise ValueError("The PPO behavior audit does not match the frozen plan")
+    parent = saved.get("ppo")
+    if parent is None:
+        same_lineage = behavior_sha256 == offline_sha256
+    else:
+        same_lineage = (
+            parent.get("offline_sha256", parent["parent_sha256"]) == offline_sha256
+            and parent["world_sha256"] == world_sha256
+        )
+    if not same_lineage:
+        raise ValueError("PPO behavior and world must share the frozen offline actor")
+    return audit_sha256
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for path in ("offline", "behavior", "native", "world", "world-validation", "plan", "output"):
@@ -422,19 +458,9 @@ def main() -> None:
     ):
         raise ValueError("The native PPO policy and Python weights must match their frozen plan")
     saved = torch.load(args.behavior, map_location="cpu", weights_only=True)
-    audit_sha256 = saved["provenance"]["audit_sha256"]
-    if audit_sha256 != plan.get("audit_sha256", audit_sha256):
-        raise ValueError("The PPO behavior audit does not match the frozen plan")
-    parent = saved.get("ppo")
-    if parent is None:
-        same_lineage = behavior_sha256 == offline_sha256
-    else:
-        same_lineage = (
-            parent.get("offline_sha256", parent["parent_sha256"]) == offline_sha256
-            and parent["world_sha256"] == world_sha256
-        )
-    if not same_lineage:
-        raise ValueError("PPO behavior and world must share the frozen offline actor")
+    audit_sha256 = validate_behavior_lineage(
+        saved, behavior_sha256, offline_sha256, world_sha256, plan.get("audit_sha256")
+    )
     catalogue = saved["catalogue"]
     hidden = saved["provenance"]["hidden"]
     actor, critic = RecurrentActor(catalogue, hidden), RecurrentValues(catalogue, hidden)
@@ -469,6 +495,7 @@ def main() -> None:
         )
     result = {
         "progress": progress,
+        "optimizer_initialization": "fresh AdamW per batch",
         "verified_fights": evidence,
         "validated_world_position_components": validated.tolist(),
         "checkpoint_sha256": sha256(asset) if accepted else None,

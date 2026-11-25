@@ -58,10 +58,10 @@ def ppo_timeout_prefix(
     count = int(np.searchsorted(clock, np.float32(cutoff), side="right"))
     if count < 2 or not clock[count - 1] > np.float32(final_step_start):
         raise ValueError("Timeout has no native boundary observation from the final STEP")
-    keep = draws["ppo_rows"] < count
-    return {key: rows[:count] for key, rows in decisions.items()}, {
-        key: rows[keep] for key, rows in draws.items()
-    }
+    if draws:
+        keep = draws["ppo_rows"] < count
+        draws = {key: rows[keep] for key, rows in draws.items()}
+    return {key: rows[:count] for key, rows in decisions.items()}, draws
 
 
 def read_decisions(
@@ -102,6 +102,23 @@ def read_decisions(
         "teacher_fraction": float(teacher.mean()),
         "disagreement": float(np.any(student != labels, 1).mean()),
     }
+
+
+def corrective_label_mask(
+    decisions: dict[str, np.ndarray], catalogue: np.ndarray
+) -> np.ndarray:
+    """Mark supervisable Trio rows without substituting a different teacher key."""
+    if decisions["teacher_acted"].any() or not np.array_equal(
+        decisions["controls"], decisions["student_controls"]
+    ):
+        raise ValueError("Corrective tape contains teacher-controlled actions")
+    state = decisions["timing_state"]
+    labels = decisions["teacher_controls"]
+    exact = (labels[:, None, :] == catalogue[None, :, :]).all(axis=2).any(axis=1)
+    trio_boss = np.zeros(len(labels), dtype=bool)
+    for slot in (24, 60, 96):
+        trio_boss |= (state[:, slot] > .5) & (state[:, slot + 13] > 0) & (state[:, slot + 14] > .5)
+    return exact & trio_boss & (state[:, 23] > .5) & (state[:, 4] > 0)
 
 
 def teacher_assets(path: Path) -> dict[str, str]:
@@ -147,6 +164,7 @@ def main() -> None:
     routing = envs.get("HKRL_NATIVE_ROUTER_ROLLOUT") == "1"
     primitive = envs.get("HKRL_NATIVE_PRIMITIVE_ROLLOUT") == "1"
     ppo = envs.get("HKRL_NATIVE_PPO_ROLLOUT") == "1"
+    corrective = envs.get("HKRL_NATIVE_CORRECTIVE_LABELS") == "1"
     if primitive and routing:
         raise ValueError("Select one behavior policy")
     sampling = envs.get("HKRL_NATIVE_ONLINE_CHOICES") == "1"
@@ -167,7 +185,7 @@ def main() -> None:
     ):
         raise ValueError("Trace-only recording requires exclusive deterministic neural control")
     if (
-        proc.name().lower() != "hollow_knight.exe"
+        not (proc.name().lower().startswith("hollow_knight") or Path(proc.exe()).name.lower() in ("hollow_knight.exe", "hollow_knight.x86_64"))
         or not (has_teacher or sampling or candidate or routing or primitive or trace_only or ppo)
         or float(envs.get("HKRL_SISTERS_NAIL_MULTIPLIER", "1")) != 1
     ):
@@ -178,8 +196,14 @@ def main() -> None:
     scale = float(envs.get("HKRL_DEVELOPMENT_SPEED", "2"))
     if scale not in (1.0, 2.0):
         raise ValueError("Development collection supports 1x or 2x speed")
+    if corrective and (
+        not has_teacher or sampling or candidate or routing or primitive or trace_only or not timing
+        or scale != 1 or not args.verify_unity_seed or not args.expected_mod_sha256 or args.episodes != 1
+        or envs.get("HKRL_NATIVE_PLAN_TRACE") == "1" or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0
+    ):
+        raise ValueError("Corrective recording requires a single seeded label-only original-speed fight")
     if ppo:
-        if (has_teacher or sampling or candidate or routing or primitive or trace_only or not timing
+        if ((has_teacher and not corrective) or sampling or candidate or routing or primitive or trace_only or not timing
                 or scale != 1 or not args.verify_unity_seed or not args.expected_mod_sha256
                 or args.episodes != 1 or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
             raise ValueError("PPO requires a single original-speed, teacher-free seeded fight")
@@ -190,6 +214,27 @@ def main() -> None:
     sha = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
     teacher_path = Path(envs["HKRL_TACTICS_POLICY"]) if has_teacher else None
     teacher_hashes = teacher_assets(teacher_path) if teacher_path else {}
+    corrective_catalogue = None
+    if corrective:
+        raw_ckpt = args.checkpoint.read_bytes()
+        if len(raw_ckpt) >= 12 and struct.unpack_from("<i", raw_ckpt, 0)[0] == 0x334C5149:
+            _, first_sz, late_sz = struct.unpack_from("<3i", raw_ckpt, 0)
+            trio = raw_ckpt[12 + first_sz : 12 + first_sz + late_sz]
+        else:
+            trio = raw_ckpt
+        if len(trio) >= 44 and struct.unpack_from("<i", trio, 0)[0] == 0x3E4C5149:
+            n_act = struct.unpack_from("<11i", trio, 0)[10]
+            corrective_catalogue = np.frombuffer(trio, "<i4", count=n_act * 3, offset=44).reshape(n_act, 3).copy()
+        elif len(trio) >= 52 and struct.unpack_from("<i", trio, 0)[0] == 0x3F4C5149:
+            n_act = struct.unpack_from("<13i", trio, 0)[12]
+            corrective_catalogue = np.frombuffer(trio, "<i4", count=n_act * 3, offset=52).reshape(n_act, 3).copy()
+        else:
+            from sisters_online_choices import late_catalogue
+            from train_sisters_timing_iql import memory_components, phase_components
+
+            _, trio = phase_components(raw_ckpt)
+            leaf, _ = memory_components(trio)
+            corrective_catalogue = late_catalogue(leaf)
     if (routing or primitive) and (has_teacher or sampling or candidate or envs.get("HKRL_NATIVE_TIMING") != "1"
                     or float(envs.get("HKRL_NATIVE_DEMO_RATIO", "-1")) != 0):
         raise ValueError("A winning-router rollout requires exclusive student control")
@@ -215,11 +260,12 @@ def main() -> None:
                 result = play_game(game, args.seed + i, scale=scale, on_transition=record)
                 play_wall_seconds = time.monotonic() - wall_start
                 eid = result["episode_id"]
-                if ppo and result["truncated"]:
+                clip_timeout = (ppo or corrective or trace_only) and result["truncated"]
+                if clip_timeout:
                     paused_for_timeout = True
                     ack = game.pause()
                     if ack["episode_id"] != eid or ack["lifecycle_state"] != LifecycleState.RUNNING:
-                        raise ValueError("Timeout pause did not acknowledge the active PPO episode")
+                        raise ValueError("Timeout pause did not acknowledge the active recorded episode")
                     result["ppo_timeout_game_seconds"] = ends[-1]
                 mode = max(result["speed_counts"], key=result["speed_counts"].get)
                 if mode != scale:
@@ -251,7 +297,12 @@ def main() -> None:
                 controller: dict[str, str | float | bool] = {"student_policy_sha256": sha}
                 if trace_only:
                     controller["deterministic_native_trace"] = True
+                if trace_only or corrective:
                     result.update(behavior_policy_sha256=sha, native_inputs=len(clock))
+                if corrective_catalogue is not None:
+                    valid = corrective_label_mask(decisions, corrective_catalogue)
+                    decisions["corrective_label_valid"] = valid
+                    controller["corrective_labels"] = True
                 if alternate_sha:
                     from sisters_control_blocks import neural_assignments
 
@@ -282,13 +333,16 @@ def main() -> None:
                     temperature = float(envs["HKRL_NATIVE_PPO_TEMPERATURE"])
                     online = read_native_draws(tape_dir / f"{eid}.ppo", eid, sha, seed, temperature,
                                                clock, decisions["timing_state"])
-                    if result["truncated"]:
-                        decisions, online = ppo_timeout_prefix(decisions, online, ends[-1], starts[-1])
-                        result["timeout_discarded_native_rows"] = len(clock) - len(decisions["control_time"])
-                        clock = decisions["control_time"]
                     controller.update(ppo_temperature=temperature, sampler_draw_seed=seed)
-                    result.update(behavior_policy_sha256=sha, mod_sha256=args.expected_mod_sha256,
-                                  game_speed=scale, native_inputs=len(clock), ppo_decisions=len(online["ppo_rows"]))
+                    result.update(behavior_policy_sha256=sha, mod_sha256=args.expected_mod_sha256)
+                if clip_timeout:
+                    decisions, online = ppo_timeout_prefix(decisions, online, ends[-1], starts[-1])
+                    result["timeout_discarded_native_rows"] = len(clock) - len(decisions["control_time"])
+                    clock = decisions["control_time"]
+                if ppo:
+                    result["ppo_decisions"] = len(online["ppo_rows"])
+                if corrective:
+                    result["valid_corrective_labels"] = int(decisions["corrective_label_valid"].sum())
                 if routing or primitive:
                     from sisters_primitive_rollout import read_keys
                     from sisters_router_rollout import read_routes
@@ -380,7 +434,7 @@ def main() -> None:
                         "truncated": result["truncated"],
                         "tape_sha256": result["tape_sha256"],
                         **controller,
-                        **({"behavior_policy_sha256": sha} if online or trace_only else {}),
+                        **({"behavior_policy_sha256": sha} if online or trace_only or corrective else {}),
                     }
                 )
                 (args.output / "manifest.json").write_text(
