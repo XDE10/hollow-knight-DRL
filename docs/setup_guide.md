@@ -1,6 +1,6 @@
-# 组员环境配置与排障指南
+# 环境配置与排障指南
 
-本指南帮助小组成员在全新电脑（Windows / Linux）上 **5 分钟内**跑通战斗姐妹冠军模型。
+本指南帮助你在全新电脑（Windows / Linux）上 **5 分钟内**跑通《空洞骑士：战斗姐妹》深度强化学习冠军模型。
 
 ---
 
@@ -9,9 +9,9 @@
 1. **正版《空洞骑士》（Hollow Knight 1.5.78）**（通过 Steam 安装，任意盘符均可）。
 2. **安装 Modding API**：
    - 下载并打开 [Lumafly](https://themulhima.github.io/Lumafly/)（原 Scarab），它会自动识别你的《空洞骑士》路径并安装 Modding API（安装后 `hollow_knight_Data/Managed/` 下会出现 `MMHOOK_Assembly-CSharp.dll`）。
-3. **准备 3 号存档（Godhome 诸神堂）**：
-   - 启动游戏确认 **3 号存档槽（Save Slot 3）** 已进入神居诸神堂，解锁「战斗姐妹（Sisters of Battle）」，建议保持 9 格血、纯粹骨钉（1×）。
-   - 如果你希望使用其他存档槽，运行时传入 `--save-slot 1`（或 `2`/`4`）即可。
+3. **准备任意一个神居存档（自动识别 1～4 号存档槽）**：
+   - 启动游戏确认任意存档槽（`1～4` 号均可）已进入神居诸神堂，解锁「战斗姐妹（Sisters of Battle）」，建议保持 9 格血、纯粹骨钉（1×）。
+   - 启动脚本会自动扫描系统存档目录并选中可用的存档槽；如果电脑上有多个存档，可通过 `--save-slot 2`（PowerShell 用 `-SaveSlot 2`）或环境变量 `HKRL_SAVE_SLOT=2` 指定槽位。
 
 ---
 

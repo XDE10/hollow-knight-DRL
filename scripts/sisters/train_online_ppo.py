@@ -1,18 +1,15 @@
-"""Colab G4 Closed-Loop 16-Lane Online Safe Recurrent No-Hit PPO Trainer.
+"""Multi-Worker Closed-Loop Online Safe Recurrent No-Hit PPO & GRPO Trainer.
 
-Runs entirely on a single Colab G4 (96 GB RTX PRO 6000 + multi-core CPU + 170+ GB RAM):
-  For each round r = 1..N:
-    1. 16-way parallel native Linux Hollow Knight sampled PPO rollout collection
-       (two non-greedy temperatures, e.g. 32 fights @ 0.22 + 32 fights @ 0.35 = 64 fights in ~9 min!).
-    2. Exact C# RNG uniform & log-probability verification on every single fight.
-    3. On-G4 GPU Safe Recurrent Actor-Critic PPO update (~20s on RTX PRO 6000!) with:
-       - Direct No-Hit & Anti-Damage Reward Shaping (-1.00 proj, -0.75 body/spikes, +1.50 no-hit win)
-       - 2.6x pre-proj (1.0s) & 2.0x pre-body (0.8s) negative GAE advantage amplification
-       - Strict monotonic trust-region (kl_limit=0.008) + offline KL anchor + dash_rate drift guard
-         + all 6 physical safety guards + anti-Quake-into-disc trap guard!
-    4. Export V2 native .bin (with verified V2 139-fight P1 Opener) -> 16-lane 30-episode greedy validation gate (~4 min!).
-    5. Promote ONLY if (win_rate improves OR win_rate ties with lower avg_damage / higher no_hit_wins),
-       and immediately push every promoted champion to optional remote storage (--drive-dest)!
+For each round r = 1..N:
+  1. Multi-worker parallel native Linux Hollow Knight sampled PPO rollout collection
+     (multi-temperature non-greedy cohorts or Group-4 GRPO per-seed cohorts).
+  2. Exact C# RNG uniform & log-probability verification on every single fight.
+  3. GPU Safe Recurrent Actor-Critic PPO/GRPO update with:
+     - Direct No-Hit & Anti-Damage Reward Shaping + optional Radiant 1-hit early stop
+     - Pre-projectile (1.0s) & pre-body (0.8s) negative GAE advantage amplification
+     - Strict monotonic trust-region (kl_limit) + world_aux dynamics regularization
+       + dash_rate drift guard + 6 physical safety guards
+  4. Export V2 native .bin -> parallel greedy validation gate & automatic promotion.
 """
 from __future__ import annotations
 

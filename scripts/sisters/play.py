@@ -32,14 +32,15 @@ from hkrl.env import HKRLEnv
 from hkrl.protocol import RewardEventKind as K
 from hkrl.transport.factory import make_transport
 from hkrl.utils.config import load_task_config, load_train_config
-from install_mod import discover_hollow_knight, install_mod
+from install_mod import discover_hollow_knight, discover_save_slot, install_mod, resolve_port
 
 discover_game_root = discover_hollow_knight
 
 DEFAULT_MODEL = REPO_ROOT / "models/sisters_champion/sisters_champion.bin"
-DEFAULT_MODEL_URL = (
+DEFAULT_MODEL_URL = os.environ.get(
+    "HKRL_MODEL_URL",
     "https://github.com/XDE10/hollow-knight-DRL/releases/download/"
-    "v1.0.0-sisters-champion/sisters_champion.bin"
+    "v1.0.0-sisters-champion/sisters_champion.bin",
 )
 DEFAULT_MODEL_SHA256 = "f97d6aba7911a4983ce8a242edc8e8ef708743483ac7dcd1e57aef8132a43b08"
 DEFAULT_TRAIN_CFG = REPO_ROOT / "configs/sisters_train.yaml"
@@ -115,8 +116,8 @@ def run_episodes(
     model_bin: Path,
     episodes: int,
     first_seed: int,
-    port: int,
-    save_slot: int,
+    port: int | None,
+    save_slot: int | None,
     headless: bool,
     width: int,
     height: int,
@@ -148,6 +149,15 @@ def run_episodes(
             )
 
     runtime_conf = read_runtime_conf(game_root)
+    eff_port = resolve_port(port, runtime_conf, default=cfg.transport.port)
+    eff_slot, found_slots = discover_save_slot(save_slot, runtime_conf)
+    if save_slot is None:
+        slot_note = f"found slots {found_slots}" if found_slots else "no local user*.dat found, fallback"
+        print(
+            f"[HKRL] Save slot: {eff_slot} ({slot_note}; pass --save-slot N or set HKRL_SAVE_SLOT to override)",
+            flush=True,
+        )
+
     env_vars = dict(os.environ)
     for k in list(env_vars):
         if k.startswith("HKRL_NATIVE_") or k in ("HKRL_TACTICS_POLICY", "HKRL_TCP_ACTOR_PORT"):
@@ -159,8 +169,8 @@ def run_episodes(
     env_vars.update(
         {
             "HKRL_HOST": "127.0.0.1",
-            "HKRL_PORT": str(port),
-            "HKRL_SAVE_SLOT": str(save_slot),
+            "HKRL_PORT": str(eff_port),
+            "HKRL_SAVE_SLOT": str(eff_slot),
             "HKRL_NATIVE_ACTOR": str(model_bin.resolve()),
             "HKRL_NATIVE_ACTOR_LEDGER": str(ledger_path),
             "HKRL_SISTERS_NAIL_MULTIPLIER": "1",
@@ -185,7 +195,7 @@ def run_episodes(
 
     print(
         f"[HKRL] Launching Sisters Champion ({model_bin.name}, sha256={_sha256(model_bin)[:12]}) "
-        f"on port {port} ({'headless' if headless else f'{width}x{height} windowed'})...",
+        f"on port {eff_port}, save slot {eff_slot} ({'headless' if headless else f'{width}x{height} windowed'})...",
         flush=True,
     )
     proc = subprocess.Popen(args, cwd=str(game_root), env=env_vars)
@@ -193,15 +203,15 @@ def run_episodes(
     results: list[dict[str, Any]] = []
     game: HKRLEnv | None = None
     try:
-        if not wait_for_port(port, proc, timeout_s=90.0):
+        if not wait_for_port(eff_port, proc, timeout_s=90.0):
             raise RuntimeError(
-                f"Hollow Knight did not listen on 127.0.0.1:{port} (exit={proc.poll()}). "
+                f"Hollow Knight did not listen on 127.0.0.1:{eff_port} (exit={proc.poll()}). "
                 "Verify HK Modding API + HKRLEnvMod.dll are installed (see docs/setup_guide.md)."
             )
 
         if "HKRL_AUTH_TOKEN" in env_vars:
             os.environ["HKRL_AUTH_TOKEN"] = env_vars["HKRL_AUTH_TOKEN"]
-        game = HKRLEnv(make_transport(cfg, port=port), task, step_timeout_s=20.0)
+        game = HKRLEnv(make_transport(cfg, port=eff_port), task, step_timeout_s=20.0)
         dmg_names = {1: "BOSS_BODY", 2: "ENEMY_PROJECTILE", 3: "SPIKES", 4: "OTHER"}
 
         for ep_i in range(episodes):
@@ -282,8 +292,8 @@ def main() -> None:
     ap.add_argument("--game-root", type=Path, default=None, help="Path to Hollow Knight directory (auto-detected if omitted)")
     ap.add_argument("--episodes", type=int, default=1, help="Number of fights to run")
     ap.add_argument("--seed", type=int, default=19900001, help="First deterministic evaluation seed")
-    ap.add_argument("--port", type=int, default=5555, help="Local TCP port for HKRLEnvMod")
-    ap.add_argument("--save-slot", type=int, default=3, choices=(1, 2, 3, 4), help="Godhome save slot (default: 3)")
+    ap.add_argument("--port", type=int, default=None, help="Local TCP port for HKRLEnvMod (default: HKRL_PORT or 5555)")
+    ap.add_argument("--save-slot", type=int, default=None, choices=(1, 2, 3, 4), help="Godhome save slot 1-4 (auto-detected if omitted)")
     ap.add_argument("--headless", action="store_true", help="Run headless (-batchmode -nographics)")
     ap.add_argument("--width", type=int, default=1280, help="Window width when not headless")
     ap.add_argument("--height", type=int, default=720, help="Window height when not headless")

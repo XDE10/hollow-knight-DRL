@@ -1,15 +1,10 @@
-"""Colab G4 High-Concurrency Native Linux Hollow Knight Runner (Eval + Closed-Loop Online No-Hit PPO).
+"""High-Concurrency Native Linux Hollow Knight Runner (Eval + Closed-Loop Online No-Hit PPO).
 
-Designed to saturate Colab G4's multi-core CPU, 170+ GB RAM, and 96 GB RTX PRO 6000 VRAM:
-  - Pulls hk-linux-1.5.78-v2.tar.gz from --game-root once.
-  - Spawns N parallel headless Hollow Knight Linux instances (e.g. 10-16 lanes) via Xvfb
-    with per-lane isolated XDG_CONFIG_HOME/HOME saves and unique TCP ports (5600..5600+N-1).
-  - Supports:
-      1) --mode smoke      : 1-episode sanity verification (checks Xvfb/nographics, Mod, Unity seed, 1x speed).
-      2) --mode eval       : High-concurrency multi-episode evaluation (dev8 / confirm30 / formal100) + scoring.
-      3) --mode online-rl  : Closed-loop On-G4 Online Safe Recurrent No-Hit PPO:
-                             16-lane parallel sampled rollouts -> 20s GPU PPO update on same G4
-                             -> 16-lane validation gate -> auto-promote & push champion to Drive!
+Spawns N parallel headless Hollow Knight Linux instances via Xvfb or -nographics
+with per-lane isolated XDG_CONFIG_HOME/HOME saves and unique TCP ports (5600..5600+N-1).
+Supports:
+  1) --mode smoke : 1-episode sanity verification (checks Mod, Unity seed, 1x speed).
+  2) --mode eval  : High-concurrency multi-episode evaluation + scoring.
 """
 from __future__ import annotations
 
@@ -20,21 +15,22 @@ import json
 import os
 from pathlib import Path
 import sys
+import tempfile
 
 _SISTERS_DIR = Path(__file__).resolve().parent
-for _p in (_SISTERS_DIR, _SISTERS_DIR / '_lib', _SISTERS_DIR.parents[1] / 'python'):
+for _p in (_SISTERS_DIR, _SISTERS_DIR / '_lib', _SISTERS_DIR.parent, _SISTERS_DIR.parents[1] / 'python'):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 import shutil
 import signal
 import socket
 import subprocess
-import sys
 import time
 from typing import Any
 
 import numpy as np
 import torch
+from install_mod import discover_save_slot, find_save_dir
 
 
 def sha256(path: Path) -> str:
@@ -125,19 +121,40 @@ def stage_lane_game(game_root: Path, lane_root: Path) -> Path:
     return game_dir
 
 
-def stage_lane_saves(game_root: Path, lane_root: Path) -> tuple[Path, Path]:
+def stage_lane_saves(
+    game_root: Path,
+    lane_root: Path,
+    save_slot: int | None = None,
+) -> tuple[Path, Path, int]:
     home_dir = lane_root / "home"
     xdg_dir = lane_root / "xdg"
     save_dst = xdg_dir / "unity3d/Team Cherry/Hollow Knight"
     home_save_dst = home_dir / ".config/unity3d/Team Cherry/Hollow Knight"
+
+    # Prefer bundled game_root/hkrl_saves if present, else OS-standard user save directory
+    bundled_dir = game_root / "hkrl_saves"
+    src_dir = bundled_dir if bundled_dir.is_dir() else find_save_dir()
+    if src_dir is None or not src_dir.is_dir():
+        raise FileNotFoundError(
+            f"Could not find Hollow Knight save directory (checked {bundled_dir} and OS save dir). "
+            "Set HKRL_SAVE_DIR or place user<slot>.dat in <game-root>/hkrl_saves/."
+        )
+    eff_slot, _ = discover_save_slot(save_slot, save_dir=src_dir)
+    primary = src_dir / f"user{eff_slot}.dat"
+    if not primary.is_file():
+        raise FileNotFoundError(
+            f"Expected save file {primary} for slot {eff_slot}. Pass --save-slot N or set HKRL_SAVE_SLOT."
+        )
+
     for d in (save_dst, home_save_dst):
         if d.exists():
             shutil.rmtree(d)
         d.mkdir(parents=True, exist_ok=True)
-        for fname in ("user3.dat", "user3.modded.json"):
-            src = game_root / "hkrl_saves" / fname
-            shutil.copy2(src, d / fname)
-    return home_dir, xdg_dir
+        shutil.copy2(primary, d / primary.name)
+        modded_json = src_dir / f"user{eff_slot}.modded.json"
+        if modded_json.is_file():
+            shutil.copy2(modded_json, d / modded_json.name)
+    return home_dir, xdg_dir, eff_slot
 
 
 def run_single_episode(
@@ -162,6 +179,7 @@ def run_single_episode(
     p1_only: bool = False,
     slot_name: str = "",
     allow_eval_radiant: bool = False,
+    save_slot: int | None = None,
 ) -> dict[str, Any]:
     port = 5600 + lane_id
     display_num = 100 + lane_id
@@ -206,7 +224,7 @@ def run_single_episode(
     steam_appid_file = game_root / "steam_appid.txt"
     if not steam_appid_file.is_file():
         steam_appid_file.write_text("367520\n", encoding="utf-8")
-    lane_tmp = Path(f"/tmp/hkrl-lane-{lane_id}")
+    lane_tmp = Path(tempfile.gettempdir()) / f"hkrl-lane-{lane_id}"
     lane_game_dir = stage_lane_game(game_root, lane_tmp)
     exe = lane_game_dir / "hollow_knight.x86_64"
     lane_tmpdir = lane_tmp / "tmp"
@@ -221,7 +239,7 @@ def run_single_episode(
         native_dir = ep_dir / "native"
         native_dir.mkdir(exist_ok=True)
 
-        home_dir, xdg_dir = stage_lane_saves(game_root, lane_tmp)
+        home_dir, xdg_dir, eff_slot = stage_lane_saves(game_root, lane_tmp, save_slot=save_slot)
         env = dict(os.environ)
         for k in list(env):
             if k.startswith("HKRL_NATIVE_") or k == "HKRL_TACTICS_POLICY":
@@ -244,7 +262,7 @@ def run_single_episode(
                 "HKRL_SISTERS_NAIL_MULTIPLIER": "1",
                 "HKRL_DEVELOPMENT_SPEED": "1",
                 "HKRL_COMPACT_RENDER": "1",
-                "HKRL_SAVE_SLOT": "3",
+                "HKRL_SAVE_SLOT": str(eff_slot),
                 "HKRL_HOST": "127.0.0.1",
                 "HKRL_PORT": str(port),
                 "SDL_AUDIODRIVER": "dummy",
@@ -488,6 +506,7 @@ def run_parallel_cohort(
     radiant_max_trio_hits: int = 0,
     p1_only: bool = False,
     allow_eval_radiant: bool = False,
+    save_slot: int | None = None,
 ) -> list[dict[str, Any]]:
     mod_sha = sha256(game_root / "hollow_knight_Data/Managed/Mods/HKRLEnvMod/HKRLEnvMod.dll")
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -527,6 +546,7 @@ def run_parallel_cohort(
                 radiant_max_trio_hits=radiant_max_trio_hits,
                 p1_only=p1_only,
                 allow_eval_radiant=allow_eval_radiant,
+                save_slot=save_slot,
             )
             out.append(r)
             dt = r["damage_taken"]
@@ -653,6 +673,7 @@ def main() -> None:
     ap.add_argument("--max-attempts", type=int, default=3)
     ap.add_argument("--max-losses", type=int, default=0)
     ap.add_argument("--p1-only", action="store_true")
+    ap.add_argument("--save-slot", type=int, default=None, choices=(1, 2, 3, 4), help="Godhome save slot 1-4 (auto-detected if omitted)")
     args = ap.parse_args()
 
     cpus = os.cpu_count() or 8
@@ -665,8 +686,8 @@ def main() -> None:
         seeds = list(range(args.first_seed, args.first_seed + args.episodes))
 
     print(
-        "COLAB_LINUX_RUNNER_INIT",
-        json.dumps({"cpus": cpus, "workers": workers, "mode": args.mode, "episodes": len(seeds), "nographics": args.nographics, "no_batchmode": args.no_batchmode, "soft_gl": args.soft_gl}),
+        "PARALLEL_LINUX_RUNNER_INIT",
+        json.dumps({"cpus": cpus, "workers": workers, "mode": args.mode, "episodes": len(seeds), "nographics": args.nographics, "no_batchmode": args.no_batchmode, "soft_gl": args.soft_gl, "save_slot": args.save_slot}),
         flush=True,
     )
     run_parallel_cohort(
@@ -686,6 +707,7 @@ def main() -> None:
         max_losses_early_stop=args.max_losses if args.max_losses > 0 else None,
         max_attempts=args.max_attempts,
         p1_only=args.p1_only,
+        save_slot=args.save_slot,
     )
 
 

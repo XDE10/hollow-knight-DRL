@@ -21,9 +21,10 @@ import shutil
 import urllib.request
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MOD_RELEASE_URL = (
+MOD_RELEASE_URL = os.environ.get(
+    "HKRL_MOD_URL",
     "https://github.com/XDE10/hollow-knight-DRL/releases/download/"
-    "v1.0.0-sisters-champion/HKRLEnvMod.dll"
+    "v1.0.0-sisters-champion/HKRLEnvMod.dll",
 )
 MOD_RELEASE_SHA256 = "3e568d950fc3b71898fe4d1bd64806f84e22f107f1cc6d399e0f4fc3e9245ffe"
 
@@ -123,6 +124,106 @@ def discover_hollow_knight(explicit: Path | None = None) -> Path:
         "Could not auto-detect Hollow Knight via Steam. "
         "Please pass --game-root \"/path/to/Hollow Knight\" or set HKRL_GAME_ROOT."
     )
+
+
+def find_save_dir(explicit: Path | None = None) -> Path | None:
+    """Locate Hollow Knight's OS-standard save directory without hardcoded user paths."""
+    if explicit is not None:
+        return explicit.expanduser().resolve()
+    env_dir = os.environ.get("HKRL_SAVE_DIR", "").strip()
+    if env_dir:
+        return Path(env_dir).expanduser().resolve()
+
+    candidates: list[Path] = []
+    if os.name == "nt":
+        userprofile = os.environ.get("USERPROFILE", "").strip()
+        base = Path(userprofile) if userprofile else Path.home()
+        candidates.append(base / "AppData/LocalLow/Team Cherry/Hollow Knight")
+    else:
+        xdg = os.environ.get("XDG_CONFIG_HOME", "").strip()
+        if xdg:
+            candidates.append(Path(xdg) / "unity3d/Team Cherry/Hollow Knight")
+        candidates.append(Path.home() / ".config/unity3d/Team Cherry/Hollow Knight")
+        candidates.append(
+            Path.home() / "Library/Application Support/unity.Team Cherry.Hollow Knight"
+        )
+
+    for cand in candidates:
+        if cand.is_dir():
+            return cand
+    return None
+
+
+def _parse_slot(raw: str | None) -> int | None:
+    if not raw:
+        return None
+    try:
+        val = int(raw.strip())
+    except ValueError:
+        return None
+    return val if 1 <= val <= 4 else None
+
+
+def discover_save_slot(
+    explicit: int | None = None,
+    runtime_conf: dict[str, str] | None = None,
+    save_dir: Path | None = None,
+) -> tuple[int, list[int]]:
+    """Resolve Hollow Knight save slot (1-4) without hardcoding any fixed slot.
+
+    Priority: explicit CLI arg -> HKRL_SAVE_SLOT env -> hkrl-runtime.conf ->
+    auto-scan local user{1..4}.dat (preferring a modded save slot if multiple exist)
+    -> fallback to slot 1.
+    """
+    if explicit is not None and 1 <= explicit <= 4:
+        return int(explicit), [int(explicit)]
+
+    env_slot = _parse_slot(os.environ.get("HKRL_SAVE_SLOT"))
+    if env_slot is not None:
+        return env_slot, [env_slot]
+
+    if runtime_conf:
+        conf_slot = _parse_slot(runtime_conf.get("HKRL_SAVE_SLOT"))
+        if conf_slot is not None:
+            return conf_slot, [conf_slot]
+
+    sdir = find_save_dir(save_dir)
+    if sdir is not None and sdir.is_dir():
+        existing = [
+            s
+            for s in (1, 2, 3, 4)
+            if (sdir / f"user{s}.dat").is_file() and (sdir / f"user{s}.dat").stat().st_size > 0
+        ]
+        if existing:
+            if len(existing) == 1:
+                return existing[0], existing
+            modded = [s for s in existing if (sdir / f"user{s}.modded.json").is_file()]
+            chosen = modded[0] if modded else existing[0]
+            return chosen, existing
+
+    return 1, []
+
+
+def resolve_port(
+    explicit: int | None = None,
+    runtime_conf: dict[str, str] | None = None,
+    default: int = 5555,
+) -> int:
+    """Resolve HKRLEnvMod TCP port: explicit CLI -> HKRL_PORT env -> runtime.conf -> default."""
+    if explicit is not None and 1 <= explicit <= 65535:
+        return int(explicit)
+    for raw in (
+        os.environ.get("HKRL_PORT"),
+        runtime_conf.get("HKRL_PORT") if runtime_conf else None,
+    ):
+        if raw:
+            try:
+                val = int(raw.strip())
+                if 1 <= val <= 65535:
+                    return val
+            except ValueError:
+                pass
+    return default
 
 
 def install_mod(game_root: Path, *, local_dll: Path | None = None, force: bool = False) -> Path:

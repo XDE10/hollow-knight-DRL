@@ -39,10 +39,10 @@ Implemented in `scripts/sisters/_lib/wp22_attn_model.py` (re-exported via `scrip
 
 ## 4. Final 100-Fight Head-to-Head Acceptance (Unseen Seeds `19900001..19900100`)
 
-| Candidate | Wins | Full No-Hit | Trio No-Hit | Avg Damage | P1 Hits | Trio Hits (Body / Disc / Spike) |
+| Candidate | Wins | Full No-Hit | Trio No-Hit | Avg Damage | P1 / Trio Hits | Total Hits by Source (Body / Disc / Spike) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Stage-3 R06 (`sisters_champion.bin`)** | **100 / 100** | **65 / 100 (65%)** | **67 / 100 (67%)** | **0.47** | 6 | 41 (27 / 18 / 2) |
-| Stage-3 R12 (`r12_champion.bin`) | 100 / 100 | 61 / 100 (61%) | 64 / 100 (64%) | 0.50 | 6 | 44 (28 / 21 / 1) |
+| **Stage-3 R06 (`sisters_champion.bin`)** | **100 / 100** | **65 / 100 (65%)** | **67 / 100 (67%)** | **0.47** | 6 / 41 (47 total) | 27 / 18 / 2 |
+| Stage-3 R12 (`r12_champion.bin`) | 100 / 100 | 61 / 100 (61%) | 64 / 100 (64%) | 0.50 | 6 / 44 (50 total) | 28 / 21 / 1 |
 
 ## 5. Scaling & Architecture Ablation Summary (Plan A vs Plan B)
 

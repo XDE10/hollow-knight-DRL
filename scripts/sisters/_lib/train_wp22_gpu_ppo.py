@@ -25,11 +25,8 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 _HERE = Path(__file__).resolve().parent
-ART = Path(__file__).resolve().parents[3]
-WP18 = ART / "WP18-ScaledDRL"
-REPO = WP18 / "HKRL-wp18"
-CLEAN_PY = ART / "python"
-for _p in (_HERE, _HERE / "scripts", _HERE / "python", WP18, REPO / "scripts", CLEAN_PY, REPO / "python"):
+_REPO_ROOT = _HERE.parents[2]
+for _p in (_HERE, _HERE.parent, _REPO_ROOT / "scripts", _REPO_ROOT / "python"):
     if str(_p) not in sys.path and _p.is_dir():
         sys.path.append(str(_p))
 if str(_HERE) in sys.path:

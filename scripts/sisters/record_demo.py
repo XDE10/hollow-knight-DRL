@@ -53,9 +53,11 @@ from play import (
     DEFAULT_TRAIN_CFG,
     _sha256,
     discover_game_root,
+    discover_save_slot,
     ensure_default_model,
     find_game_exe,
     read_runtime_conf,
+    resolve_port,
     wait_for_port,
 )
 
@@ -559,8 +561,8 @@ def record_single_session(
     game_root: Path,
     model_bin: Path | None,
     seeds: list[int],
-    port: int,
-    save_slot: int,
+    port: int | None,
+    save_slot: int | None,
     width: int,
     height: int,
     fps: int,
@@ -576,7 +578,12 @@ def record_single_session(
     if not mod_dll.is_file():
         raise FileNotFoundError(f"HKRLEnvMod.dll not found at {mod_dll}")
 
+    cfg = load_train_config(str(DEFAULT_TRAIN_CFG))
+    task = load_task_config(str(DEFAULT_TASK_CFG))
     runtime_conf = read_runtime_conf(game_root)
+    eff_port = resolve_port(port, runtime_conf, default=cfg.transport.port)
+    eff_slot, _ = discover_save_slot(save_slot, runtime_conf)
+
     env_vars = dict(os.environ)
     for k in list(env_vars):
         if k.startswith("HKRL_NATIVE_") or k in ("HKRL_TACTICS_POLICY", "HKRL_TCP_ACTOR_PORT", "SDL_AUDIODRIVER"):
@@ -586,8 +593,8 @@ def record_single_session(
     env_vars.update(
         {
             "HKRL_HOST": "127.0.0.1",
-            "HKRL_PORT": str(port),
-            "HKRL_SAVE_SLOT": str(save_slot),
+            "HKRL_PORT": str(eff_port),
+            "HKRL_SAVE_SLOT": str(eff_slot),
             "HKRL_SISTERS_NAIL_MULTIPLIER": "1",
             "SteamAppId": "367520",
             "SteamGameId": "367520",
@@ -606,8 +613,6 @@ def record_single_session(
         "-screen-height", str(height),
     ]
 
-    cfg = load_train_config(str(DEFAULT_TRAIN_CFG))
-    task = load_task_config(str(DEFAULT_TASK_CFG))
     if model_bin is not None:
         task.action.action_repeat = 16
         task.time_limit_seconds = 360
@@ -625,14 +630,14 @@ def record_single_session(
         noop["macro"] = 0
 
     label = f"{model_bin.name} (sha256={_sha256(model_bin)[:12]})" if model_bin else "UNTRAINED random policy"
-    print(f"\n=== [HKRL RECORD: {kind}] Launching Hollow Knight ({label}) ===", flush=True)
+    print(f"\n=== [HKRL RECORD: {kind}] Launching Hollow Knight ({label}, port={eff_port}, slot={eff_slot}) ===", flush=True)
     proc = subprocess.Popen(args, cwd=str(game_root), env=env_vars)
 
     game: HKRLEnv | None = None
     outcomes: list[EpisodeOutcome] = []
     try:
-        if not wait_for_port(port, proc, timeout_s=90.0):
-            raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{port} (exit={proc.poll()})")
+        if not wait_for_port(eff_port, proc, timeout_s=90.0):
+            raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{eff_port} (exit={proc.poll()})")
 
         hwnd = find_game_window(proc.pid, timeout_s=30.0)
         rect = prepare_window_rect(hwnd)
@@ -640,7 +645,7 @@ def record_single_session(
 
         if "HKRL_AUTH_TOKEN" in env_vars:
             os.environ["HKRL_AUTH_TOKEN"] = env_vars["HKRL_AUTH_TOKEN"]
-        game = HKRLEnv(make_transport(cfg, port=port), task, step_timeout_s=20.0)
+        game = HKRLEnv(make_transport(cfg, port=eff_port), task, step_timeout_s=20.0)
         dmg_names = {1: "BOSS_BODY", 2: "ENEMY_PROJECTILE", 3: "SPIKES", 4: "OTHER"}
 
         for attempt_idx, seed in enumerate(seeds, start=1):
@@ -658,11 +663,11 @@ def record_single_session(
                         pass
                     game = None
                 proc = subprocess.Popen(args, cwd=str(game_root), env=env_vars)
-                if not wait_for_port(port, proc, timeout_s=90.0):
-                    raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{port} (exit={proc.poll()})")
+                if not wait_for_port(eff_port, proc, timeout_s=90.0):
+                    raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{eff_port} (exit={proc.poll()})")
                 hwnd = find_game_window(proc.pid, timeout_s=30.0)
                 rect = prepare_window_rect(hwnd)
-                game = HKRLEnv(make_transport(cfg, port=port), task, step_timeout_s=20.0)
+                game = HKRLEnv(make_transport(cfg, port=eff_port), task, step_timeout_s=20.0)
 
             # Re-raise window right before each attempt so it stays unobscured.
             rect = prepare_window_rect(hwnd)
@@ -688,12 +693,12 @@ def record_single_session(
                         game = None
                     if proc.poll() is not None:
                         proc = subprocess.Popen(args, cwd=str(game_root), env=env_vars)
-                    if not wait_for_port(port, proc, timeout_s=90.0):
-                        raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{port} (exit={proc.poll()})")
+                    if not wait_for_port(eff_port, proc, timeout_s=90.0):
+                        raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{eff_port} (exit={proc.poll()})")
                     hwnd = find_game_window(proc.pid, timeout_s=30.0)
                     rect = prepare_window_rect(hwnd)
                     recorder = ScreenAndAudioRecorder(ffmpeg_exe, rect, fps, raw_v, raw_a, capture_audio)
-                    game = HKRLEnv(make_transport(cfg, port=port), task, step_timeout_s=20.0)
+                    game = HKRLEnv(make_transport(cfg, port=eff_port), task, step_timeout_s=20.0)
                     recorder.start()
                     recorder_stopped = False
                     t_wall0 = time.monotonic()
@@ -805,8 +810,8 @@ def main() -> None:
     ap.add_argument("--model", type=Path, default=DEFAULT_MODEL, help="Path to frozen native actor .bin")
     ap.add_argument("--game-root", type=Path, default=None, help="Path to Hollow Knight install dir")
     ap.add_argument("--output-dir", type=Path, default=DEFAULT_OUT_DIR, help="Output directory for MP4s & GIFs")
-    ap.add_argument("--port", type=int, default=5555)
-    ap.add_argument("--save-slot", type=int, default=3, choices=(1, 2, 3, 4))
+    ap.add_argument("--port", type=int, default=None, help="Local TCP port (default: HKRL_PORT or 5555)")
+    ap.add_argument("--save-slot", type=int, default=None, choices=(1, 2, 3, 4), help="Godhome save slot 1-4 (auto-detected if omitted)")
     ap.add_argument("--width", type=int, default=1280)
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--fps", type=int, default=30, help="Capture framerate (30 recommended on laptops)")

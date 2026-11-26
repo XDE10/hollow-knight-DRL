@@ -4,8 +4,8 @@ param(
     [string]$Model = "models/sisters_champion/sisters_champion.bin",
     [string]$GameRoot = "",
     [string]$OutputDir = "runs/demo_videos",
-    [ValidateRange(1, 65535)][int]$Port = 5555,
-    [ValidateRange(1, 4)][int]$SaveSlot = 3,
+    [ValidateRange(0, 65535)][int]$Port = 0,
+    [ValidateRange(0, 4)][int]$SaveSlot = 0,
     [int]$Fps = 30,
     [double]$UntrainedSpeed = 2.0,
     [double]$ChampionSpeed = 4.0,
@@ -24,16 +24,20 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
-$py = Join-Path $repo ".venv/Scripts/python.exe"
-if (-not (Test-Path -LiteralPath $py)) { $py = "python" }
+$py = $null
+if ($env:VIRTUAL_ENV -and (Test-Path (Join-Path $env:VIRTUAL_ENV "Scripts/python.exe"))) {
+    $py = Join-Path $env:VIRTUAL_ENV "Scripts/python.exe"
+} elseif (Test-Path (Join-Path $repo ".venv/Scripts/python.exe")) {
+    $py = Join-Path $repo ".venv/Scripts/python.exe"
+} else {
+    $py = "python"
+}
 
 $pyArgs = @(
     (Join-Path $repo "scripts/sisters/record_demo.py"),
     "--mode", $Mode,
     "--model", $Model,
     "--output-dir", $OutputDir,
-    "--port", [string]$Port,
-    "--save-slot", [string]$SaveSlot,
     "--fps", [string]$Fps,
     "--untrained-speed", [string]$UntrainedSpeed,
     "--champion-speed", [string]$ChampionSpeed,
@@ -45,6 +49,8 @@ $pyArgs = @(
     "--gif-fps", [string]$GifFps,
     "--max-attempts", [string]$MaxAttempts
 )
+if ($Port -gt 0) { $pyArgs += @("--port", [string]$Port) }
+if ($SaveSlot -gt 0) { $pyArgs += @("--save-slot", [string]$SaveSlot) }
 if ($GameRoot) { $pyArgs += @("--game-root", $GameRoot) }
 if ($NoAudio) { $pyArgs += "--no-audio" }
 if ($UntrainedFullVideo) { $pyArgs += "--untrained-full-video" }

@@ -43,9 +43,10 @@ def test_all_repo_yaml_configs_load_cleanly() -> None:
 
 
 def test_zero_hardcoded_personal_or_machine_paths() -> None:
-    """Guard against machine-specific, personal, or Colab paths leaking to teammates."""
+    """Guard against machine-specific, personal, Colab, or hardcoded-save paths leaking."""
     forbidden = re.compile(
-        r"Mr\.Z|CodexArtifacts|HKRL-Handoff|/content/hk|/mnt/[a-z]/|D:\\Steam|D:/Steam|D:\\DevTools|C:\\ffmpeg|mydrive:",
+        r"Mr\.Z|CodexArtifacts|HKRL-Handoff|/content/hk|/mnt/[a-z]/|D:\\Steam|D:/Steam"
+        r"|D:\\DevTools|C:\\ffmpeg|mydrive:|WP18-ScaledDRL|HKRL-wp18|user3\.dat",
         re.IGNORECASE,
     )
     tracked = subprocess.check_output(["git", "ls-files"], cwd=REPO_ROOT, text=True).splitlines()
@@ -62,6 +63,52 @@ def test_zero_hardcoded_personal_or_machine_paths() -> None:
         if forbidden.search(txt):
             violations.append(rel)
     assert not violations, f"Found hardcoded personal/machine paths in: {violations}"
+
+
+def test_public_docs_contain_no_internal_team_wording() -> None:
+    """Ensure public-facing README and docs remain suitable for a general open-source audience."""
+    forbidden = re.compile(r"组员|小组成员|本小组|答辩|评委")
+    for rel in ("README.md", "docs/setup_guide.md", "docs/project_guide.md"):
+        p = REPO_ROOT / rel
+        assert p.is_file(), f"Missing doc: {rel}"
+        txt = p.read_text(encoding="utf-8")
+        assert not forbidden.search(txt), f"Found internal team wording in {rel}"
+
+
+def test_save_slot_auto_discovery(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify save slot resolution works cleanly across any slot 1-4 with zero hardcoded slot 3."""
+    scripts_root = str(REPO_ROOT / "scripts")
+    if scripts_root not in sys.path:
+        sys.path.insert(0, scripts_root)
+    from install_mod import discover_save_slot, resolve_port  # type: ignore[import-not-found]
+
+    monkeypatch.delenv("HKRL_SAVE_SLOT", raising=False)
+    monkeypatch.delenv("HKRL_PORT", raising=False)
+
+    # Empty save dir falls back to slot 1
+    assert discover_save_slot(save_dir=tmp_path) == (1, [])
+
+    # Single existing save slot (e.g. slot 2) is auto-detected
+    (tmp_path / "user2.dat").write_bytes(b"save2")
+    assert discover_save_slot(save_dir=tmp_path) == (2, [2])
+
+    # Multiple save slots prefer a modded slot if present, else lowest existing slot
+    (tmp_path / "user1.dat").write_bytes(b"save1")
+    assert discover_save_slot(save_dir=tmp_path) == (1, [1, 2])
+    (tmp_path / "user2.modded.json").write_text("{}", encoding="utf-8")
+    assert discover_save_slot(save_dir=tmp_path) == (2, [1, 2])
+
+    # Explicit / env / runtime_conf overrides always take priority
+    assert discover_save_slot(explicit=4, save_dir=tmp_path) == (4, [4])
+    assert discover_save_slot(runtime_conf={"HKRL_SAVE_SLOT": "3"}, save_dir=tmp_path) == (3, [3])
+    monkeypatch.setenv("HKRL_SAVE_SLOT", "4")
+    assert discover_save_slot(runtime_conf={"HKRL_SAVE_SLOT": "3"}, save_dir=tmp_path) == (4, [4])
+
+    # Port resolution honors explicit -> env -> runtime_conf -> default
+    assert resolve_port(None, {"HKRL_PORT": "5601"}, default=5555) == 5601
+    monkeypatch.setenv("HKRL_PORT", "5602")
+    assert resolve_port(None, {"HKRL_PORT": "5601"}, default=5555) == 5602
+    assert resolve_port(5603, {"HKRL_PORT": "5601"}, default=5555) == 5603
 
 
 def test_steam_vdf_parser_discovers_cross_drive_libraries(tmp_path: Path) -> None:

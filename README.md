@@ -19,13 +19,14 @@
 | 阶段 2 · 在线世界模型正则 PPO | **100 / 100 (100%)** | 31 / 100 (31%) | — | 1.33 格 |
 | **阶段 3 · 辐辉 GRPO-PPO + 低温退火（最终冠军）** | **100 / 100 (100%)** | **65 / 100 (65%)** | **67 / 100 (67%)** | **0.47 格** |
 
+* **项目全景说明文档（DreamerV3 思想演进 + 模型/训练图解 + 常见 Q&A）**：[`docs/project_guide.md`](docs/project_guide.md)
 * 完整算法原理、世界模型血统与消融对比：[`docs/sisters_champion.md`](docs/sisters_champion.md)
 * 详细环境配置与存档准备指南：[`docs/setup_guide.md`](docs/setup_guide.md)
 * 百局逐场验收回执与校验和：[`models/sisters_champion/README.md`](models/sisters_champion/README.md)
 
 ---
 
-## 组员 3 步快速上手（无需安装 .NET / flatc）
+## 3 步快速上手（无需安装 .NET / flatc）
 
 ### 第 1 步：克隆仓库并安装 Python 依赖
 
@@ -48,7 +49,7 @@ conda activate hkrl
 
 ### 第 2 步：安装 Mod（一键自动定位游戏目录）
 
-前提：电脑已通过 Steam 安装正版《空洞骑士》（1.5.78），并已通过 [Lumafly](https://themulhima.github.io/Lumafly/) 安装 Modding API，且 **3 号存档**已解锁神居诸神堂（详见 [`docs/setup_guide.md`](docs/setup_guide.md)）。
+前提：电脑已通过 Steam 安装正版《空洞骑士》（1.5.78），已通过 [Lumafly](https://themulhima.github.io/Lumafly/) 安装 Modding API，且**任意存档槽（1～4 号均可，脚本会自动检测）**已解锁神居诸神堂（详见 [`docs/setup_guide.md`](docs/setup_guide.md)）。
 
 运行以下一键脚本，会自动通过 Steam 注册表 / `libraryfolders.vdf` 搜索任意盘符下的游戏目录，从 GitHub Release 下载校验好的预编译 `HKRLEnvMod.dll` 并安装：
 
@@ -105,8 +106,10 @@ HKRL/
 │   ├── sisters_task.yaml          # 扁平独立战斗姐妹竞技场配置
 │   └── sisters_acceptance.json    # 百局验收标准配置
 ├── docs/
-│   ├── setup_guide.md             # 组员配置与排障手册（Modding API / 存档 / 源码编译）
-│   └── sisters_champion.md        # 三阶段世界模型 + RL 算法原理与实验结果
+│   ├── project_guide.md           # 项目全景说明（DreamerV3 演进 + 模型训练图解 + Q&A）
+│   ├── setup_guide.md             # 环境配置与排障手册（Modding API / 存档 / 源码编译）
+│   ├── sisters_champion.md        # 三阶段世界模型 + RL 算法原理与实验结果
+│   └── diagrams/                  # 网络结构、系统闭环与实验结果配图
 ├── models/
 │   └── sisters_champion/          # 冠军模型元数据、百局回执与自动下载落盘目录
 ├── mod/

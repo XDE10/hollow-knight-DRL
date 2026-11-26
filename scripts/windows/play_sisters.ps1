@@ -4,8 +4,8 @@ param(
     [string]$GameRoot = "",
     [ValidateRange(1, 1000)][int]$Episodes = 1,
     [int]$Seed = 19900001,
-    [ValidateRange(1, 65535)][int]$Port = 5555,
-    [ValidateRange(1, 4)][int]$SaveSlot = 3,
+    [ValidateRange(0, 65535)][int]$Port = 0,
+    [ValidateRange(0, 4)][int]$SaveSlot = 0,
     [switch]$Headless,
     [switch]$AutoInstallMod
 )
@@ -27,10 +27,10 @@ $pyArgs = @(
     (Join-Path $repo "scripts/sisters/play.py"),
     "--model", $Model,
     "--episodes", [string]$Episodes,
-    "--seed", [string]$Seed,
-    "--port", [string]$Port,
-    "--save-slot", [string]$SaveSlot
+    "--seed", [string]$Seed
 )
+if ($Port -gt 0) { $pyArgs += @("--port", [string]$Port) }
+if ($SaveSlot -gt 0) { $pyArgs += @("--save-slot", [string]$SaveSlot) }
 if ($GameRoot) { $pyArgs += @("--game-root", $GameRoot) }
 if ($Headless) { $pyArgs += "--headless" }
 if ($AutoInstallMod) { $pyArgs += "--auto-install-mod" }
