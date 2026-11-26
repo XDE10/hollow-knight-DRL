@@ -5,7 +5,7 @@
 [![CI](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/ci.yml/badge.svg)](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/ci.yml)
 [![C# Mod Build](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/mod-build.yml/badge.svg)](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/mod-build.yml)
 
-> 面向《空洞骑士》（Godhome / 万神殿）的结构化游戏状态深度强化学习框架，以及经过验证的原生控制冠军策略。基于 **HKRLEnvMod (C#)** + **PyTorch** + **FlatBuffers** 构建。
+> 面向《空洞骑士》（Godhome / 神居）的结构化游戏状态深度强化学习框架，以及经过验证的原生控制冠军策略。基于 **HKRLEnvMod (C#)** + **PyTorch** + **FlatBuffers** 构建。
 
 基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)（保留 MIT 许可证与提交历史）。
 
