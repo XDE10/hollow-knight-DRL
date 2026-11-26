@@ -1,9 +1,0 @@
-{
-  "bc.bin": "af1b74fbf8a634d0db907a818a26314dc3a5fe83722009487975c276bc5c1926",
-  "data-sources.json": "23add373bb59b84551ce556761a338be93d41a952d05b5e4d15f7e0584a079af",
-  "evaluation.json": "a35294b28a4fa73c5da88b9bbbed4cac9336b87a101d736b56e16710c58b0e5a",
-  "learner.pt": "42db47700b93ac1e3f70d56bc437a9d8dc0abe334a72bdd18233d2d0eae87978",
-  "study.json": "777019fb5c242b99253b3245f71bfaf570b1586036701f22b9afa5eabe900d83",
-  "training.json": "213fc2a61a4c7d7a8c7837f7967b54a718e0b4d367fff5a8cc07a725b9ef9096",
-  "world_iql.bin": "bb4cedf93471d01c412ba3447de3fffa7c5aa723b2eb8ae779a85acf3005c2f4"
-}

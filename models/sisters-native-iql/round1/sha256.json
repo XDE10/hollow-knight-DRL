@@ -1,9 +1,0 @@
-{
-  "world_iql.bin": "eade98ff6edf85dc5668a830e3fae00da34f65bb88aa8c798d6a05b137d7a8ee",
-  "learner.pt": "98d8393c5f91ec3a53841f4cc20e1fa4daab3b04cc24d60f5c9a5634333d1997",
-  "training.json": "328fc84543a035bb4c3631500e371219277b6db6da23bfe3e40293b2fe118f23",
-  "bc.bin": "f753a3351be2bcc16e6d8e0f229e9b442f77a7bafd18c19e5de228997a7e036c",
-  "development.zip": "d9f08351e32c1a23c690f4055a483d072a4966d53fd0fe29f32954d9e58d6437",
-  "evaluation.json": "003c2ad2a910e5750185deaa2e63709d0ed838b5a08e58dfffa83378bc4ab28b",
-  "button-audit.json": "ca7c750bdf2904644769212e3a0eed0f26da7d6e84151a1f71174cac5d4a8c25"
-}

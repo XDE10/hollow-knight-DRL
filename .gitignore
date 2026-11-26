@@ -20,13 +20,14 @@ schema/gen/
 python/hkrl/schema/HKRL/
 mod/HKRLEnvMod/Schema/HKRL/
 
-# ---- ML artifacts ----
+# ---- ML artifacts (large binaries distributed via GitHub Releases) ----
 checkpoints/
 runs/
 wandb/
 *.pt
 *.pth
 *.onnx
+models/sisters_champion/*.bin
 logs/
 *.jsonl
 *.csv

@@ -1,9 +1,0 @@
-{
-  "learner.pt": "68637be8e95338fdfc472ea18dbcdec77c8652c10535ba10f66989b4a3dfb58b",
-  "option-coverage.json": "34af16ab174175c0fb6f75af3992757e6e9a7c9960da63a8686256c22673e872",
-  "student-option-coverage.json": "d3b29363d04d15ef1850d132899c8cb6f1ea1ceba579de1c76cec0471cfddc6f",
-  "study.json": "aa1b432c77e35abec2e616cd915ac6b0b3381cb89f084b1e20ac2779aa88f470",
-  "training.json": "ae5182717784845cd0b27ab01a785e9ced78a6665e3128405751bb7c91cbdf29",
-  "waypoints.pt": "7759c9de84c200cd58db0d2be58b18fa3e33edf72354dcb11ef499d90ee693a7",
-  "world_iql.bin": "3ac3db51c80ab6278d118eba878245a868e4af49d398fd14e6df3091ecf38e9f"
-}

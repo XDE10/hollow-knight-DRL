@@ -1,0 +1,45 @@
+{
+  "selected_winner": "r06_best_holdout",
+  "formal100_seed_range": "19900001..19900100",
+  "mod_dll": "original HKRLEnvMod.dll (sha256=abf9f0ca1b10...)",
+  "winner_bin_sha256": "f97d6aba7911a4983ce8a242edc8e8ef708743483ac7dcd1e57aef8132a43b08",
+  "winner_pt_sha256": "7165edaa0a825010d5755bc019fe170a180d8a0f52911e58c5953ead34243a47",
+  "head_to_head": {
+    "r12_champion": {
+      "episodes_done": 100,
+      "wins": 100,
+      "no_hit_wins": 61,
+      "trio_no_hit_wins": 64,
+      "avg_damage": 0.5,
+      "p1_damage_total": 6,
+      "trio_damage_total": 44,
+      "damage_totals": {
+        "BOSS_BODY": 28,
+        "ENEMY_PROJECTILE": 21,
+        "SPIKES": 1
+      },
+      "wall_seconds": 795.7
+    },
+    "r06_best_holdout": {
+      "episodes_done": 100,
+      "wins": 100,
+      "no_hit_wins": 65,
+      "trio_no_hit_wins": 67,
+      "avg_damage": 0.47,
+      "p1_damage_total": 6,
+      "trio_damage_total": 41,
+      "damage_totals": {
+        "ENEMY_PROJECTILE": 18,
+        "BOSS_BODY": 27,
+        "SPIKES": 2
+      },
+      "wall_seconds": 774.9
+    }
+  },
+  "lineage": {
+    "stage1_offline": "g_attn_320_2lgru (IQL + AWR + 3-ensemble World Model world.pt + occ_head/fmov_head)",
+    "stage2_online_wm_ppo": "online_ppo-g_attn (world_aux regularized PPO -> Goal 1 100/100 wins, 31/100 no-hit, avg_dmg 1.33)",
+    "stage3_radiant_anneal": "online_ppo-g_attn_radiant -> planB_anneal_g_attn (1-hit stop + Group-4 GRPO + low-temp annealing)",
+    "ablation_planA": "mydrive:HKRL-Linux/results/{planA_deep_etf,planA_race_m} (8.65M + PlanAWorldModelHead under 1.0x budget)"
+  }
+}

@@ -1,410 +1,170 @@
-# HK-RL — Hollow Knight Reinforcement Learning
+# HK-RL — Hollow Knight Deep Reinforcement Learning
 
 [![CI](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/ci.yml/badge.svg)](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/ci.yml)
 [![C# Mod Build](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/mod-build.yml/badge.svg)](https://github.com/XDE10/hollow-knight-DRL/actions/workflows/mod-build.yml)
 
-> 从 Hollow Knight Mod 获取结构化游戏状态，构建可扩展、高性能的强化学习环境，
-> 训练小骑士在 Godhome / Hall of Gods 中击败 Boss。
+> A structured game-state Deep RL framework and verified native-control champion for *Hollow Knight* (Godhome / Hall of Gods), built on **HKRLEnvMod (C#)** + **PyTorch** + **FlatBuffers**.
 
-本项目基于 [myouo/hk_Rl](https://github.com/myouo/hk_Rl)，保留原 MIT 许可与提交历史。
-
-早期离线实验在 Colab 用原生按键示范、真实游戏奖励与一步世界模型训练 actor 和 critic。加入纠正示范后，两份冻结策略原速原伤各打 10 场。世界模型辅助 IQL 场均伤害 886.6、7 场过首只，同等更新次数的模仿对照场均 529.1、4 场过首只，两组完整通关均为 0 场。[冻结权重、逐场结果与复现命令](models/sisters-native-iql/README.md)
-
-后续冻结的神经选择器在独立实机对局中完整通关 9/12，直接更新原生按键的 PPO 候选完整通关 2/5。两组均按当时的规则在第三次败局后结束。当前正式验收要求冻结的纯神经策略在全新 100 场实机对局中至少通关 95 场，从 9 格血、0 灵魂开始，使用原速原伤。无伤场数作为附加统计。[9/12 逐场记录](models/sisters-native-iql/timing-learned-options/evaluation.json) · [PPO 的逐场记录](models/sisters-native-iql/timing-ninewin-native-ppo/evaluation.json) · [验收配置](configs/experiments/sisters_acceptance.json)
-
-《深度强化学习》课程主线使用实体世界模型和 PPO。Actor 直接控制骑士的移动、攻击与施法，critic 学习折扣回报。Colab L4 训练记录、三个检查点的对照设计和实机入口见[课程模型](models/sisters-course-ac/README.md)。
-
-早期工程对照结合了手写战术规划器、移动价值网络和蒸馏 GRU。在 100 场原速、原伤实机评估中，这套混合控制器通关 99 场、7 场无伤。已配置好的 Windows 项目可双击[观看混合控制器演示](观看世界模型通关.vbs)。[原版模型与逐场记录](models/sisters-world-v2/README.md)
-
-战斗姐妹 3 号槽的避刺与反击实测、三组模型对照和复现命令见[训练记录](docs/sisters_survival.md)。
-
-本仓库是 [`hollow_knight_rl_prd.md`](./hollow_knight_rl_prd.md) 的工程落地。**先读 PRD，再读 [`AGENTS.md`](./AGENTS.md)。**
+Based on [myouo/hk_Rl](https://github.com/myouo/hk_Rl) (MIT License and commit history preserved).
 
 ---
 
-## 一句话定位
+## Sisters of Battle Champion Highlights
 
-> 一个 **game-state agent**（读取结构化游戏内部状态，非视觉人类 agent），
-> 通过 *Mod-as-Environment-Server* + *本地推理 / 远程训练* + *entity-attention + recurrent* 模型，
-> 在单 Boss → 多敌方单位 → 线性多 Boss 流程上逐级提升。
+The repository ships a **ready-to-run frozen native C# neural policy** ([`models/sisters_champion/sisters_champion.bin`](models/sisters_champion/sisters_champion.bin), `17.38 MB`) trained via a 3-stage **Offline IQL + 3-Ensemble World Model → Online World-Model PPO → Radiant 1-Hit GRPO-PPO + Low-Temperature Annealing** pipeline.
 
-## 架构 60 秒概览
+Evaluated on **100 completely unseen deterministic seeds (`19900001..19900100`)** at **1.0× original game speed, 1× nail damage, 9 initial masks, 0 initial soul**, with untouched original `HKRLEnvMod.dll` and zero external inference servers:
+
+| Stage / Candidate | 100-Fight Win Rate | Full No-Hit Wins | Trio-Phase No-Hit | Avg Damage / Fight |
+| :--- | :---: | :---: | :---: | :---: |
+| Stage 1 · Offline IQL + AWR + 3-Ensemble World Model | 100% (30/30 Val) | 0% | 0% | 3.27 masks |
+| Stage 2 · Online World-Model Regularized PPO (Goal 1) | **100 / 100 (100%)** | 31 / 100 (31%) | — | 1.33 masks |
+| **Stage 3 · Radiant GRPO-PPO + Annealing (`sisters_champion.bin`)** | **100 / 100 (100%)** | **65 / 100 (65%)** | **67 / 100 (67%)** | **0.47 masks** |
+
+* Full model card & checksums: [`models/sisters_champion/README.md`](models/sisters_champion/README.md)
+* Full methodology, World Model lineage & scaling ablation: [`docs/sisters_champion.md`](docs/sisters_champion.md)
+* 100-fight verified summary & per-episode JSON receipts: [`models/sisters_champion/formal100_summary.json`](models/sisters_champion/formal100_summary.json)
+
+---
+
+## 5-Minute Quick Start (Clone & Watch the Champion)
+
+### 1. Clone & Install Python Environment
+
+```bash
+git clone https://github.com/XDE10/hollow-knight-DRL.git
+cd hollow-knight-DRL
+
+# Option A: Conda (recommended, matches CI)
+conda env create -f environment.yml
+conda activate hkrl
+
+# Option B: pip / venv (Python 3.10+)
+python -m venv .venv
+# Windows: .venv\Scripts\activate   |   Linux: source .venv/bin/activate
+pip install -e "python[dev]"
+```
+
+### 2. Build & Install `HKRLEnvMod` into Hollow Knight
+
+Requires Hollow Knight (1.5.78 with HK Modding API installed), .NET 8 SDK, and `flatc 23.5.26`:
+
+```bash
+# Generate C# FlatBuffers bindings (requires flatc 23.5.26)
+flatc --csharp -o mod/HKRLEnvMod/Schema schema/hkrl.fbs
+
+# Build against your Hollow Knight Managed directory
+dotnet build mod/HKRLEnvMod/HKRLEnvMod.csproj -c Release \
+  -p:HollowKnightManaged="/path/to/Hollow Knight/hollow_knight_Data/Managed"
+
+# Copy built DLL into Hollow Knight Mods folder
+cp mod/HKRLEnvMod/bin/Release/HKRLEnvMod.dll \
+  "/path/to/Hollow Knight/hollow_knight_Data/Managed/Mods/HKRLEnvMod/"
+```
+
+Ensure save slot 3 is parked in Godhome (Hall of Gods) with 9 masks / pure nail (1×).
+
+### 3. Watch the Champion Defeat Sisters of Battle
+
+`scripts/sisters/play.py` automatically downloads and SHA-256-verifies `sisters_champion.bin` (`17.38 MB`) from GitHub Release [`v1.0.0-sisters-champion`](https://github.com/XDE10/hollow-knight-DRL/releases/tag/v1.0.0-sisters-champion) on first run:
+
+```bash
+# Auto-detects Steam Hollow Knight and launches a visible 1280x720 fight
+python scripts/sisters/play.py
+
+# Or specify game path / run 5 deterministic fights & save JSON receipts
+python scripts/sisters/play.py \
+  --game-root "D:/Steam/steamapps/common/Hollow Knight" \
+  --episodes 5 --seed 19900001 --output runs/sisters_play.json
+
+# Windows PowerShell shortcut
+powershell -ExecutionPolicy Bypass -File scripts/windows/play_sisters.ps1 -Episodes 1
+```
+
+---
+
+## Reproducing Training & 100-Fight Formal Evaluation
+
+All Sisters of Battle scripts live cleanly under `scripts/sisters/`:
+
+```bash
+# Parallel multi-instance Formal-100 verification (headless Linux / multi-core)
+python scripts/sisters/eval_parallel.py \
+  --mode eval \
+  --actor-bin models/sisters_champion/sisters_champion.bin \
+  --run-dir runs/formal100 \
+  --first-seed 19900001 --episodes 100 --workers 32 --nographics
+
+# Stage 1: Offline IQL + AWR + 3-Ensemble World Model + occupancy/motion heads
+python scripts/sisters/train_offline_wm_iql.py --help
+
+# Stage 2 & 3: Online World-Model PPO -> Radiant 1-Hit GRPO-PPO + Low-Temp Annealing
+python scripts/sisters/train_online_ppo.py --help
+```
+
+---
+
+## Repository Structure
+
+```text
+HKRL/
+├── schema/                   ★ Single source of truth (hkrl.fbs) for C#/Python FlatBuffers
+├── mod/
+│   ├── HKRLEnvMod/           C# Environment Server + native V2 neural actor runtime
+│   ├── ci-stubs/             Minimal Unity / HK / Modding API stubs for headless CI builds
+│   └── ci-tests/             C# input-injection & action-history smoke tests
+├── python/
+│   ├── hkrl/                 Core Gymnasium env, models, PPO/APPO, worker/learner, eval
+│   └── tests/                Unit test suite (core framework + champion integrity checks)
+├── models/
+│   └── sisters_champion/     ★ Frozen native champion (.bin), World Model, & Formal-100 receipts
+├── scripts/
+│   ├── sisters/              ★ Sisters of Battle playback, parallel eval, & 3-stage DRL pipeline
+│   ├── windows/              Windows playback & game PC helper scripts
+│   ├── linux/                Linux game PC + SSH remote GPU helpers
+│   ├── remote/               Remote GPU learner bootstrap scripts
+│   └── *.py / *.sh           Core HKRL framework CLIs (train, eval, phase8, mod CI/release)
+├── configs/                  44 Godhome boss tasks, train configs, & Sisters champion config
+├── docs/                     Architecture specs, ADRs (0001–0011), & Sisters Champion report
+├── notebooks/                Colab / Kaggle remote learner setup notebooks
+├── Makefile                  Developer quality gates (`make check`, `make test`, `make lint`)
+└── AGENTS.md                 Project engineering charter & six architectural invariants
+```
+
+---
+
+## Core HKRL Framework Architecture & Commands
 
 ```text
 Hollow Knight + HKRLEnvMod (C#)        Game PC                  Remote GPU
-  ├─ Observation 采集                   ┌──────────────┐         ┌──────────────┐
-  ├─ Action 应用 (FixedUpdate)   <───>  │ GameWorker   │ ──────> │ Learner      │
-  ├─ Reward events 上报                 │ 本地推理      │ rollout │ PPO/APPO     │
-  └─ Clean Episode Lifecycle           │ Gym Env      │ <────── │ checkpoint   │
-       │ FlatBuffers over TCP          └──────────────┘ weights └──────────────┘
+  ├─ Observation collection             ┌──────────────┐         ┌──────────────┐
+  ├─ Action apply (FixedUpdate)  <───>  │ GameWorker   │ ──────> │ Learner      │
+  ├─ Reward events                      │ Local infer  │ rollout │ PPO / APPO   │
+  └─ Clean Episode Lifecycle            │ Gym Env      │ <────── │ Checkpoints  │
+       │ FlatBuffers over TCP           └──────────────┘ weights └──────────────┘
        └────────────────────────────────────┘
 ```
 
-**六大不变量**（详见 [`docs/architecture.md`](./docs/architecture.md)）：
-
-1. 实时 action loop 永不跨远程网络。
-2. `schema/hkrl.fbs` 是 observation/action/protocol 的唯一真相源。
-3. Transport 可插拔（当前 live mod 使用 TCP；shared-memory 是显式 opt-in 原型）。
-4. Config 驱动 + 组件注册表。
-5. Clean Episode Lifecycle，杜绝 reset 污染。
-6. 模型 encoder/attention/memory/heads 解耦，全程 entity_mask。
-
-## 关键技术决策（ADR）
-
-| 决策 | 选型 | ADR |
-|---|---|---|
-| RL 框架 | 自研 PyTorch PPO | [`docs/adr/0001`](./docs/adr/0001-rl-framework-pytorch.md) |
-| 序列化 | FlatBuffers 单一真相源 | [`docs/adr/0002`](./docs/adr/0002-serialization-flatbuffers.md) |
-| Mod 框架 | HK Modding API | [`docs/adr/0003`](./docs/adr/0003-mod-framework-hk-modding-api.md) |
-| 推理/训练 | 本地推理 + 远程训练解耦 | [`docs/adr/0004`](./docs/adr/0004-local-inference-remote-training.md) |
-| 游戏时钟 | 保持固定物理步长的暂停/加速 | [`docs/adr/0005`](./docs/adr/0005-pause-safe-game-time-control.md) |
-| Godhome 重置 | 完整入场握手 + 物理就绪门 | [`docs/adr/0006`](./docs/adr/0006-godhome-entry-readiness.md) |
-| 组合动作 | 因子化原语 + 语义组合目录 | [`docs/adr/0007`](./docs/adr/0007-factorized-action-combinations.md) |
-
-## 目录导航
-
-```text
-schema/    ★ FlatBuffers 单一真相源（先改这里，再 codegen）
-mod/       Hollow Knight C# Mod（HKRLEnvMod，Environment Server）
-python/    hkrl Python 包（env / models / training / worker / learner / ...）
-configs/   task 与 train YAML 配置
-docs/      规范文档与 ADR
-scripts/   codegen / train / worker / learner / eval 入口
-```
-
-## 快速开始
+Common framework commands (see [`docs/architecture.md`](docs/architecture.md) and [`docs/linux_ssh_deployment.md`](docs/linux_ssh_deployment.md)):
 
 ```bash
-# 1. 创建并启用 Conda 开发环境
-conda env create -f environment.yml
-conda env create -f environment-mod-build.yml   # C# schema/mod build 使用 flatc 23.5.26
-conda activate hkrl
-
-# 2. 生成 schema 绑定并运行本地质量门禁
+# Run full local quality gate (schema codegen + ruff format/lint + mypy + pytest)
 make check
 
-# 3. 在游戏机启动 Hollow Knight + HKRLEnvMod
-# 可选：覆盖 mod TCP 监听地址；多实例评估/worker 时给每个游戏实例不同端口
-export HKRL_HOST=127.0.0.1
-export HKRL_PORT=5555
-# 可选：设置后 mod 会启用 TCP auth；Python env client 会自动发送同名 token
-export HKRL_AUTH_TOKEN=dev-secret
+# Run C# mod CI build & smoke test (requires flatc 23.5.26 + .NET 8)
+bash scripts/build_mod_ci.sh
 
-# 4. 先做轻量接入检查：只 PING mod，不重置场景
-python scripts/check_env.py \
-  --config configs/train/ppo_mlp.yaml \
-  --task configs/tasks/gruz_mother.yaml \
-  --host 127.0.0.1 \
-  --port 5555
+# Ping a live HKRLEnvMod instance without resetting the scene
+python scripts/check_env.py --config configs/train/ppo_mlp.yaml --task configs/tasks/gruz_mother.yaml
 
-# 5. 本地 smoke（需要 Hollow Knight + HKRLEnvMod 正在监听 TCP）
-python scripts/train.py \
-  --config configs/train/ppo_mlp.yaml \
-  --task configs/tasks/gruz_mother.yaml \
-  --smoke \
-  --host 127.0.0.1 \
-  --port 5555 \
-  --steps 100 \
-  --metrics runs/smoke.jsonl
+# Train / evaluate general multi-boss policies
+python scripts/train.py --config configs/train/ppo_attention_gru.yaml --task configs/tasks/gruz_mother.yaml --smoke
+python scripts/run_eval.py --policy scripted --tasks configs/tasks/gruz_mother.yaml --episodes 5
 
-# 6. 固定 seed 评估（同样需要本地 HKRLEnvMod TCP）
-python scripts/run_eval.py \
-  --policy scripted \
-  --tasks configs/tasks/gruz_mother.yaml \
-  --episodes 5 \
-  --seeds 0 1 2 \
-  --eval-workers 1 \
-  --ports 5555 \
-  --replay-jsonl runs/eval-replay.jsonl \
-  --output runs/eval.json
-
-# 评估本地训练产物时可直接指定 registry 目录，自动加载 latest checkpoint
-python scripts/run_eval.py \
-  --policy mlp \
-  --checkpoint-dir checkpoints \
-  --tasks configs/tasks/gruz_mother.yaml \
-  --episodes 5 \
-  --eval-workers 1 \
-  --ports 5555
-
-# 评估 config 注册的模型（如 attention+GRU recurrent checkpoint）
-python scripts/run_eval.py \
-  --policy model \
-  --train-config configs/train/ppo_attention_gru.yaml \
-  --checkpoint-dir checkpoints_gru \
-  --tasks configs/tasks/gruz_mother.yaml \
-  --episodes 5 \
-  --eval-workers 1 \
-  --ports 5555
-
-# 7. 本地 PPO/RecurrentPPO 训练（需要本地 HKRLEnvMod TCP）
-python scripts/train.py \
-  --config configs/train/ppo_mlp.yaml \
-  --task configs/tasks/gruz_mother.yaml \
-  --host 127.0.0.1 \
-  --port 5555 \
-  --updates 1 \
-  --metrics runs/train.jsonl \
-  --checkpoint-dir checkpoints
-
-# attention+GRU recurrent PPO 使用 sequence/burn-in buffer
-python scripts/train.py \
-  --config configs/train/ppo_attention_gru.yaml \
-  --task configs/tasks/gruz_mother.yaml \
-  --host 127.0.0.1 \
-  --port 5555 \
-  --updates 1 \
-  --metrics runs/train_gru.jsonl \
-  --checkpoint-dir checkpoints_gru
-
-# 组合动作保持为原语组合；实机采集跳跃曲线并验证聚合动作
-python scripts/live_jump_profile.py \
-  --clean-trials 3 \
-  --max-attempts 6 \
-  --fail-on-invalid \
-  --output runs/live/jump-amplitude-duration.json
-
-python scripts/live_action_explorer.py \
-  --family combination \
-  --reset-between-cases \
-  --fail-on-failed \
-  --output runs/live/action-exploration-combinations.json
-
-# 无伤速通 arena；训练 worker 在终局后自动执行 clean RESET
-python scripts/train.py \
-  --config configs/train/arena_hitless_gru.yaml \
-  --task configs/tasks/gruz_mother_hitless_speed.yaml \
-  --host 127.0.0.1 \
-  --port 5555 \
-  --updates 1 \
-  --metrics runs/arena-train.jsonl \
-  --checkpoint-dir checkpoints_arena
-
-# 自然死亡→自动重开验收（contact policy 不攻击，只验证生命周期）
-python scripts/live_boss_arena.py \
-  --policy contact \
-  --episodes 1 \
-  --output runs/live/boss-arena-death-autoreset.json
-
-# 全量 Godhome 兼容巡检：44 个独立 Boss/变体、二次 RESET、Hero 基础控制；
-# Oblobbles 额外强制验证同帧双 Boss 的独立完整 meta
-python scripts/live_godhome_sweep.py \
-  --mod-dll /path/to/Mods/HKRLEnvMod/HKRLEnvMod.dll \
-  --globalgamemanagers /path/to/hollow_knight_Data/globalgamemanagers \
-  --output runs/live/godhome-all-boss-sweep-v0.8.0.json \
-  --report runs/live/godhome-all-boss-sweep-v0.8.0.md \
-  --fail-on-failed
-
-# v0.8.0 实机验收完成后，在干净且带 v0.8.0 标签的提交上生成/校验 Mod 发布包
-make mod-package
-make mod-package-verify
-
-# Hero 连续行走回归：长 STEP 与普通 action_repeat=2 决策的速度保留率
-python scripts/live_walk_smoothness.py \
-  --mod-dll /path/to/Mods/HKRLEnvMod/HKRLEnvMod.dll \
-  --output runs/live/walk-smoothness.json \
-  --fail-on-stutter
-
-# 指标也可写 CSV
-python scripts/train.py \
-  --config configs/train/ppo_mlp.yaml \
-  --task configs/tasks/gruz_mother.yaml \
-  --smoke \
-  --host 127.0.0.1 \
-  --port 5555 \
-  --metrics runs/smoke.csv \
-  --metrics-kind csv
-
-# 8. 分布式入口 dry-run（不连接真实游戏，用于验证配置/任务/worker 编排）
+# Offline distributed wiring smoke (no live game required)
 make phase8-smoke
-make phase8-dashboard   # writes runs/phase8-smoke/dashboard.html + dashboard.json
-make phase8-profile     # writes runs/phase8-smoke/profile.md + profile.json
-make phase8-release-checklist
-make phase8-release-evidence
-make phase8-verify-release-evidence
-
-# 等价的显式入口会串联 learner/worker/coordinator 的离线 wiring 检查
-python scripts/run_phase8_smoke.py \
-  --config configs/train/remote_learner.yaml \
-  --tasks configs/tasks/gruz_mother.yaml configs/tasks/hornet_protector.yaml
-
-python scripts/render_phase8_dashboard.py \
-  --summary runs/phase8-smoke/summary.json \
-  --output-html runs/phase8-smoke/dashboard.html \
-  --output-json runs/phase8-smoke/dashboard.json
-
-python scripts/render_profile_report.py \
-  --summary runs/phase8-smoke/summary.json \
-  --output-json runs/phase8-smoke/profile.json \
-  --output-md runs/phase8-smoke/profile.md
-
-python scripts/render_release_checklist.py \
-  --version phase8 \
-  --output-json runs/release/checklist.json \
-  --output-md runs/release/checklist.md
-
-python scripts/render_release_evidence.py \
-  --version phase8 \
-  --output-json runs/release/evidence.json \
-  --output-md runs/release/evidence.md
-
-python scripts/verify_release_evidence.py \
-  --manifest runs/release/evidence.json \
-  --output-json runs/release/evidence-verification.json
-
-python scripts/run_coordinator.py \
-  --config configs/train/remote_learner.yaml \
-  --tasks configs/tasks/gruz_mother.yaml configs/tasks/hornet_protector.yaml \
-  --eval-metrics runs/eval.json \
-  --heartbeat-jsonl runs/worker-heartbeats.jsonl \
-  --dry-run
-
-# 聚合入口：先用 --dry-run 检查同一份任务/角色/端点配置。
-python scripts/run_remote_training.py \
-  --experiment configs/experiments/godhome_smart.yaml \
-  --dry-run
-python scripts/run_local_inference.py \
-  --experiment configs/experiments/godhome_smart.yaml \
-  --dry-run
-
-# 正式运行时，两端设置同一 HKRL_AUTH_TOKEN；远端先启动，游戏机再启动。
-# python scripts/run_remote_training.py --experiment configs/experiments/godhome_smart.yaml
-# python scripts/run_local_inference.py --experiment configs/experiments/godhome_smart.yaml
-
-# 以下是等价的底层/调试入口。
-python scripts/run_learner.py \
-  --config configs/train/remote_learner.yaml \
-  --tasks configs/tasks/gruz_mother.yaml configs/tasks/hornet_protector.yaml \
-  --checkpoint-dir checkpoints
-
-# 跨机器部署时不要绑定 0.0.0.0；显式绑定 GPU 机器的私有 LAN 地址，并保持 token auth。
-# python scripts/run_learner.py ... --bind 192.168.1.20:5600
-
-# learner 启动时会立即发布或恢复 registry latest checkpoint；
-# 先启动/恢复 learner，再把该 checkpoint registry 暴露给 worker。
-
-# 远程 batch intake smoke：learner 接收 1 个 TCP rollout batch 后更新一次
-export HKRL_AUTH_TOKEN=dev-secret
-python scripts/run_learner.py \
-  --config configs/train/remote_learner.yaml \
-  --tasks configs/tasks/gruz_mother.yaml \
-  --bind 127.0.0.1:5600 \
-  --intake-count 1 \
-  --checkpoint-dir checkpoints
-
-# 长跑 learner 按 learner.batches_per_update 聚合 accepted rollout 后更新/发布 checkpoint
-python scripts/run_learner.py \
-  --config configs/train/remote_learner.yaml \
-  --tasks configs/tasks/gruz_mother.yaml \
-  --bind 127.0.0.1:5600 \
-  --device cuda \
-  --serve-forever \
-  --checkpoint-dir checkpoints
-
-# worker 在本地推理/采样，rollout 满后上传到 learner；也可同时写 --batch-dir 作为本地 spool
-# checkpoint registry 使用只读、Bearer 鉴权的专用服务（另一个终端）
-python scripts/run_checkpoint_server.py \
-  --config configs/train/remote_learner.yaml \
-  --bind 127.0.0.1:5601 \
-  --checkpoint-dir checkpoints
-
-python scripts/run_worker.py \
-  --config configs/train/remote_learner.yaml \
-  --task configs/tasks/gruz_mother.yaml \
-  --env-host 127.0.0.1 \
-  --env-port 5555 \
-  --learner 127.0.0.1:5600 \
-  --registry http://127.0.0.1:5601/ \
-  --heartbeat-jsonl runs/worker-heartbeats.jsonl \
-  --steps 2048
 ```
-
-`--checkpoint-dir` 会写入 `CheckpointRegistry` 格式的 `index.jsonl` 与
-`checkpoint_v*.pt`，包含 `policy_version`、step、sha256 等元数据。registry
-中的 checkpoint 路径是相对路径。learner 在空 registry 启动时会发布初始
-policy version 0 checkpoint；重启时会加载 latest checkpoint 并继续使用其中的
-model、policy/update 版本及 optimizer state。可用本地路径、`file://` 或 HTTP(S) 目录提供给 worker 的
-`--registry`，worker 会在首个 rollout 前加载 latest 并验证 sha256。
-
-Linux 游戏机 + SSH 远程 GPU 是当前主生产路径，见
-[`docs/linux_ssh_deployment.md`](./docs/linux_ssh_deployment.md)。它支持原生 Linux
-与 Steam/Proton 游戏，自动检查受 Modding API 支持的 Steam 分支、构建安装 Mod、
-安全传递运行时 token、建立 SSH 隧道并启动本地 worker。远程端只监听 loopback；
-rollout/checkpoint 走 SSH 批量通道，实时动作环始终留在 Linux 游戏机。Windows
-脚本仍保留为兼容路径，见
-[`docs/windows_ssh_deployment.md`](./docs/windows_ssh_deployment.md)。
-
-训练机的交互式操作入口见
-[`notebooks/remote_gpu_training.ipynb`](./notebooks/remote_gpu_training.ipynb)。
-它覆盖 GPU 环境安装、合并配置核对、服务启停、JSON 训练日志、断点恢复和固定种子
-评测交接；训练环境可用 `scripts/remote/bootstrap_learner_env.sh` 一次性创建。
-全新训练机可先单独上传并运行
-[`notebooks/one_click_clone_setup.ipynb`](./notebooks/one_click_clone_setup.ipynb)，
-将 `RUN_SETUP=True` 后 Run All，即可安全克隆仓库并验证 GPU/训练配置。Kaggle
-会自动复用当前 Python 与预装 PyTorch（无需 Conda），随后执行 Phase 8 离线 smoke
-（包含一次由合成 rollout 驱动的 GPU 优化器更新）并打包结果；普通训练机仍会
-创建 CUDA/Jupyter Conda 环境、注册 kernel 并生成本地认证令牌。
-Kaggle 环境验证通过后，使用
-[`notebooks/kaggle_training.ipynb`](./notebooks/kaggle_training.ipynb)
-执行独立的离线训练轮次。它提供只读检查、合成 smoke 和外部 NPZ 训练三种模式，
-会校验 batch 布局、policy staleness、checkpoint SHA-256，恢复优化器后只更新一次，
-再验证 Windows Worker 可加载性并导出下一轮 checkpoint。Kaggle 不承担实时动作环，
-同一批近似 on-policy rollout 也不会被自动重复训练；正式 batch 必须同时提供其
-采集时使用的精确 checkpoint registry，不能用独立初始化但版本号相同的模型替代。
-
-发布前检查见 [`docs/release.md`](./docs/release.md)，其中区分了 CI 可验证的
-Python/离线分布式门禁和必须在 Hollow Knight 机器上执行的 mod/live smoke 门禁；
-`make phase8-release-evidence` 会生成包含 sha256 的发布证据 manifest 并立即校验。
-
-## CI
-
-GitHub Actions 在 `push` / `pull_request` 到 `main` 时使用
-[`environment.yml`](./environment.yml) 创建 `hkrl` Conda 环境，并执行：
-`make check`。该目标会先运行 `make gen-schema`，再执行
-`make format-check`、`make lint`、`make typecheck`、`make test`。
-Python bindings 使用 `environment.yml` 中的当前 `flatc` 生成；C# bindings
-使用 `environment-mod-build.yml` 中固定为 23.5.26 的 `flatc` 生成，以匹配 C#
-mod 的 `Google.FlatBuffers` runtime，避免 Python 检查生成出无法被 HKRLEnvMod
-编译的 C# bindings。`make check` 会自动发现 `hkrl-mod-build` 环境；也可以显式传
-`FLATC_CS=/path/to/flatc-23.5.26`。
-
-云端 CI 包含 Python 包检查和 C# mod 编译检查。C# workflow 会生成 FlatBuffers
-绑定，并用 `mod/ci-stubs/` 里的最小 Hollow Knight / Unity / Modding API stub
-assemblies 编译 `HKRLEnvMod`，用于持续捕获 C# 语法、项目引用和 schema 绑定问题。
-真实游戏程序集兼容性仍需按 [`docs/mod_dev.md`](./docs/mod_dev.md) 在配置
-Hollow Knight Managed assemblies 与 HK Modding API 的机器上验证。
-
-## Git Hooks
-
-本仓库提供可版本化的 pre-commit hook。首次 clone 后执行：
-
-```bash
-make install-hooks
-```
-
-之后每次 `git commit` 前会运行 `make check`，也就是先生成 FlatBuffers
-bindings，再执行格式检查、lint、typecheck 和 tests。如果本机有 `hkrl` Conda
-环境，hook 会自动通过 `conda run -n hkrl` 执行检查；如果同时存在
-`hkrl-mod-build` 环境，`make check` 会自动使用其中固定为 23.5.26 的 `flatc`
-生成 C# schema bindings，避免与 mod runtime 版本漂移。
-
-> ⚠️ Mod 的 C# 编译需 Hollow Knight 程序集与 HK Modding API，本机通常不具备，详见 [`docs/mod_dev.md`](./docs/mod_dev.md)。
-> 需要真实游戏进程的 smoke / eval / training 命令必须在运行 HKRLEnvMod 的机器上执行。
-
-## 当前状态
-
-Roadmap 已推进到 **Phase 8**：本地 Gym env、step/reset lifecycle、TCP live
-transport、reward events、action mask、entity observation、PPO/RecurrentPPO/APPO、
-worker/learner/checkpoint/coordinator/evaluator 等核心路径均已落地并由
-`make check` 覆盖。
-
-本仓库当前仍有三个需要真实外部环境或后续实现验证的边界：HKRLEnvMod 已实现
-`HeroUpdateHook -> InControl PlayerAction` 的真实动作注入并有运行时 stub smoke，
-但最终二进制兼容性仍必须在本机 Hollow Knight Managed 程序集与 HK Modding API
-上验收；端到端 smoke/eval/training 依赖运行中的游戏与可用 Godhome 存档；shared-
-memory transport 目前仍是 Python 进程内原型，不是可接入当前 mod 的 live
-transport。
 
 ## License
 
-见 [`LICENSE`](./LICENSE)。
+MIT — see [`LICENSE`](LICENSE).

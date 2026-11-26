@@ -1,4 +1,0 @@
-defaults:
-  - ./sisters_counter_v2.yaml
-# Three game processes each collect 170 decisions before the shared PPO update.
-rollout_steps: 510

@@ -1,6 +1,0 @@
-defaults:
-  - ./sisters_cpu_gru_input_v2.yaml
-learning_rate: 0.000035
-entropy_coef: 0.001
-model:
-  name: sisters_landing_gru

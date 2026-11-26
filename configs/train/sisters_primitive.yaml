@@ -1,4 +1,0 @@
-defaults:
-  - ./sisters_platform.yaml
-model:
-  name: sisters_primitive_gru

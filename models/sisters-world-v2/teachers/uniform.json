@@ -1,9 +1,0 @@
-{
-  "ensemble": 3,
-  "windows": 55000,
-  "scale": 1.0220117568969727,
-  "uncertainty": 0.34979671239852905,
-  "mean_gate": 1.0,
-  "loss": 0.10942772030830383,
-  "preference_changes": 0.18250000476837158
-}

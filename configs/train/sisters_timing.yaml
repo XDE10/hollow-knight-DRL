@@ -1,4 +1,0 @@
-defaults:
-  - ./sisters_body_counter.yaml
-model:
-  name: sisters_timing_gru
