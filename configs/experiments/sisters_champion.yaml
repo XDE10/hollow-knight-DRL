@@ -1,5 +1,5 @@
 defaults:
-  - ../experiments/sisters_survival.yaml
+  - ../tasks/sisters_of_battle.yaml
 reward:
   boss_damage: 0.30
   player_damage: -12.0

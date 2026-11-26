@@ -187,13 +187,6 @@ def run_episodes(
     if headless:
         args.extend(["-batchmode", "-nographics"])
 
-    print(
-        f"[HKRL] Launching Sisters Champion ({model_bin.name}, sha256={_sha256(model_bin)[:12]}) "
-        f"on port {port} ({'headless' if headless else f'{width}x{height} windowed'})...",
-        flush=True,
-    )
-    proc = subprocess.Popen(args, cwd=str(game_root), env=env_vars)
-
     cfg = load_train_config(str(DEFAULT_TRAIN_CFG))
     task = load_task_config(str(DEFAULT_TASK_CFG))
     task.action.action_repeat = 16
@@ -206,6 +199,13 @@ def run_episodes(
     }
     if task.action.enable_macro_actions:
         noop["macro"] = 0
+
+    print(
+        f"[HKRL] Launching Sisters Champion ({model_bin.name}, sha256={_sha256(model_bin)[:12]}) "
+        f"on port {port} ({'headless' if headless else f'{width}x{height} windowed'})...",
+        flush=True,
+    )
+    proc = subprocess.Popen(args, cwd=str(game_root), env=env_vars)
 
     results: list[dict[str, Any]] = []
     game: HKRLEnv | None = None

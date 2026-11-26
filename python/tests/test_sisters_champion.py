@@ -117,3 +117,20 @@ def test_sisters_scripts_compile(script_name: str) -> None:
     path = SCRIPTS_DIR / script_name
     assert path.is_file(), f"Missing script: {path}"
     py_compile.compile(str(path), doraise=True)
+
+
+def test_sisters_play_default_configs_load_cleanly() -> None:
+    from hkrl.utils.config import load_task_config, load_train_config
+
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    import play  # type: ignore[import-not-found]
+
+    train_cfg = load_train_config(play.DEFAULT_TRAIN_CFG)
+    task_cfg = load_task_config(play.DEFAULT_TASK_CFG)
+
+    assert train_cfg.model.name == "sisters_platform_gru"
+    assert train_cfg.rollout_steps == 510
+    assert task_cfg.task_id == "sisters_of_battle"
+    assert task_cfg.reward.boss_damage == 0.30
+    assert task_cfg.reward.player_damage == -12.0

@@ -452,3 +452,19 @@ def test_validate_service_auth_requires_token_for_non_loopback_bind() -> None:
     validate_service_auth("192.168.1.20:5600", remote)
     with pytest.raises(ValueError, match="require_token"):
         validate_service_auth("192.168.1.20:5600", local)
+
+
+def test_all_repo_yaml_configs_resolve_without_dangling_defaults() -> None:
+    configs_root = Path(__file__).resolve().parents[2] / "configs"
+    yaml_files = sorted(configs_root.rglob("*.yaml"))
+    assert yaml_files
+
+    for path in yaml_files:
+        data = load_yaml(path)
+        assert isinstance(data, dict), f"Expected mapping in {path}"
+
+    for train_path in sorted((configs_root / "train").glob("*.yaml")):
+        load_train_config(train_path)
+
+    for task_path in sorted((configs_root / "tasks").glob("*.yaml")):
+        load_task_config(task_path)
