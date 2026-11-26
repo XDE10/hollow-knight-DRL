@@ -16,6 +16,7 @@ from pathlib import Path
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 from typing import Any
 import urllib.request
@@ -161,12 +162,16 @@ def run_episodes(
         if k.startswith("HKRL_NATIVE_") or k in ("HKRL_TACTICS_POLICY", "HKRL_TCP_ACTOR_PORT"):
             env_vars.pop(k, None)
 
+    ledger_dir = tempfile.TemporaryDirectory(prefix="hkrl_play_")
+    ledger_path = Path(ledger_dir.name) / "actor-ledger.txt"
+
     env_vars.update(
         {
             "HKRL_HOST": "127.0.0.1",
             "HKRL_PORT": str(port),
             "HKRL_SAVE_SLOT": str(save_slot),
             "HKRL_NATIVE_ACTOR": str(model_bin.resolve()),
+            "HKRL_NATIVE_ACTOR_LEDGER": str(ledger_path),
             "HKRL_SISTERS_NAIL_MULTIPLIER": "1",
             "SteamAppId": "367520",
             "SteamGameId": "367520",
@@ -277,6 +282,7 @@ def run_episodes(
                 proc.wait(timeout=8.0)
             except subprocess.TimeoutExpired:
                 proc.kill()
+        ledger_dir.cleanup()
 
     wins = sum(int(r["win"]) for r in results)
     no_hits = sum(int(r["no_hit_win"]) for r in results)
