@@ -141,9 +141,9 @@ HKRL/
 Hollow Knight + HKRLEnvMod (C#)        游戏端 PC                 远程 GPU
   ├─ 观测采集                           ┌──────────────┐         ┌──────────────┐
   ├─ 动作执行 (FixedUpdate)      <───>  │ GameWorker   │ ──────> │ Learner      │
-  ├─ 奖励事件                           │ 本地推理     │ rollout │ PPO / APPO   │
-  └─ 干净的回合生命周期                 │ Gym Env      │ <────── │ Checkpoints  │
-       │ FlatBuffers over TCP           └──────────────┘ 权重    └──────────────┘
+  ├─ 奖励事件                           │ 本地推理      │ rollout │ PPO / APPO   │
+  └─ 干净的回合生命周期                  │ Gym Env      │ <────── │ Checkpoints  │
+       │ FlatBuffers over TCP          └──────────────┘ 权重    └──────────────┘
        └────────────────────────────────────┘
 ```
 
