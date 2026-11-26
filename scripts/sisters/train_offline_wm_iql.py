@@ -48,8 +48,8 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 _HERE = Path(__file__).resolve().parent
-WP18_DIR = Path("D:/CodexArtifacts/HKRL-Handoff/WP18-ScaledDRL")
-for _cand in (_HERE, WP18_DIR, WP18_DIR / "HKRL-wp18", Path("C:/Users/Mr.Z/.codex/worktrees/sisters-ci-repair/HKRL")):
+WP18_DIR = _HERE / "_lib"
+for _cand in (_HERE, WP18_DIR, _HERE.parents[1]):
     if str(_cand) not in sys.path and _cand.is_dir():
         sys.path.insert(0, str(_cand))
     if (_cand / "scripts").is_dir() and str(_cand / "scripts") not in sys.path:

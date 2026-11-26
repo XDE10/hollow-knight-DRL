@@ -9,9 +9,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-SPEC = (
-    Path(__file__).resolve().parents[1] / "configs/experiments/sisters_acceptance.json"
-)
+SPEC = Path(__file__).resolve().parents[3] / "configs/sisters_acceptance.json"
 
 
 def goal(number: int) -> dict[str, Any]:

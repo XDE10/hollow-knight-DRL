@@ -1,0 +1,41 @@
+# Self-contained training & transport configuration for Sisters of Battle.
+# Zero external defaults inheritance so this file works standalone anywhere.
+algorithm: recurrent_ppo
+gamma: 0.995
+gae_lambda: 0.95
+clip_range: 0.2
+learning_rate: 3.5e-5
+rollout_steps: 510
+minibatch_size: 128
+epochs: 2
+sequence_length: 32
+burn_in: 8
+entropy_coef: 0.001
+value_coef: 0.5
+max_grad_norm: 0.5
+seed: 0
+
+transport:
+  name: tcp
+  host: 127.0.0.1
+  port: 5555
+  shm_name: hkrl_env
+  req_slots: 8
+  resp_slots: 8
+
+model:
+  name: sisters_platform_gru
+  entity_hidden: 64
+  attention_layers: 1
+  attention_heads: 4
+  rnn_type: gru
+  rnn_hidden: 128
+
+learner:
+  batches_per_update: 1
+  amp_dtype: auto
+  compile_mode: "off"
+  fused_optimizer: auto
+  target_kl: 0.03
+  normalize_advantages_by_task: true
+  device: cpu

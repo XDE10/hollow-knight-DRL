@@ -12,7 +12,7 @@ Runs entirely on a single Colab G4 (96 GB RTX PRO 6000 + multi-core CPU + 170+ G
          + all 6 physical safety guards + anti-Quake-into-disc trap guard!
     4. Export V2 native .bin (with verified V2 139-fight P1 Opener) -> 16-lane 30-episode greedy validation gate (~4 min!).
     5. Promote ONLY if (win_rate improves OR win_rate ties with lower avg_damage / higher no_hit_wins),
-       and immediately push every promoted champion to Google Drive (mydrive:HKRL-WP22/cloud-rl/)!
+       and immediately push every promoted champion to optional remote storage (--drive-dest)!
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ import numpy as np
 import torch
 
 _HERE = Path(__file__).resolve().parent
-for _p in (_HERE, _HERE / "scripts", _HERE / "python", Path("/content/hkrl-repo"), Path("/content/hkrl-repo/scripts"), Path("/content/hkrl-repo/python")):
+for _p in (_HERE, _HERE / "_lib", _HERE.parents[1] / "python"):
     if str(_p) not in sys.path and _p.is_dir():
         sys.path.append(str(_p))
 if str(_HERE) in sys.path:
@@ -764,10 +764,10 @@ def main() -> None:
     ap.add_argument("--world", type=Path, required=True)
     ap.add_argument("--world-val", type=Path, required=True)
     ap.add_argument("--opener-pt", type=Path, default=None)
-    ap.add_argument("--game-root", type=Path, default=Path("/content/hk-linux-base"))
-    ap.add_argument("--repo-root", type=Path, default=Path("/content/hkrl-repo"))
+    ap.add_argument("--game-root", type=Path, required=True)
+    ap.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     ap.add_argument("--observe-script", type=Path, default=Path(__file__).resolve().parent / "collect_episode.py")
-    ap.add_argument("--work-dir", type=Path, default=Path("/content/cloud-online-ppo"))
+    ap.add_argument("--work-dir", type=Path, default=Path("runs/sisters_online_ppo"))
     ap.add_argument("--rounds", type=int, default=8)
     ap.add_argument("--rollouts-per-round", type=int, default=64)
     ap.add_argument("--val-episodes", type=int, default=30)

@@ -16,6 +16,7 @@ dependencies:
   - "pyyaml>=6.0"
   - "python-flatbuffers>=24.3.25"
   - "flatbuffers>=24.3.25"
+  - "psutil>=5.9"
   - "pytorch>=2.2"
   - "cpuonly"
 
@@ -23,12 +24,6 @@ dependencies:
   - "ruff>=0.4"
   - "mypy>=1.9"
   - "pytest>=8.0"
-  - "pytest-cov>=5.0"
-
-  # Optional extras used by worker/learner logging and distributed plumbing.
-  - "tensorboard>=2.16"
-  - "wandb>=0.16"
-  - "pyzmq>=25.1"
 
   - pip:
-      - "-e ./python[dev,logging,distributed]"
+      - "-e ./python[dev]"

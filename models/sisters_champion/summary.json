@@ -40,6 +40,6 @@
     "stage1_offline": "g_attn_320_2lgru (IQL + AWR + 3-ensemble World Model world.pt + occ_head/fmov_head)",
     "stage2_online_wm_ppo": "online_ppo-g_attn (world_aux regularized PPO -> Goal 1 100/100 wins, 31/100 no-hit, avg_dmg 1.33)",
     "stage3_radiant_anneal": "online_ppo-g_attn_radiant -> planB_anneal_g_attn (1-hit stop + Group-4 GRPO + low-temp annealing)",
-    "ablation_planA": "mydrive:HKRL-Linux/results/{planA_deep_etf,planA_race_m} (8.65M + PlanAWorldModelHead under 1.0x budget)"
+    "ablation_planA": "8.65M external TCP GPU actor + online PlanAWorldModelHead under identical 1.0x budget (plateaued at 50%-56% unseen holdout)"
   }
 }

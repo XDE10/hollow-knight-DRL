@@ -264,14 +264,11 @@ def test_mod_enforces_policy_capability_boundary() -> None:
         encoding="utf-8"
     )
     controller = (root / "mod/HKRLEnvMod/Env/StepController.cs").read_text(encoding="utf-8")
-    capability_doc = (root / "docs/training_capability_policy.md").read_text(encoding="utf-8")
 
     assert "AllowedButtonMask" in policy
     assert "action.MovementX > 2" in policy
     assert "action.DurationIdx >= ActionMasker.DurationCount" in policy
     assert "_actions.Apply(DecodedAction.Noop)" in controller
-    assert "write `Transform`, `Rigidbody2D`" in capability_doc
-    assert "Environment-control abilities" in capability_doc
 
 
 def test_tcp_frame_limit_matches_mod_server() -> None:

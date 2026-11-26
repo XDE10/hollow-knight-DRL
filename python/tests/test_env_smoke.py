@@ -34,7 +34,7 @@ def test_env_rejects_invalid_step_timeout(timeout: float) -> None:
     with pytest.raises(ValueError, match="step_timeout_s"):
         HKRLEnv(
             transport=DummyTransport(),
-            task=load_task_config("../configs/tasks/gruz_mother.yaml"),
+            task=load_task_config("../configs/sisters_task.yaml"),
             step_timeout_s=timeout,
         )
 
@@ -183,7 +183,7 @@ def test_env_module_imports() -> None:
 def test_env_constructs_spaces_from_task_config() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml").model_copy(update={"wire_id": 11})
+    task = load_task_config("../configs/sisters_task.yaml").model_copy(update={"wire_id": 11})
     transport = DummyTransport()
 
     env = HKRLEnv(transport=transport, task=task)
@@ -213,7 +213,7 @@ def test_registry_has_builtin_components() -> None:
 def test_env_reset_polls_until_running_and_returns_space_observation() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml").model_copy(update={"wire_id": 11})
+    task = load_task_config("../configs/sisters_task.yaml").model_copy(update={"wire_id": 11})
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.COUNTDOWN),
@@ -237,7 +237,7 @@ def test_env_reset_polls_until_running_and_returns_space_observation() -> None:
     assert info["lifecycle_state"] is protocol.LifecycleState.RUNNING
     assert info["episode_id"] == 123
     assert info["task_id"] == 11
-    assert info["task_name"] == "gruz_mother"
+    assert info["task_name"] == "sisters_of_battle"
     assert info["action_combination_catalog_version"] == 1
     assert info["action_combination_bits"] > 0
     assert info["action_combination_count"] > 0
@@ -248,7 +248,7 @@ def test_env_reset_polls_until_running_and_returns_space_observation() -> None:
 def test_env_step_sends_action_repeat_and_composes_reward() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml").model_copy(update={"wire_id": 12})
+    task = load_task_config("../configs/sisters_task.yaml").model_copy(update={"wire_id": 12})
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),
@@ -283,7 +283,9 @@ def test_env_step_sends_action_repeat_and_composes_reward() -> None:
     assert step_request.NMacroActions() == task.action.n_macro_actions
     assert step_request.Action().Buttons() == 1 << 3
     assert env.observation_space.contains(obs)
-    assert reward == pytest.approx(3.0 + task.reward.time_penalty * task.action.action_repeat)
+    assert reward == pytest.approx(
+        3.0 * task.reward.boss_damage + task.reward.time_penalty * task.action.action_repeat
+    )
     assert terminated is False
     assert truncated is False
     assert info["action_repeat"] == task.action.action_repeat
@@ -294,7 +296,7 @@ def test_env_step_sends_action_repeat_and_composes_reward() -> None:
 def test_env_step_extends_request_until_duration_finishes() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),
@@ -329,7 +331,7 @@ def test_env_reset_and_step_over_real_tcp_transport_with_auth() -> None:
     from hkrl.env import HKRLEnv
     from hkrl.transport.tcp import TcpTransport
 
-    task = load_task_config(_repo_root() / "configs/tasks/gruz_mother.yaml").model_copy(
+    task = load_task_config(_repo_root() / "configs/sisters_task.yaml").model_copy(
         update={"wire_id": 13}
     )
     server = TcpModStub(
@@ -377,7 +379,7 @@ def test_env_reset_and_step_over_real_tcp_transport_with_auth() -> None:
     assert env.observation_space.contains(obs)
     assert info["lifecycle_state"] is protocol.LifecycleState.RUNNING
     assert step_info["lifecycle_state"] is protocol.LifecycleState.RUNNING
-    assert reward == pytest.approx(2.0 + task.reward.time_penalty)
+    assert reward == pytest.approx(2.0 * task.reward.boss_damage + task.reward.time_penalty)
     assert terminated is False
     assert truncated is False
     assert server.error is None
@@ -386,7 +388,7 @@ def test_env_reset_and_step_over_real_tcp_transport_with_auth() -> None:
 def test_env_step_uses_server_tick_delta_for_reward_dt() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml").model_copy(update={"wire_id": 12})
+    task = load_task_config("../configs/sisters_task.yaml").model_copy(update={"wire_id": 12})
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),
@@ -406,13 +408,13 @@ def test_env_step_uses_server_tick_delta_for_reward_dt() -> None:
 
     assert info["elapsed_game_seconds"] == pytest.approx(info["elapsed_ticks"] * 0.02)
     assert task.action.action_repeat == 2
-    assert reward == pytest.approx(3.0 + task.reward.time_penalty)
+    assert reward == pytest.approx(3.0 * task.reward.boss_damage + task.reward.time_penalty)
 
 
 def test_control_replies_preserve_elapsed_transition_ticks() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -440,7 +442,7 @@ def test_control_replies_preserve_elapsed_transition_ticks() -> None:
 def test_env_truncates_at_task_time_limit_and_marks_reason() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml").model_copy(
+    task = load_task_config("../configs/sisters_task.yaml").model_copy(
         update={"time_limit_seconds": 1}
     )
     transport = ScriptedTransport(
@@ -472,8 +474,15 @@ def test_env_truncates_at_task_time_limit_and_marks_reason() -> None:
 def test_env_set_task_sends_wire_id_and_rebuilds_spaces() -> None:
     from hkrl.env import HKRLEnv
 
-    initial_task = load_task_config("../configs/tasks/gruz_mother.yaml")
-    next_task = load_task_config("../configs/tasks/hornet_protector.yaml")
+    initial_task = load_task_config("../configs/sisters_task.yaml")
+    next_task = initial_task.model_copy(
+        update={
+            "task_id": "sisters_of_battle_ascended",
+            "wire_id": 2011,
+            "scene": "GG_Mantis_Lords_V_Ascended",
+            "observation": initial_task.observation.model_copy(update={"max_entities": 32}),
+        }
+    )
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.COUNTDOWN),
@@ -493,7 +502,7 @@ def test_env_set_task_sends_wire_id_and_rebuilds_spaces() -> None:
     ]
     assert all(req.TaskId() == next_task.wire_id for req in transport.requests)
     assert all(req.TaskScene() == next_task.scene.encode() for req in transport.requests)
-    assert env.task.task_id == "hornet_protector_attuned"
+    assert env.task.task_id == "sisters_of_battle_ascended"
     assert env.observation_space["entities"].shape[0] == next_task.observation.max_entities
     assert env.observation_space.contains(obs)
     assert info["task_id"] == next_task.wire_id
@@ -504,8 +513,16 @@ def test_env_set_task_sends_wire_id_and_rebuilds_spaces() -> None:
 def test_env_reward_overrides_survive_task_switch_and_can_reset() -> None:
     from hkrl.env import HKRLEnv
 
-    initial_task = load_task_config("../configs/tasks/gruz_mother.yaml")
-    next_task = load_task_config("../configs/tasks/hornet_protector.yaml")
+    initial_task = load_task_config("../configs/sisters_task.yaml")
+    next_task = initial_task.model_copy(
+        update={
+            "task_id": "sisters_of_battle_ascended",
+            "wire_id": 2011,
+            "reward": initial_task.reward.model_copy(
+                update={"boss_damage": 1.5, "player_death": -120.0}
+            ),
+        }
+    )
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -535,7 +552,7 @@ def test_env_reward_overrides_survive_task_switch_and_can_reset() -> None:
 def test_env_step_requires_completed_reset() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     env = HKRLEnv(transport=DummyTransport(), task=task)
 
     with pytest.raises(EnvProtocolError, match="reset must complete"):
@@ -545,7 +562,7 @@ def test_env_step_requires_completed_reset() -> None:
 def test_env_control_commands_send_pause_resume_and_timescale() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml").model_copy(update={"wire_id": 5})
+    task = load_task_config("../configs/sisters_task.yaml").model_copy(update={"wire_id": 5})
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -596,7 +613,7 @@ def test_env_control_commands_send_pause_resume_and_timescale() -> None:
 def test_env_set_timescale_rejects_non_positive_scale() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     env = HKRLEnv(transport=DummyTransport(), task=task)
 
     with pytest.raises(ValueError, match="scale"):
@@ -606,7 +623,7 @@ def test_env_set_timescale_rejects_non_positive_scale() -> None:
 def test_env_reset_surfaces_status_code() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -656,7 +673,7 @@ def test_reset_retries_only_rejected_scene_loads_before_episode_start(
         [rejected] * len(failures)
         + [lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING)]
     )
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     env = ResetTimeout(HKRLEnv(transport=transport, task=task), 1, retries)
     if succeeds:
         _, info = env.reset(seed=171, options={"recv_timeout_s": 0.1})
@@ -673,7 +690,7 @@ def test_reset_retries_only_rejected_scene_loads_before_episode_start(
 def test_env_rejects_mismatched_response_env_id() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -692,7 +709,7 @@ def test_env_rejects_mismatched_response_env_id() -> None:
 def test_env_rejects_mismatched_response_tick_id() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -711,7 +728,7 @@ def test_env_rejects_mismatched_response_tick_id() -> None:
 def test_env_surfaces_unbound_error_response_before_tick_mismatch() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),
@@ -735,7 +752,7 @@ def test_env_surfaces_unbound_error_response_before_tick_mismatch() -> None:
 def test_env_rejects_non_running_step_lifecycle() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),
@@ -755,7 +772,7 @@ def test_env_rejects_non_running_step_lifecycle() -> None:
 def test_env_rejects_mismatched_entity_mask() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -774,7 +791,7 @@ def test_env_rejects_mismatched_entity_mask() -> None:
 def test_env_rejects_mismatched_action_mask() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -793,7 +810,7 @@ def test_env_rejects_mismatched_action_mask() -> None:
 def test_env_rejects_empty_action_mask_groups() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     action_mask = [True] * 31
     action_mask[:3] = [False, False, False]
     transport = ScriptedTransport(
@@ -814,7 +831,7 @@ def test_env_rejects_empty_action_mask_groups() -> None:
 def test_env_rejects_non_finite_observation_values() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -833,7 +850,7 @@ def test_env_rejects_non_finite_observation_values() -> None:
 def test_env_rejects_entity_hp_above_max_hp() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -853,7 +870,7 @@ def test_env_rejects_entity_hp_above_max_hp() -> None:
 def test_env_rejects_boss_task_without_boss_entity() -> None:
     from hkrl.env import EnvProtocolError, HKRLEnv
 
-    task = load_task_config("../configs/tasks/gruz_mother.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(
@@ -872,7 +889,7 @@ def test_env_rejects_boss_task_without_boss_entity() -> None:
 def test_boss_can_leave_between_phases_after_a_valid_reset() -> None:
     from hkrl.env import HKRLEnv
 
-    task = load_task_config("../configs/tasks/sisters_of_battle.yaml")
+    task = load_task_config("../configs/sisters_task.yaml")
     transport = ScriptedTransport(
         [
             lambda req: _build_response(req, lifecycle=protocol.LifecycleState.RUNNING),

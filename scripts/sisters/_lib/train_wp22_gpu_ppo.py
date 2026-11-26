@@ -25,10 +25,10 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 _HERE = Path(__file__).resolve().parent
-ART = Path("D:/CodexArtifacts/HKRL-Handoff")
+ART = Path(__file__).resolve().parents[3]
 WP18 = ART / "WP18-ScaledDRL"
 REPO = WP18 / "HKRL-wp18"
-CLEAN_PY = Path("C:/Users/Mr.Z/.codex/worktrees/sisters-ci-repair/HKRL/python")
+CLEAN_PY = ART / "python"
 for _p in (_HERE, _HERE / "scripts", _HERE / "python", WP18, REPO / "scripts", CLEAN_PY, REPO / "python"):
     if str(_p) not in sys.path and _p.is_dir():
         sys.path.append(str(_p))

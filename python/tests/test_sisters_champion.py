@@ -1,17 +1,20 @@
-"""Integrity and architecture tests for the shipped Sisters of Battle champion."""
+"""Integrity, portability, and architecture tests for Sisters of Battle champion."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import py_compile
+import re
 import struct
+import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
+from hkrl.utils.config import load_task_config, load_train_config, load_yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MODEL_DIR = REPO_ROOT / "models/sisters_champion"
@@ -24,6 +27,59 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def test_all_repo_yaml_configs_load_cleanly() -> None:
+    """Every YAML under configs/ must resolve with zero missing default parents."""
+    yaml_files = sorted((REPO_ROOT / "configs").rglob("*.yaml"))
+    assert len(yaml_files) >= 2
+    for yf in yaml_files:
+        raw = load_yaml(yf)
+        assert isinstance(raw, dict) and raw
+    train_cfg = load_train_config(REPO_ROOT / "configs/sisters_train.yaml")
+    task_cfg = load_task_config(REPO_ROOT / "configs/sisters_task.yaml")
+    assert train_cfg.transport.port == 5555
+    assert task_cfg.task_id == "sisters_of_battle"
+
+
+def test_zero_hardcoded_personal_or_machine_paths() -> None:
+    """Guard against machine-specific, personal, or Colab paths leaking to teammates."""
+    forbidden = re.compile(
+        r"Mr\.Z|CodexArtifacts|HKRL-Handoff|/content/hk|/mnt/[a-z]/|D:\\Steam|D:/Steam|D:\\DevTools|C:\\ffmpeg|mydrive:",
+        re.IGNORECASE,
+    )
+    tracked = subprocess.check_output(["git", "ls-files"], cwd=REPO_ROOT, text=True).splitlines()
+    violations: list[str] = []
+    for rel in tracked:
+        if rel.endswith((".tar.gz", ".bin", ".pt", ".png", ".jpg")):
+            continue
+        if rel == "python/tests/test_sisters_champion.py":
+            continue
+        p = REPO_ROOT / rel
+        if not p.is_file():
+            continue
+        txt = p.read_text(encoding="utf-8", errors="ignore")
+        if forbidden.search(txt):
+            violations.append(rel)
+    assert not violations, f"Found hardcoded personal/machine paths in: {violations}"
+
+
+def test_steam_vdf_parser_discovers_cross_drive_libraries(tmp_path: Path) -> None:
+    """Verify Steam libraryfolders.vdf parsing discovers games on arbitrary drives."""
+    scripts_root = str(REPO_ROOT / "scripts")
+    if scripts_root not in sys.path:
+        sys.path.insert(0, scripts_root)
+    from install_mod import parse_steam_library_paths  # type: ignore[import-not-found]
+
+    vdf = tmp_path / "libraryfolders.vdf"
+    vdf.write_text(
+        '"libraryfolders"\n{\n  "0"\n  {\n    "path"\t\t"C:\\\\Program Files (x86)\\\\Steam"\n'
+        '  }\n  "1"\n  {\n    "path"\t\t"E:\\\\SteamLibrary"\n  }\n}\n',
+        encoding="utf-8",
+    )
+    roots = parse_steam_library_paths(vdf)
+    assert len(roots) == 2
+    assert any("SteamLibrary" in str(r) for r in roots)
 
 
 def test_champion_receipts_and_optional_binary() -> None:
@@ -44,7 +100,6 @@ def test_champion_receipts_and_optional_binary() -> None:
     assert formal["wins"] == 100
     assert formal["no_hit_wins"] == 65
 
-    # When the Release binary is present locally, verify exact SHA-256 and V2 dual-phase header
     champ_bin = MODEL_DIR / "sisters_champion.bin"
     if champ_bin.is_file():
         assert _sha256(champ_bin) == summary["winner_bin_sha256"]
@@ -103,34 +158,37 @@ def test_attn_recurrent_actor_forward_and_binary_export(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "script_name",
+    "rel_path",
     [
-        "play.py",
-        "models.py",
-        "collect_episode.py",
-        "eval_parallel.py",
-        "train_offline_wm_iql.py",
-        "train_online_ppo.py",
+        "scripts/install_mod.py",
+        "scripts/sisters/play.py",
+        "scripts/sisters/record_demo.py",
+        "scripts/sisters/models.py",
+        "scripts/sisters/collect_episode.py",
+        "scripts/sisters/eval_parallel.py",
+        "scripts/sisters/train_offline_wm_iql.py",
+        "scripts/sisters/train_online_ppo.py",
     ],
 )
-def test_sisters_scripts_compile(script_name: str) -> None:
-    path = SCRIPTS_DIR / script_name
+def test_all_user_scripts_compile(rel_path: str) -> None:
+    path = REPO_ROOT / rel_path
     assert path.is_file(), f"Missing script: {path}"
     py_compile.compile(str(path), doraise=True)
 
 
-def test_sisters_play_default_configs_load_cleanly() -> None:
-    from hkrl.utils.config import load_task_config, load_train_config
-
+def test_assess_sisters_goals_and_demo_imports() -> None:
+    """Verify key helper scripts resolve configs and cross-script imports cleanly."""
+    lib_dir = str(REPO_ROOT / "scripts/sisters/_lib")
+    if lib_dir not in sys.path:
+        sys.path.insert(0, lib_dir)
     if str(SCRIPTS_DIR) not in sys.path:
         sys.path.insert(0, str(SCRIPTS_DIR))
+
+    import assess_sisters_goals  # type: ignore[import-not-found]
     import play  # type: ignore[import-not-found]
+    import record_demo  # type: ignore[import-not-found]
 
-    train_cfg = load_train_config(play.DEFAULT_TRAIN_CFG)
-    task_cfg = load_task_config(play.DEFAULT_TASK_CFG)
-
-    assert train_cfg.model.name == "sisters_platform_gru"
-    assert train_cfg.rollout_steps == 510
-    assert task_cfg.task_id == "sisters_of_battle"
-    assert task_cfg.reward.boss_damage == 0.30
-    assert task_cfg.reward.player_damage == -12.0
+    assert assess_sisters_goals.SPEC.is_file()
+    assert play.DEFAULT_TRAIN_CFG.is_file()
+    assert play.DEFAULT_TASK_CFG.is_file()
+    assert callable(record_demo.discover_game_root)

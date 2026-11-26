@@ -1,8 +1,7 @@
 """Typed configuration models + YAML loading/composition.
 
 Pydantic models give validated, IDE-friendly config; YAML files in ``configs/``
-provide values (see configs/base.yaml). Fields mirror PRD §12. Configs compose:
-a train run references a task config and a model config.
+provide values (see configs/sisters_train.yaml and configs/sisters_task.yaml).
 """
 
 from __future__ import annotations
@@ -61,7 +60,7 @@ class ArenaConfig(StrictConfigModel):
 
 
 class TaskConfig(StrictConfigModel):
-    """One boss/arena task (configs/tasks/*.yaml). Mirrors PRD §12.1."""
+    """One boss/arena task (e.g. configs/sisters_task.yaml)."""
 
     task_id: str = Field(min_length=1)
     wire_id: int = Field(default=0, ge=0)
@@ -139,7 +138,7 @@ class SecurityConfig(StrictConfigModel):
 
 
 class TrainConfig(StrictConfigModel):
-    """Training hyperparameters (configs/train/*.yaml). Mirrors PRD §12.2."""
+    """Training hyperparameters (e.g. configs/sisters_train.yaml)."""
 
     algorithm: Literal["ppo", "recurrent_ppo", "appo"] = "recurrent_ppo"
     gamma: float = Field(default=0.995, ge=0.0, le=1.0)

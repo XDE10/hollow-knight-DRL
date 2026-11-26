@@ -28,7 +28,7 @@ def build_argparser() -> argparse.ArgumentParser:
     parser.add_argument("--config", required=True, help="path to a train config YAML")
     parser.add_argument(
         "--task",
-        default="configs/tasks/gruz_mother.yaml",
+        default="configs/sisters_task.yaml",
         help="path to a task config YAML",
     )
     parser.add_argument("--smoke", action="store_true", help="random-policy wiring check")

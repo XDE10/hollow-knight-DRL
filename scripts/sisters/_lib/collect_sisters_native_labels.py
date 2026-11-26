@@ -246,8 +246,8 @@ def main() -> None:
         raise ValueError("Expected two distinct frozen neural arms at original speed")
     args.output.mkdir(exist_ok=False, parents=True)
     manifest = []
-    cfg = load_train_config("configs/train/sisters_platform.yaml")
-    task = load_task_config("configs/experiments/sisters_champion.yaml")
+    cfg = load_train_config("configs/sisters_train.yaml")
+    task = load_task_config("configs/sisters_task.yaml")
     task.action.action_repeat = 5
     task.time_limit_seconds = 480
     with exclusive_game_lock(Path(f"runs/training/sisters-actor-{args.port}.lock")):

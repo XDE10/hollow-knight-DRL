@@ -1,6 +1,6 @@
 """hkrl — Hollow Knight reinforcement learning package.
 
-Layout (see ../README.md and ../../docs/architecture.md):
+Layout (see ../../README.md and ../../docs/setup_guide.md):
 
     protocol      wire constants + (de)serialization helpers over schema/hkrl.fbs
     transport/    pluggable Transport (tcp, shared_memory)
@@ -15,10 +15,6 @@ Layout (see ../README.md and ../../docs/architecture.md):
     coordinator/  worker management, task sampling, curriculum
     eval/         evaluator, scripted policies
     utils/        config, logging, metrics, seeding, registry
-
-Most Python-side roadmap scaffolding now has executable implementations and
-focused tests. Live game behavior still depends on HKRLEnvMod running inside a
-configured Hollow Knight install (see ../../AGENTS.md#verify-your-changes).
 """
 
 from __future__ import annotations

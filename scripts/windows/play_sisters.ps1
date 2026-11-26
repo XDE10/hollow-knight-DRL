@@ -6,13 +6,22 @@ param(
     [int]$Seed = 19900001,
     [ValidateRange(1, 65535)][int]$Port = 5555,
     [ValidateRange(1, 4)][int]$SaveSlot = 3,
-    [switch]$Headless
+    [switch]$Headless,
+    [switch]$AutoInstallMod
 )
 
 $ErrorActionPreference = "Stop"
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
-$py = Join-Path $repo ".venv/Scripts/python.exe"
-if (-not (Test-Path -LiteralPath $py)) { $py = "python" }
+
+# Prefer active venv/conda python, then local .venv, then PATH python
+$py = $null
+if ($env:VIRTUAL_ENV -and (Test-Path (Join-Path $env:VIRTUAL_ENV "Scripts/python.exe"))) {
+    $py = Join-Path $env:VIRTUAL_ENV "Scripts/python.exe"
+} elseif (Test-Path (Join-Path $repo ".venv/Scripts/python.exe")) {
+    $py = Join-Path $repo ".venv/Scripts/python.exe"
+} else {
+    $py = "python"
+}
 
 $pyArgs = @(
     (Join-Path $repo "scripts/sisters/play.py"),
@@ -24,6 +33,7 @@ $pyArgs = @(
 )
 if ($GameRoot) { $pyArgs += @("--game-root", $GameRoot) }
 if ($Headless) { $pyArgs += "--headless" }
+if ($AutoInstallMod) { $pyArgs += "--auto-install-mod" }
 
 Push-Location $repo
 try {

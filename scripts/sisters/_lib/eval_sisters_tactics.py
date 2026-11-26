@@ -266,10 +266,10 @@ def main() -> None:
                 raise ValueError(
                     f"The active weights differ from the checkpoint for {suffix}."
                 )
-    task = load_task_config("configs/experiments/sisters_counter.yaml")
+    task = load_task_config("configs/sisters_task.yaml")
     task.action.action_repeat = 5
     task.time_limit_seconds = manifest["time_limit"]
-    train = load_train_config("configs/train/sisters_platform.yaml")
+    train = load_train_config("configs/sisters_train.yaml")
     env = HKRLEnv(make_transport(train, port=args.port), task, step_timeout_s=18)
     results = []
     try:

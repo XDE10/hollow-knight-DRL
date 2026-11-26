@@ -1,7 +1,7 @@
 """Colab G4 High-Concurrency Native Linux Hollow Knight Runner (Eval + Closed-Loop Online No-Hit PPO).
 
 Designed to saturate Colab G4's multi-core CPU, 170+ GB RAM, and 96 GB RTX PRO 6000 VRAM:
-  - Pulls hk-linux-1.5.78-v2.tar.gz from local NVMe (/content/hk-linux-base) once.
+  - Pulls hk-linux-1.5.78-v2.tar.gz from --game-root once.
   - Spawns N parallel headless Hollow Knight Linux instances (e.g. 10-16 lanes) via Xvfb
     with per-lane isolated XDG_CONFIG_HOME/HOME saves and unique TCP ports (5600..5600+N-1).
   - Supports:
@@ -639,8 +639,8 @@ def run_parallel_job_list(
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", required=True, choices=("smoke", "eval"))
-    ap.add_argument("--game-root", type=Path, default=Path("/content/hk-linux-base"))
-    ap.add_argument("--repo-root", type=Path, default=Path("/content/hkrl-repo"))
+    ap.add_argument("--game-root", type=Path, required=True)
+    ap.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     ap.add_argument("--observe-script", type=Path, default=Path(__file__).resolve().parent / "collect_episode.py")
     ap.add_argument("--actor-bin", type=Path, required=True)
     ap.add_argument("--run-dir", type=Path, required=True)

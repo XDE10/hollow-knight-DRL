@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """One-command playback & evaluation runner for the frozen Sisters of Battle champion.
 
-Example:
+Examples:
     python scripts/sisters/play.py
     python scripts/sisters/play.py --episodes 5 --seed 19900001
-    python scripts/sisters/play.py --game-root "D:/Steam/steamapps/common/Hollow Knight" --headless
+    python scripts/sisters/play.py --game-root "/path/to/Hollow Knight" --auto-install-mod
 """
 from __future__ import annotations
 
@@ -24,14 +24,17 @@ import urllib.request
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT / "python") not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT / "python"))
+for _p in (REPO_ROOT / "python", REPO_ROOT / "scripts"):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
 from hkrl.env import HKRLEnv
 from hkrl.protocol import RewardEventKind as K
 from hkrl.transport.factory import make_transport
 from hkrl.utils.config import load_task_config, load_train_config
+from install_mod import discover_hollow_knight, install_mod
 
+discover_game_root = discover_hollow_knight
 
 DEFAULT_MODEL = REPO_ROOT / "models/sisters_champion/sisters_champion.bin"
 DEFAULT_MODEL_URL = (
@@ -39,8 +42,8 @@ DEFAULT_MODEL_URL = (
     "v1.0.0-sisters-champion/sisters_champion.bin"
 )
 DEFAULT_MODEL_SHA256 = "f97d6aba7911a4983ce8a242edc8e8ef708743483ac7dcd1e57aef8132a43b08"
-DEFAULT_TRAIN_CFG = REPO_ROOT / "configs/train/sisters_platform.yaml"
-DEFAULT_TASK_CFG = REPO_ROOT / "configs/experiments/sisters_champion.yaml"
+DEFAULT_TRAIN_CFG = REPO_ROOT / "configs/sisters_train.yaml"
+DEFAULT_TASK_CFG = REPO_ROOT / "configs/sisters_task.yaml"
 
 
 def _sha256(path: Path) -> str:
@@ -68,36 +71,6 @@ def ensure_default_model(model_path: Path) -> Path:
     tmp.replace(model_path)
     print(f"[HKRL] Verified champion binary (sha256={digest[:12]})", flush=True)
     return model_path
-
-
-def discover_game_root(explicit: Path | None) -> Path:
-    if explicit is not None:
-        return explicit.expanduser().resolve()
-
-    local_cfg = REPO_ROOT / "runs/game-setup/local-game.json"
-    if local_cfg.is_file():
-        try:
-            data = json.loads(local_cfg.read_text(encoding="utf-8"))
-            cand = Path(str(data.get("game_root", "")))
-            if cand.is_dir():
-                return cand
-        except Exception:
-            pass
-
-    candidates = [
-        Path(r"D:\Steam\steamapps\common\Hollow Knight"),
-        Path(r"C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight"),
-        Path(r"C:\Steam\steamapps\common\Hollow Knight"),
-        Path.home() / ".local/share/Steam/steamapps/common/Hollow Knight",
-        Path.home() / ".steam/steam/steamapps/common/Hollow Knight",
-    ]
-    for cand in candidates:
-        if (cand / "hollow_knight.exe").is_file() or (cand / "hollow_knight.x86_64").is_file():
-            return cand
-    raise FileNotFoundError(
-        "Could not locate Hollow Knight installation automatically. "
-        "Pass --game-root /path/to/Hollow\\ Knight."
-    )
 
 
 def find_game_exe(game_root: Path) -> Path:
@@ -147,14 +120,32 @@ def run_episodes(
     headless: bool,
     width: int,
     height: int,
+    auto_install_mod: bool = False,
 ) -> list[dict[str, Any]]:
+    # Validate configs & files BEFORE spawning Hollow Knight so errors never leave orphan windows
+    cfg = load_train_config(str(DEFAULT_TRAIN_CFG))
+    task = load_task_config(str(DEFAULT_TASK_CFG))
+    task.action.action_repeat = 16
+    task.time_limit_seconds = 360
+    noop: dict[str, Any] = {
+        "movement_x": 1,
+        "aim_y": 1,
+        "buttons": np.zeros(9, dtype=np.int8),
+        "duration": 3,
+    }
+    if task.action.enable_macro_actions:
+        noop["macro"] = 0
+
     exe = find_game_exe(game_root)
     mod_dll = game_root / "hollow_knight_Data/Managed/Mods/HKRLEnvMod/HKRLEnvMod.dll"
     if not mod_dll.is_file():
-        raise FileNotFoundError(
-            f"HKRLEnvMod.dll not found at {mod_dll}. "
-            "Build and copy mod/HKRLEnvMod first (see README.md)."
-        )
+        if auto_install_mod:
+            install_mod(game_root)
+        else:
+            raise FileNotFoundError(
+                f"HKRLEnvMod.dll not found at {mod_dll}.\n"
+                "Run `python scripts/install_mod.py` (or pass --auto-install-mod) to install it automatically."
+            )
 
     runtime_conf = read_runtime_conf(game_root)
     env_vars = dict(os.environ)
@@ -192,19 +183,6 @@ def run_episodes(
     if headless:
         args.extend(["-batchmode", "-nographics"])
 
-    cfg = load_train_config(str(DEFAULT_TRAIN_CFG))
-    task = load_task_config(str(DEFAULT_TASK_CFG))
-    task.action.action_repeat = 16
-    task.time_limit_seconds = 360
-    noop: dict[str, Any] = {
-        "movement_x": 1,
-        "aim_y": 1,
-        "buttons": np.zeros(9, dtype=np.int8),
-        "duration": 3,
-    }
-    if task.action.enable_macro_actions:
-        noop["macro"] = 0
-
     print(
         f"[HKRL] Launching Sisters Champion ({model_bin.name}, sha256={_sha256(model_bin)[:12]}) "
         f"on port {port} ({'headless' if headless else f'{width}x{height} windowed'})...",
@@ -216,7 +194,10 @@ def run_episodes(
     game: HKRLEnv | None = None
     try:
         if not wait_for_port(port, proc, timeout_s=90.0):
-            raise RuntimeError(f"Hollow Knight did not listen on 127.0.0.1:{port} (exit={proc.poll()})")
+            raise RuntimeError(
+                f"Hollow Knight did not listen on 127.0.0.1:{port} (exit={proc.poll()}). "
+                "Verify HK Modding API + HKRLEnvMod.dll are installed (see docs/setup_guide.md)."
+            )
 
         if "HKRL_AUTH_TOKEN" in env_vars:
             os.environ["HKRL_AUTH_TOKEN"] = env_vars["HKRL_AUTH_TOKEN"]
@@ -298,7 +279,7 @@ def run_episodes(
 def main() -> None:
     ap = argparse.ArgumentParser(description="Play or evaluate the frozen Sisters of Battle champion.")
     ap.add_argument("--model", type=Path, default=DEFAULT_MODEL, help="Path to frozen native actor .bin")
-    ap.add_argument("--game-root", type=Path, default=None, help="Path to Hollow Knight installation directory")
+    ap.add_argument("--game-root", type=Path, default=None, help="Path to Hollow Knight directory (auto-detected if omitted)")
     ap.add_argument("--episodes", type=int, default=1, help="Number of fights to run")
     ap.add_argument("--seed", type=int, default=19900001, help="First deterministic evaluation seed")
     ap.add_argument("--port", type=int, default=5555, help="Local TCP port for HKRLEnvMod")
@@ -306,11 +287,12 @@ def main() -> None:
     ap.add_argument("--headless", action="store_true", help="Run headless (-batchmode -nographics)")
     ap.add_argument("--width", type=int, default=1280, help="Window width when not headless")
     ap.add_argument("--height", type=int, default=720, help="Window height when not headless")
+    ap.add_argument("--auto-install-mod", action="store_true", help="Auto-download HKRLEnvMod.dll if missing")
     ap.add_argument("--output", type=Path, default=None, help="Optional JSON path to save episode results")
     args = ap.parse_args()
 
     model_bin = ensure_default_model(args.model)
-    game_root = discover_game_root(args.game_root)
+    game_root = discover_hollow_knight(args.game_root)
     results = run_episodes(
         game_root=game_root,
         model_bin=model_bin,
@@ -321,6 +303,7 @@ def main() -> None:
         headless=args.headless,
         width=args.width,
         height=args.height,
+        auto_install_mod=args.auto_install_mod,
     )
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)

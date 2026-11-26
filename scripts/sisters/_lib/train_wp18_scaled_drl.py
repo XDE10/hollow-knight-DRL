@@ -32,7 +32,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 _HERE = Path(__file__).resolve().parent
-for _cand in (_HERE, _HERE / "HKRL-wp18", Path("C:/Users/Mr.Z/.codex/worktrees/sisters-ci-repair/HKRL")):
+for _cand in (_HERE, _HERE.parents[2]):
     if str(_cand) not in sys.path and _cand.is_dir():
         sys.path.insert(0, str(_cand))
     if (_cand / "scripts").is_dir() and str(_cand / "scripts") not in sys.path:

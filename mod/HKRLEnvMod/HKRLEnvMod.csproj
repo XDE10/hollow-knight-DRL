@@ -2,27 +2,21 @@
 
   <Import Project="Version.props" />
 
-  <!--
-    HKRLEnvMod — Hollow Knight environment-server mod (HK Modding API).
-    See docs/mod_dev.md and docs/adr/0003-mod-framework-hk-modding-api.md.
+    <!--
+      HKRLEnvMod — Hollow Knight environment-server mod (HK Modding API).
+      See docs/setup_guide.md for installation and build instructions.
+    -->
 
-    Assembly references below point at a LOCAL Hollow Knight install + Modding
-    API. These paths are machine-specific: set HollowKnightManaged in a local
-    Directory.Build.props / .csproj.user (NOT committed). CI can generate schema
-    bindings, but full mod compilation requires those local game assemblies.
-  -->
-
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <AssemblyName>HKRLEnvMod</AssemblyName>
-    <RootNamespace>HKRLEnvMod</RootNamespace>
-    <Nullable>enable</Nullable>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <!-- Override locally, e.g. in .csproj.user:
-         <HollowKnightManaged>C:\Steam\...\Hollow Knight_Data\Managed</HollowKnightManaged> -->
-    <HollowKnightManaged Condition="'$(HollowKnightManaged)' == ''">$(MSBuildProjectDirectory)\..\..\.refs\Managed</HollowKnightManaged>
-  </PropertyGroup>
+    <PropertyGroup>
+      <TargetFramework>net472</TargetFramework>
+      <LangVersion>latest</LangVersion>
+      <AssemblyName>HKRLEnvMod</AssemblyName>
+      <RootNamespace>HKRLEnvMod</RootNamespace>
+      <Nullable>enable</Nullable>
+      <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+      <!-- Override via -p:HollowKnightManaged="/path/to/Hollow Knight/hollow_knight_Data/Managed" -->
+      <HollowKnightManaged Condition="'$(HollowKnightManaged)' == ''">$(MSBuildProjectDirectory)\..\..\.refs\Managed</HollowKnightManaged>
+    </PropertyGroup>
 
   <ItemGroup>
     <!-- Hollow Knight + Unity + Modding API assemblies (resolved from the local install). -->
